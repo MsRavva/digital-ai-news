@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/types/database"
-import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, subscribeToAuthChanges } from "@/lib/firebase-auth"
+import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub } from "@/lib/firebase-auth"
 
 interface AuthContextType {
   user: FirebaseUser | null
@@ -14,6 +14,8 @@ interface AuthContextType {
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, username: string, role: string) => Promise<{ error: any }>
+  signInWithGoogle: () => Promise<{ error: any }>
+  signInWithGithub: () => Promise<{ error: any }>
   signOut: () => Promise<void>
 }
 
@@ -57,13 +59,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
+  const signInWithGoogle = async () => {
+    const { user, error } = await firebaseSignInWithGoogle()
+    return { error }
+  }
+
+  const signInWithGithub = async () => {
+    const { user, error } = await firebaseSignInWithGithub()
+    return { error }
+  }
+
   const signOut = async () => {
     await firebaseSignOut()
     router.push("/")
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signInWithGoogle, signInWithGithub, signOut }}>
       {children}
     </AuthContext.Provider>
   )

@@ -11,14 +11,16 @@ import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Github } from "lucide-react"
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isGithubLoading, setIsGithubLoading] = useState(false)
+  const { signIn, signInWithGoogle, signInWithGithub } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
 
@@ -52,6 +54,70 @@ export default function Login() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true)
+
+    try {
+      const { error } = await signInWithGoogle()
+
+      if (error) {
+        toast({
+          title: "Ошибка входа через Google",
+          description: error.message,
+          variant: "destructive",
+        })
+        return
+      }
+
+      toast({
+        title: "Успешный вход",
+        description: "Вы успешно вошли в систему через Google",
+      })
+
+      router.push("/")
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Произошла неизвестная ошибка",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGoogleLoading(false)
+    }
+  }
+
+  const handleGithubSignIn = async () => {
+    setIsGithubLoading(true)
+
+    try {
+      const { error } = await signInWithGithub()
+
+      if (error) {
+        toast({
+          title: "Ошибка входа через GitHub",
+          description: error.message,
+          variant: "destructive",
+        })
+        return
+      }
+
+      toast({
+        title: "Успешный вход",
+        description: "Вы успешно вошли в систему через GitHub",
+      })
+
+      router.push("/")
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Произошла неизвестная ошибка",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGithubLoading(false)
     }
   }
 
@@ -119,7 +185,50 @@ export default function Login() {
               <Button className="w-full" variant="saas" type="submit" disabled={isLoading}>
                 {isLoading ? "Вход..." : "Войти"}
               </Button>
-              <div className="text-center text-sm">
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-gray-300 dark:border-gray-600"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500 dark:bg-[#111827] dark:text-gray-400">
+                    Или войти через
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogleSignIn}
+                  disabled={isGoogleLoading}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chrome">
+                    <circle cx="12" cy="12" r="10"/>
+                    <circle cx="12" cy="12" r="4"/>
+                    <line x1="21.17" x1="8" y1="8" y2="21.17"/>
+                    <line x1="3.95" x1="6.06" y1="6.06" y2="3.95"/>
+                    <line x1="10.88" x1="21.17" y1="10.88" y2="3.95"/>
+                    <line x1="3.95" x1="21.17" y1="3.95" y2="16"/>
+                  </svg>
+                  Google
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGithubSignIn}
+                  disabled={isGithubLoading}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <Github className="h-4 w-4" />
+                  GitHub
+                </Button>
+              </div>
+
+              <div className="text-center text-sm mt-4">
                 Нет аккаунта?{" "}
                 <Link href="/register" className="text-saas-purple hover:underline">
                   Зарегистрироваться
