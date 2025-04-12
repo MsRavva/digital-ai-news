@@ -1,0 +1,259 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 265 89% 78%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 265 89% 78%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 0 0% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 0 0% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 265 89% 78%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 265 89% 78%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Enhanced gradient for light mode */
+.saas-gradient {
+  background: linear-gradient(135deg, #e9e1ff 0%, #f0f7ff 50%, #e8f0ff 100%);
+}
+
+.dark .saas-gradient {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Enhanced card with better shadow */
+.saas-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(243, 244, 246, 0.7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 25px -5px rgba(124, 58, 237, 0.1), 0 20px 32px -8px
+    rgba(124, 58, 237, 0.07);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saas-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 12px 28px -7px rgba(124, 58, 237, 0.15), 0 24px 38px -10px
+    rgba(124, 58, 237, 0.1);
+}
+
+.dark .saas-card {
+  background-color: #111827;
+  border: 1px solid #1f2937;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+}
+
+.dark .saas-card:hover {
+  box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.35), 0 25px 45px -10px rgba(0, 0, 0, 0.25);
+}
+
+/* Enhanced window with better shadow */
+.saas-window {
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(243, 244, 246, 0.7);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 10px 25px -5px rgba(124, 58, 237, 0.1), 0 20px 32px -8px
+    rgba(124, 58, 237, 0.07);
+  overflow: hidden;
+  position: relative;
+}
+
+.dark .saas-window {
+  background-color: #111827;
+  border: 1px solid #1f2937;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+}
+
+.saas-window-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dark .saas-window-header {
+  border-bottom: 1px solid #1f2937;
+}
+
+.saas-window-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+}
+
+.saas-window-dot-red {
+  background-color: #ef4444;
+}
+
+.saas-window-dot-yellow {
+  background-color: #f59e0b;
+}
+
+.saas-window-dot-green {
+  background-color: #10b981;
+}
+
+.saas-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.5rem 1rem;
+}
+
+.saas-button-primary {
+  background-color: #8a4bff;
+  color: white;
+  box-shadow: 0 2px 5px rgba(138, 75, 255, 0.3);
+}
+
+.saas-button-primary:hover {
+  background-color: #7039cc;
+  box-shadow: 0 4px 8px rgba(138, 75, 255, 0.4);
+}
+
+.dark .saas-button-primary {
+  background-color: #8a4bff;
+  color: white;
+  box-shadow: 0 2px 5px rgba(138, 75, 255, 0.2);
+}
+
+.dark .saas-button-primary:hover {
+  background-color: #9d69ff;
+  box-shadow: 0 4px 8px rgba(138, 75, 255, 0.3);
+}
+
+.saas-button-secondary {
+  background-color: transparent;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.saas-button-secondary:hover {
+  background-color: #f9fafb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.dark .saas-button-secondary {
+  color: #e5e7eb;
+  border: 1px solid #374151;
+}
+
+.dark .saas-button-secondary:hover {
+  background-color: #374151;
+}
+
+.saas-button-ghost {
+  background-color: transparent;
+  color: #111827;
+}
+
+.saas-button-ghost:hover {
+  background-color: #f3f4f6;
+}
+
+.dark .saas-button-ghost {
+  color: #e5e7eb;
+}
+
+.dark .saas-button-ghost:hover {
+  background-color: #374151;
+}
+
+/* Dark mode gradient background */
+.dark .bg-saas-purple-bg {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* Dark mode card and window styles */
+.dark .bg-white {
+  background-color: #111827;
+}
+
+.dark .border-b {
+  border-color: #1f2937;
+}
+
+.dark .text-gray-500 {
+  color: #9ca3af;
+}
+
+.dark .text-muted-foreground {
+  color: #9ca3af;
+}
+
+/* Dark mode input styles */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1e293b;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280;
+}
+
+/* Dark mode tabs */
+.dark .bg-saas-purple-bg {
+  background-color: #1e293b;
+}
+
+/* Enhanced background for light mode */
+.bg-saas-purple-bg {
+  background: linear-gradient(135deg, #e9e1ff 0%, #f0f7ff 50%, #e8f0ff 100%);
+}
