@@ -18,15 +18,25 @@ export function PostsList({ posts }: PostsListProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="card-grid">
       {posts.map((post) => (
         <Link href={`/posts/${post.id}`} key={post.id}>
-          <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200">
+          <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg">
             <div className="flex items-start gap-4">
-              <Avatar className="h-10 w-10 border-2 border-[hsl(var(--saas-purple)/0.2)]">
+              <Avatar className="h-10 w-10 border-2 border-[hsl(var(--saas-purple)/0.5)]">
                 <AvatarImage src="/placeholder.svg?height=40&width=40" alt={post.author?.username || ""} />
-                <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white font-medium">
-                  {post.author?.username.substring(0, 2).toUpperCase() || "??"}
+                <AvatarFallback className="bg-[#333] text-white font-medium">
+                  {(() => {
+                    if (!post.author?.username) return "??";
+                    const nameParts = post.author.username.split(' ');
+                    if (nameParts.length >= 2) {
+                      // Фамилия + Имя (первые буквы)
+                      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
+                    } else {
+                      // Если только одно слово, берем первые две буквы
+                      return post.author.username.substring(0, 2).toUpperCase();
+                    }
+                  })()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">

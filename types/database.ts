@@ -16,6 +16,9 @@ export interface Post {
   created_at: string
   category: "news" | "materials" | "discussions"
   tags: string[]
+  likesCount?: number
+  commentsCount?: number
+  viewsCount?: number
 }
 
 export interface Tag {

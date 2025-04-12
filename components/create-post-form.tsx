@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { X, Upload, FileText, ImageIcon, LinkIcon, Loader2 } from "lucide-react"
+import { LinkPopover } from "./link-popover"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
@@ -136,8 +137,7 @@ export function CreatePostForm() {
     setAttachments(prev => prev.filter(a => a.name !== name));
   };
 
-  const handleLinkAdd = () => {
-    const url = prompt("Введите URL ссылки:");
+  const handleLinkAdd = (url: string) => {
     if (url) {
       setAttachments(prev => [...prev, {
         type: 'link',
@@ -225,13 +225,21 @@ export function CreatePostForm() {
   const renderPreview = () => {
     if (!previewData) return null;
 
+    // Функция для обрезки длинных строк
+    const truncateString = (str: string, maxLength: number) => {
+      if (str.length <= maxLength) return str;
+      return str.substring(0, maxLength) + '...';
+    };
+
     // Преобразуем содержимое с прикрепленными файлами
     let fullContent = previewData.content;
 
     if (previewData.attachments.length > 0) {
       const attachmentsContent = previewData.attachments.map(a => {
         if (a.type === 'link') {
-          return `[Ссылка: ${a.name}](${a.url})`;
+          // Обрезаем длинные ссылки
+          const displayName = truncateString(a.name, 60);
+          return `[Ссылка: ${displayName}](${a.url})`;
         } else if (a.type === 'image' && a.url) {
           return `![${a.name}](${a.url})`;
         } else if (a.url) {
@@ -247,7 +255,7 @@ export function CreatePostForm() {
     const contentHtml = fullContent
       .replace(/\n/g, '<br>')
       .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; margin: 10px 0;" />')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link">$1</a>');
 
     // Определяем название категории
     const categoryName = {
@@ -272,7 +280,16 @@ export function CreatePostForm() {
             <div className="flex items-center space-x-4">
               <Avatar>
                 <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white">
-                  {previewData.author.username.substring(0, 2).toUpperCase()}
+                  {(() => {
+                    const nameParts = previewData.author.username.split(' ');
+                    if (nameParts.length >= 2) {
+                      // Фамилия + Имя (первые буквы)
+                      return `${nameParts[0][0]}${nameParts[1][0]}`;
+                    } else {
+                      // Если только одно слово, берем первые две буквы
+                      return previewData.author.username.substring(0, 2);
+                    }
+                  })().toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -376,16 +393,7 @@ export function CreatePostForm() {
             <div>
               <Label>Прикрепить</Label>
               <div className="flex flex-wrap gap-2 mt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={handleLinkAdd}
-                >
-                  <LinkIcon className="h-4 w-4" />
-                  Ссылка
-                </Button>
+                <LinkPopover onLinkAdd={handleLinkAdd} />
                 <Button
                   type="button"
                   variant="outline"

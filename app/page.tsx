@@ -1,23 +1,66 @@
+'use client'
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { PostsList } from "@/components/posts-list"
+import { PostsTable } from "@/components/posts-table"
 import { TagsFilter } from "@/components/tags-filter"
-import { RandomContent } from "@/components/random-content"
-import { getPosts, getAllTags } from "@/lib/api"
+import { ViewToggle } from "@/components/view-toggle"
+import { getPosts, getAllTags } from "@/lib/client-api"
 import Link from "next/link"
 import { Search, Plus, Filter } from "lucide-react"
 import { Input } from "@/components/ui/input"
 
-export default async function Home() {
-  // Fetch posts and tags
-  const allPosts = await getPosts()
-  const newsPosts = await getPosts("news")
-  const materialsPosts = await getPosts("materials")
-  const discussionsPosts = await getPosts("discussions")
-  const tags = await getAllTags()
+export default function Home() {
+  const [posts, setPosts] = useState({
+    all: [],
+    news: [],
+    materials: [],
+    discussions: []
+  })
+  const [tags, setTags] = useState([])
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log('Загрузка данных...')
+        const allPosts = await getPosts()
+        console.log('Все посты:', allPosts)
+        const newsPosts = await getPosts("news")
+        console.log('Новости:', newsPosts)
+        const materialsPosts = await getPosts("materials")
+        console.log('Материалы:', materialsPosts)
+        const discussionsPosts = await getPosts("discussions")
+        console.log('Обсуждения:', discussionsPosts)
+        const allTags = await getAllTags()
+        console.log('Теги:', allTags)
+
+        setPosts({
+          all: allPosts,
+          news: newsPosts,
+          materials: materialsPosts,
+          discussions: discussionsPosts
+        })
+        setTags(allTags)
+      } catch (error) {
+        console.error("Ошибка при загрузке данных:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  const handleViewChange = (view: 'grid' | 'table') => {
+    setViewMode(view)
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -60,44 +103,75 @@ export default async function Home() {
               <div className="saas-window-dot saas-window-dot-yellow"></div>
               <div className="saas-window-dot saas-window-dot-green"></div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-6">
-              <div className="md:col-span-3">
-                <div className="sticky top-24">
-                  <TagsFilter tags={tags} />
-                </div>
-              </div>
-
-              <div className="md:col-span-9">
+            <div className="p-6">
+              <div className="w-full">
                 <Tabs defaultValue="all" className="mb-6">
                   <div className="flex justify-between items-center mb-4">
-                    <TabsList className="bg-white/50 backdrop-blur-sm dark:bg-[#1e293b]">
-                      <TabsTrigger value="all">Все</TabsTrigger>
-                      <TabsTrigger value="news">Новости</TabsTrigger>
-                      <TabsTrigger value="materials">Учебные материалы</TabsTrigger>
-                      <TabsTrigger value="discussions">Обсуждения</TabsTrigger>
-                    </TabsList>
-                    <Button variant="saas-secondary" size="sm" className="gap-1">
-                      <Filter className="h-4 w-4" /> Фильтры
-                    </Button>
+                    <div className="filter-container">
+                      <TabsList className="bg-transparent border-none p-0 shadow-none">
+                        <TabsTrigger value="all" className="filter-item">Все</TabsTrigger>
+                        <TabsTrigger value="news" className="filter-item">Новости</TabsTrigger>
+                        <TabsTrigger value="materials" className="filter-item">Учебные материалы</TabsTrigger>
+                        <TabsTrigger value="discussions" className="filter-item">Обсуждения</TabsTrigger>
+                      </TabsList>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
+                      <Button variant="saas-secondary" size="sm" className="gap-1">
+                        <Filter className="h-4 w-4" /> Фильтры
+                      </Button>
+                    </div>
                   </div>
                   <TabsContent value="all">
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      <PostsList posts={allPosts} />
+                      {loading ? (
+                        <div className="p-8 text-center">
+                          <p className="text-muted-foreground">Загрузка публикаций...</p>
+                        </div>
+                      ) : viewMode === 'grid' ? (
+                        <PostsList posts={posts.all} />
+                      ) : (
+                        <PostsTable posts={posts.all} />
+                      )}
                     </Card>
                   </TabsContent>
                   <TabsContent value="news">
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      <PostsList posts={newsPosts} />
+                      {loading ? (
+                        <div className="p-8 text-center">
+                          <p className="text-muted-foreground">Загрузка публикаций...</p>
+                        </div>
+                      ) : viewMode === 'grid' ? (
+                        <PostsList posts={posts.news} />
+                      ) : (
+                        <PostsTable posts={posts.news} />
+                      )}
                     </Card>
                   </TabsContent>
                   <TabsContent value="materials">
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      <PostsList posts={materialsPosts} />
+                      {loading ? (
+                        <div className="p-8 text-center">
+                          <p className="text-muted-foreground">Загрузка публикаций...</p>
+                        </div>
+                      ) : viewMode === 'grid' ? (
+                        <PostsList posts={posts.materials} />
+                      ) : (
+                        <PostsTable posts={posts.materials} />
+                      )}
                     </Card>
                   </TabsContent>
                   <TabsContent value="discussions">
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      <PostsList posts={discussionsPosts} />
+                      {loading ? (
+                        <div className="p-8 text-center">
+                          <p className="text-muted-foreground">Загрузка публикаций...</p>
+                        </div>
+                      ) : viewMode === 'grid' ? (
+                        <PostsList posts={posts.discussions} />
+                      ) : (
+                        <PostsTable posts={posts.discussions} />
+                      )}
                     </Card>
                   </TabsContent>
                 </Tabs>
@@ -105,9 +179,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="mt-12">
-            <RandomContent />
-          </div>
+
         </div>
       </main>
 
