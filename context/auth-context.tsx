@@ -3,13 +3,13 @@
 import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientSupabaseClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
-import type { User } from "@supabase/supabase-js"
+import { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/types/database"
+import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, subscribeToAuthChanges } from "@/lib/firebase-auth"
 
 interface AuthContextType {
-  user: User | null
+  user: FirebaseUser | null
   profile: Profile | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
@@ -20,84 +20,45 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<FirebaseUser | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClientSupabaseClient()
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setUser(session?.user || null)
+    // Подписываемся на изменения состояния аутентификации
+    const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
+      setUser(firebaseUser)
 
-      if (session?.user) {
-        const { data: profile } = await supabase.from("profiles").select("*").eq("id", session.user.id).single()
-
-        setProfile(profile)
-      }
-
-      setIsLoading(false)
-    }
-
-    fetchUser()
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
-      if (session?.user) {
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single()
-          .then(({ data }) => {
-            setProfile(data)
-          })
+      if (firebaseUser) {
+        // Получаем профиль пользователя из Firestore
+        const userProfile = await getUserProfile(firebaseUser.uid)
+        setProfile(userProfile)
       } else {
         setProfile(null)
       }
+
+      setIsLoading(false)
       router.refresh()
     })
 
     return () => {
-      subscription.unsubscribe()
+      unsubscribe()
     }
-  }, [router, supabase])
+  }, [router])
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { user, error } = await firebaseSignIn(email, password)
     return { error }
   }
 
   const signUp = async (email: string, password: string, username: string, role: string) => {
-    const { error: signUpError, data } = await supabase.auth.signUp({
-      email,
-      password,
-    })
-
-    if (signUpError || !data.user) {
-      return { error: signUpError }
-    }
-
-    // Create profile
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: data.user.id,
-      username,
-      role,
-    })
-
-    return { error: profileError }
+    const { user, error } = await firebaseSignUp(email, password, username, role)
+    return { error }
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await firebaseSignOut()
     router.push("/")
   }
 
