@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef, ChangeEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,11 +9,22 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { X, Upload, FileText, ImageIcon, LinkIcon } from "lucide-react"
+import { X, Upload, FileText, ImageIcon, LinkIcon, Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
-import { createClientSupabaseClient } from "@/lib/supabase"
+import { createPost } from "@/lib/firebase-db"
+import { uploadFile } from "@/lib/firebase-storage"
+import { Progress } from "@/components/ui/progress"
+
+interface Attachment {
+  type: 'link' | 'image' | 'document' | 'file';
+  name: string;
+  url?: string;
+  file?: File;
+  progress?: number;
+  uploading?: boolean;
+}
 
 export function CreatePostForm() {
   const [title, setTitle] = useState("")
@@ -22,10 +33,12 @@ export function CreatePostForm() {
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { user } = useAuth()
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { user, profile } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
-  const supabase = createClientSupabaseClient()
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
@@ -40,6 +53,83 @@ export function CreatePostForm() {
   const handleRemoveTag = (tagToRemove: string) => {
     setTags(tags.filter((tag) => tag !== tagToRemove))
   }
+
+  // Обработчики для прикрепления файлов
+  const handleFileUpload = async (file: File, type: 'image' | 'document' | 'file') => {
+    if (!user) return;
+
+    const newAttachment: Attachment = {
+      type,
+      name: file.name,
+      file,
+      progress: 0,
+      uploading: true
+    };
+
+    setAttachments(prev => [...prev, newAttachment]);
+
+    try {
+      // Путь для загрузки файла в Firebase Storage
+      const path = `posts/${user.uid}/${Date.now()}_${file.name}`;
+
+      // Загружаем файл и получаем URL
+      const url = await uploadFile(file, path, (progress) => {
+        setUploadProgress(progress);
+        setAttachments(prev => prev.map(a =>
+          a.name === file.name ? { ...a, progress } : a
+        ));
+      });
+
+      // Обновляем состояние с URL файла
+      setAttachments(prev => prev.map(a =>
+        a.name === file.name ? { ...a, url, uploading: false } : a
+      ));
+
+      toast({
+        title: "Файл загружен",
+        description: `Файл ${file.name} успешно загружен`,
+      });
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+
+      // Удаляем неудачную загрузку из списка
+      setAttachments(prev => prev.filter(a => a.name !== file.name));
+
+      toast({
+        title: "Ошибка загрузки",
+        description: error.message || "Произошла ошибка при загрузке файла",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadProgress(0);
+    }
+  };
+
+  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileUpload(files[0], 'file');
+    }
+    // Сбрасываем значение input, чтобы можно было загрузить тот же файл повторно
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAttachmentRemove = (name: string) => {
+    setAttachments(prev => prev.filter(a => a.name !== name));
+  };
+
+  const handleLinkAdd = () => {
+    const url = prompt("Введите URL ссылки:");
+    if (url) {
+      setAttachments(prev => [...prev, {
+        type: 'link',
+        name: url,
+        url
+      }]);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,15 +155,36 @@ export function CreatePostForm() {
     setIsLoading(true)
 
     try {
-      const { error } = await supabase.rpc("create_post", {
-        title_param: title,
-        content_param: content,
-        category_param: category,
-        tags_param: tags,
-      })
+      // Подготавливаем данные для создания поста
+      const postData = {
+        title,
+        content,
+        category,
+        author_id: user.uid,
+        tags,
+      };
 
-      if (error) {
-        throw error
+      // Если есть прикрепленные файлы, добавляем их URL в содержимое
+      if (attachments.length > 0) {
+        const attachmentsContent = attachments.map(a => {
+          if (a.type === 'link') {
+            return `[Ссылка: ${a.name}](${a.url})`;
+          } else if (a.type === 'image' && a.url) {
+            return `![${a.name}](${a.url})`;
+          } else if (a.url) {
+            return `[${a.name}](${a.url})`;
+          }
+          return '';
+        }).filter(Boolean).join('\n\n');
+
+        postData.content = `${content}\n\n${attachmentsContent}`;
+      }
+
+      // Создаем пост в Firebase
+      const postId = await createPost(postData);
+
+      if (!postId) {
+        throw new Error("Не удалось создать публикацию");
       }
 
       toast({
@@ -158,34 +269,89 @@ export function CreatePostForm() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Прикрепить</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm" className="flex items-center gap-1">
-                <LinkIcon className="h-4 w-4" />
-                Ссылка
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="flex items-center gap-1">
-                <ImageIcon className="h-4 w-4" />
-                Изображение
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="flex items-center gap-1">
-                <FileText className="h-4 w-4" />
-                Документ
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="flex items-center gap-1">
-                <Upload className="h-4 w-4" />
-                Загрузить файл
-              </Button>
+          <div className="space-y-4">
+            <div>
+              <Label>Прикрепить</Label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={handleLinkAdd}
+                >
+                  <LinkIcon className="h-4 w-4" />
+                  Ссылка
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  Загрузить файл
+                </Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                />
+              </div>
             </div>
+
+            {/* Список прикрепленных файлов */}
+            {attachments.length > 0 && (
+              <div className="border rounded-md p-3 space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                <h4 className="text-sm font-medium">Прикрепленные файлы:</h4>
+                <div className="space-y-2">
+                  {attachments.map((attachment, index) => (
+                    <div key={index} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
+                      <div className="flex items-center gap-2 overflow-hidden">
+                        {attachment.type === 'link' && <LinkIcon className="h-4 w-4 text-blue-500" />}
+                        {attachment.type === 'image' && <ImageIcon className="h-4 w-4 text-green-500" />}
+                        {attachment.type === 'document' && <FileText className="h-4 w-4 text-orange-500" />}
+                        {attachment.type === 'file' && <FileText className="h-4 w-4 text-purple-500" />}
+                        <span className="text-sm truncate">{attachment.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {attachment.uploading && (
+                          <div className="w-20">
+                            <Progress value={attachment.progress} className="h-2" />
+                          </div>
+                        )}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => handleAttachmentRemove(attachment.name)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="outline" type="button">
             Предпросмотр
           </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Публикация..." : "Опубликовать"}
+          <Button type="submit" disabled={isLoading} className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Публикация...
+              </>
+            ) : (
+              "Опубликовать"
+            )}
           </Button>
         </CardFooter>
       </form>

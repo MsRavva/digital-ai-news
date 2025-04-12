@@ -10,6 +10,25 @@ body {
   background-attachment: fixed;
 }
 
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--saas-purple) / 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--saas-purple) / 0.5);
+}
+
 .dark body {
   background-image: radial-gradient(circle at center, rgba(157, 92, 255, 0.35) 0%, rgba(0, 128, 255, 0.15) 40%, transparent 70%);
   background-color: #090b0d;
