@@ -33,13 +33,13 @@ export function UserNav() {
 
   if (!user || !profile) {
     return (
-      <div className="flex items-center gap-4">
+      <div className="flex items-center space-x-4">
         {mounted && (
           <Button
             variant="ghost"
             size="icon"
             aria-label="Toggle theme"
-            className="mr-2 text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
+            className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
             onClick={toggleTheme}
           >
             {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -56,7 +56,7 @@ export function UserNav() {
   }
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center space-x-8">
       {mounted && (
         <Button
           variant="ghost"
@@ -70,13 +70,23 @@ export function UserNav() {
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden border-2 border-[hsl(var(--saas-purple)/0.3)] hover:border-[hsl(var(--saas-purple))] transition-all duration-200">
-            <Avatar className="h-full w-full">
-              <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Аватар" />
-              <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white font-medium">
-                {profile.username.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+          <Button variant="ghost" className="relative p-0 bg-transparent hover:bg-transparent border-2 border-[hsl(var(--saas-purple))] rounded-md h-10 px-3 transition-all duration-200 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[hsl(var(--saas-purple))]">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span className="text-[hsl(var(--saas-purple))] font-bold text-lg">
+              {(() => {
+                const nameParts = profile.username.split(' ');
+                if (nameParts.length >= 2) {
+                  // Фамилия + Имя (первые буквы)
+                  return `${nameParts[0][0]}${nameParts[1][0]}`;
+                } else {
+                  // Если только одно слово, берем первые две буквы
+                  return profile.username.substring(0, 2);
+                }
+              })().toUpperCase()}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>

@@ -14,6 +14,11 @@ import { auth, db } from "./firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Profile } from "@/types/database";
 
+// Проверка подключения к интернету
+const checkOnlineStatus = (): boolean => {
+  return typeof navigator !== 'undefined' && navigator.onLine;
+};
+
 // Регистрация нового пользователя
 export const signUp = async (
   email: string,
@@ -87,6 +92,16 @@ export const subscribeToAuthChanges = (
 // Аутентификация через Google
 export const signInWithGoogle = async (): Promise<{ user: FirebaseUser | null; error: any }> => {
   try {
+    // Проверяем подключение к интернету
+    if (!checkOnlineStatus()) {
+      return {
+        user: null,
+        error: {
+          message: "Нет подключения к интернету. Пожалуйста, проверьте ваше соединение и попробуйте снова."
+        }
+      };
+    }
+
     const provider = new GoogleAuthProvider();
     const userCredential = await signInWithPopup(auth, provider);
 
@@ -106,6 +121,15 @@ export const signInWithGoogle = async (): Promise<{ user: FirebaseUser | null; e
 
     return { user: userCredential.user, error: null };
   } catch (error) {
+    // Проверяем, не связана ли ошибка с отсутствием подключения
+    if (!checkOnlineStatus()) {
+      return {
+        user: null,
+        error: {
+          message: "Потеряно подключение к интернету. Пожалуйста, проверьте ваше соединение и попробуйте снова."
+        }
+      };
+    }
     return { user: null, error };
   }
 };
@@ -113,6 +137,16 @@ export const signInWithGoogle = async (): Promise<{ user: FirebaseUser | null; e
 // Аутентификация через GitHub
 export const signInWithGithub = async (): Promise<{ user: FirebaseUser | null; error: any }> => {
   try {
+    // Проверяем подключение к интернету
+    if (!checkOnlineStatus()) {
+      return {
+        user: null,
+        error: {
+          message: "Нет подключения к интернету. Пожалуйста, проверьте ваше соединение и попробуйте снова."
+        }
+      };
+    }
+
     const provider = new GithubAuthProvider();
     const userCredential = await signInWithPopup(auth, provider);
 
@@ -132,6 +166,15 @@ export const signInWithGithub = async (): Promise<{ user: FirebaseUser | null; e
 
     return { user: userCredential.user, error: null };
   } catch (error) {
+    // Проверяем, не связана ли ошибка с отсутствием подключения
+    if (!checkOnlineStatus()) {
+      return {
+        user: null,
+        error: {
+          message: "Потеряно подключение к интернету. Пожалуйста, проверьте ваше соединение и попробуйте снова."
+        }
+      };
+    }
     return { user: null, error };
   }
 };
