@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-saas-purple text-primary-foreground hover:bg-saas-purple-dark",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
@@ -18,11 +18,14 @@ const buttonVariants = cva(
         saas: "saas-button saas-button-primary",
         "saas-secondary": "saas-button saas-button-secondary",
         "saas-ghost": "saas-button saas-button-ghost",
+        "saas-gradient": "bg-[hsl(var(--saas-purple))] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
+        "saas-outline": "border-2 border-[hsl(var(--saas-purple))] text-[hsl(var(--saas-purple))] bg-transparent hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
+        sm: "h-9 rounded-md px-3 text-xs",
+        lg: "h-11 rounded-md px-8 text-base",
+        xl: "h-12 rounded-md px-10 text-base",
         icon: "h-10 w-10",
       },
     },

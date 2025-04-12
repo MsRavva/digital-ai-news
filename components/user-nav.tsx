@@ -35,15 +35,21 @@ export function UserNav() {
     return (
       <div className="flex items-center gap-4">
         {mounted && (
-          <Button variant="ghost" size="icon" aria-label="Toggle theme" className="mr-2" onClick={toggleTheme}>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Toggle theme"
+            className="mr-2 text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
+            onClick={toggleTheme}
+          >
             {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </Button>
         )}
         <Link href="/login">
-          <Button variant="saas-ghost">Войти</Button>
+          <Button variant="default" size="sm">Войти</Button>
         </Link>
         <Link href="/register">
-          <Button variant="saas">Регистрация</Button>
+          <Button variant="saas-gradient" size="sm">Регистрация</Button>
         </Link>
       </div>
     )
@@ -52,16 +58,22 @@ export function UserNav() {
   return (
     <div className="flex items-center gap-4">
       {mounted && (
-        <Button variant="ghost" size="icon" aria-label="Toggle theme" onClick={toggleTheme}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Toggle theme"
+          className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
+          onClick={toggleTheme}
+        >
           {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Аватар" />
-              <AvatarFallback className="bg-saas-purple text-white">
+          <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0 overflow-hidden border-2 border-[hsl(var(--saas-purple)/0.3)] hover:border-[hsl(var(--saas-purple))] transition-all duration-200">
+            <Avatar className="h-full w-full">
+              <AvatarImage src="/placeholder.svg?height=36&width=36" alt="Аватар" />
+              <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white font-medium">
                 {profile.username.substring(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -70,30 +82,35 @@ export function UserNav() {
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{profile.username}</p>
+              <p className="text-sm font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">{profile.username}</p>
               <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
               <Link href="/profile" className="w-full">
                 Профиль
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
               <Link href="/my-posts" className="w-full">
                 Мои публикации
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
               <Link href="/settings" className="w-full">
                 Настройки
               </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut()}>Выйти</DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => signOut()}
+            className="cursor-pointer hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400 dark:focus:bg-red-950/50 dark:focus:text-red-400 transition-colors duration-200"
+          >
+            Выйти
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

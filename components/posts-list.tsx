@@ -18,60 +18,60 @@ export function PostsList({ posts }: PostsListProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {posts.map((post) => (
         <Link href={`/posts/${post.id}`} key={post.id}>
-          <div className="saas-card p-5 hover:border-saas-purple-light transition-colors">
+          <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200">
             <div className="flex items-start gap-4">
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-10 w-10 border-2 border-[hsl(var(--saas-purple)/0.2)]">
                 <AvatarImage src="/placeholder.svg?height=40&width=40" alt={post.author?.username || ""} />
-                <AvatarFallback className="bg-saas-purple text-white">
+                <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white font-medium">
                   {post.author?.username.substring(0, 2).toUpperCase() || "??"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="font-medium">{post.author?.username}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+                      {post.author?.username}
+                    </span>
                     <Badge
                       variant="outline"
-                      className="ml-2 bg-saas-purple-bg text-saas-purple border-saas-purple-light dark:bg-[#1e293b] dark:text-saas-purple-light dark:border-[#374151]"
+                      className="bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
                     >
                       {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
                     </Badge>
-                    <span className="text-xs text-muted-foreground ml-2">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(post.created_at).toLocaleDateString("ru-RU")}
                     </span>
                   </div>
-                  <button className="text-muted-foreground hover:text-saas-purple">
+                  <button className="text-muted-foreground hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
                     <MoreHorizontal className="h-5 w-5" />
                   </button>
                 </div>
-                <h3 className="text-lg font-semibold mt-2">{post.title}</h3>
-                <p className="text-muted-foreground mt-1">
+                <h3 className="text-xl font-semibold mt-3 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                  {post.title}
+                </h3>
+                <p className="text-muted-foreground mt-2 line-clamp-2">
                   {post.content.length > 150 ? post.content.substring(0, 150) + "..." : post.content}
                 </p>
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="flex flex-wrap gap-2 mt-4">
                   {post.tags?.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="bg-saas-purple-bg text-saas-purple border-none dark:bg-[#1e293b] dark:text-saas-purple-light"
-                    >
+                    <span key={tag} className="tag">
                       {tag}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
                 <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
                     <MessageSquare className="h-4 w-4" />
                     <span>{post.commentsCount}</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
                     <ThumbsUp className="h-4 w-4" />
                     <span>{post.likesCount}</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
                     <Eye className="h-4 w-4" />
                     <span>{post.viewsCount}</span>
                   </div>

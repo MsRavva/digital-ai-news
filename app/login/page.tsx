@@ -56,7 +56,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#e9e1ff] via-[#f0f7ff] to-[#e8f0ff] dark:from-[#0f172a] dark:to-[#1e293b] p-4">
+    <div className="flex min-h-screen items-center justify-center p-4">
       <div className="saas-window max-w-md w-full">
         <div className="saas-window-header">
           <div className="saas-window-dot saas-window-dot-red"></div>

@@ -70,12 +70,12 @@ export function TagsFilter({ tags }: TagsFilterProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <Card className="border-0 shadow-none bg-white">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">Категории</CardTitle>
+    <div className="space-y-6">
+      <Card variant="border" className="overflow-hidden">
+        <CardHeader className="pb-3 bg-[hsl(var(--saas-purple)/0.03)]">
+          <CardTitle className="text-base font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">Категории</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="space-y-4">
             {categories.map((category) => (
               <div key={category.id} className="flex items-center space-x-2">
@@ -83,9 +83,9 @@ export function TagsFilter({ tags }: TagsFilterProps) {
                   id={`category-${category.id}`}
                   checked={selectedCategoriesState.includes(category.id)}
                   onCheckedChange={(checked) => handleCategoryChange(category.id, checked as boolean)}
-                  className="text-saas-purple border-saas-purple-light data-[state=checked]:bg-saas-purple data-[state=checked]:border-saas-purple"
+                  className="text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] data-[state=checked]:bg-[hsl(var(--saas-purple))] data-[state=checked]:border-[hsl(var(--saas-purple))] h-4 w-4"
                 />
-                <Label htmlFor={`category-${category.id}`} className="text-sm font-normal">
+                <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">
                   {category.name}
                 </Label>
               </div>
@@ -94,25 +94,24 @@ export function TagsFilter({ tags }: TagsFilterProps) {
         </CardContent>
       </Card>
 
-      <Card className="border-0 shadow-none bg-white">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium">Популярные теги</CardTitle>
+      <Card variant="border" className="overflow-hidden">
+        <CardHeader className="pb-3 bg-[hsl(var(--saas-purple)/0.03)]">
+          <CardTitle className="text-base font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">Популярные теги</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
-              <Badge
+              <span
                 key={tag.id}
-                variant={selectedTagsState.includes(tag.name) ? "default" : "outline"}
-                className={`cursor-pointer ${
+                className={`tag cursor-pointer transition-all duration-200 ${
                   selectedTagsState.includes(tag.name)
-                    ? "bg-saas-purple hover:bg-saas-purple-dark"
-                    : "bg-saas-purple-bg text-saas-purple border-saas-purple-light hover:bg-saas-purple-light hover:text-white"
+                    ? "bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))]"
+                    : "hover:bg-[hsl(var(--saas-purple)/0.2)]"
                 }`}
                 onClick={() => handleTagClick(tag.name)}
               >
                 {tag.name}
-              </Badge>
+              </span>
             ))}
           </div>
         </CardContent>
