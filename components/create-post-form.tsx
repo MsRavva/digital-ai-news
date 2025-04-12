@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import { createPost } from "@/lib/firebase-db"
 import { uploadFile } from "@/lib/firebase-storage"
 import { Progress } from "@/components/ui/progress"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface Attachment {
   type: 'link' | 'image' | 'document' | 'file';
@@ -24,6 +25,19 @@ interface Attachment {
   file?: File;
   progress?: number;
   uploading?: boolean;
+}
+
+interface PreviewData {
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  attachments: Attachment[];
+  author: {
+    username: string;
+    role: string;
+  };
+  created_at: string;
 }
 
 export function CreatePostForm() {
@@ -35,6 +49,8 @@ export function CreatePostForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [uploadProgress, setUploadProgress] = useState<number>(0)
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { user, profile } = useAuth()
   const { toast } = useToast()
@@ -205,9 +221,96 @@ export function CreatePostForm() {
     }
   }
 
+  // Функция для отображения предпросмотра
+  const renderPreview = () => {
+    if (!previewData) return null;
+
+    // Преобразуем содержимое с прикрепленными файлами
+    let fullContent = previewData.content;
+
+    if (previewData.attachments.length > 0) {
+      const attachmentsContent = previewData.attachments.map(a => {
+        if (a.type === 'link') {
+          return `[Ссылка: ${a.name}](${a.url})`;
+        } else if (a.type === 'image' && a.url) {
+          return `![${a.name}](${a.url})`;
+        } else if (a.url) {
+          return `[${a.name}](${a.url})`;
+        }
+        return '';
+      }).filter(Boolean).join('\n\n');
+
+      fullContent = `${previewData.content}\n\n${attachmentsContent}`;
+    }
+
+    // Преобразуем маркдаун в HTML
+    const contentHtml = fullContent
+      .replace(/\n/g, '<br>')
+      .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; margin: 10px 0;" />')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    // Определяем название категории
+    const categoryName = {
+      'news': 'Новости',
+      'materials': 'Учебные материалы',
+      'discussions': 'Обсуждения'
+    }[previewData.category] || previewData.category;
+
+    // Форматируем дату
+    const formattedDate = new Date(previewData.created_at).toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    return (
+      <Card className="p-6 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-4">
+              <Avatar>
+                <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white">
+                  {previewData.author.username.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="font-medium">{previewData.author.username}</div>
+                <div className="text-sm text-muted-foreground">{formattedDate}</div>
+              </div>
+            </div>
+            <Badge variant="outline">{categoryName}</Badge>
+          </div>
+          <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
+          <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: contentHtml }} />
+        </div>
+        {previewData.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {previewData.tags.map((tag, index) => (
+              <Badge key={index} variant="secondary">{tag}</Badge>
+            ))}
+          </div>
+        )}
+        <div className="flex justify-end mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setShowPreview(false)}
+          >
+            Вернуться к редактированию
+          </Button>
+        </div>
+      </Card>
+    );
+  };
+
   return (
-    <Card>
-      <form onSubmit={handleSubmit}>
+    <>
+      {showPreview ? (
+        renderPreview()
+      ) : (
+        <Card>
+          <form onSubmit={handleSubmit}>
         <CardHeader>
           <CardTitle>Новая публикация</CardTitle>
           <CardDescription>Создайте новую публикацию для обмена новостями, ссылками или файлами.</CardDescription>
@@ -340,7 +443,36 @@ export function CreatePostForm() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline" type="button">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              if (!title || !content || !category) {
+                toast({
+                  title: "Ошибка",
+                  description: "Пожалуйста, заполните все обязательные поля",
+                  variant: "destructive",
+                })
+                return
+              }
+
+              // Создаем данные для предпросмотра
+              setPreviewData({
+                title,
+                content,
+                category,
+                tags,
+                attachments,
+                author: {
+                  username: profile?.username || "Unknown",
+                  role: profile?.role || "student"
+                },
+                created_at: new Date().toISOString()
+              })
+
+              setShowPreview(true)
+            }}
+          >
             Предпросмотр
           </Button>
           <Button type="submit" disabled={isLoading} className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
@@ -356,5 +488,7 @@ export function CreatePostForm() {
         </CardFooter>
       </form>
     </Card>
+      )}
+    </>
   )
 }
