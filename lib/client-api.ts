@@ -8,7 +8,9 @@ import {
   recordView as recordFirebaseView,
   likeComment as likeFirebaseComment,
   unlikeComment as unlikeFirebaseComment,
-  hasUserLikedComment as hasFirebaseUserLikedComment
+  hasUserLikedComment as hasFirebaseUserLikedComment,
+  likePost as likeFirebasePost,
+  hasUserLikedPost as hasFirebaseUserLikedPost
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
@@ -69,11 +71,8 @@ export async function getPosts(category?: string): Promise<Post[]> {
   }
 
   try {
-    // Для тестирования используем моковые данные
-    if (category) {
-      return mockPosts.filter(post => post.category === category);
-    }
-    return mockPosts;
+    // Вызываем Firebase функцию
+    return await getFirebasePosts(category);
   } catch (error) {
     console.error('Ошибка при получении постов:', error);
     return [];
@@ -87,8 +86,8 @@ export async function getAllTags(): Promise<Tag[]> {
   }
 
   try {
-    // Для тестирования используем моковые данные
-    return mockTags;
+    // Вызываем Firebase функцию
+    return await getFirebaseTags();
   } catch (error) {
     console.error('Ошибка при получении тегов:', error);
     return [];
@@ -103,9 +102,8 @@ export async function getPostById(id: string) {
   }
 
   try {
-    // Для тестирования используем моковые данные
-    const post = mockPosts.find(p => p.id === id);
-    return post || null;
+    // Вызываем Firebase функцию
+    return await getFirebasePostById(id);
   } catch (error) {
     console.error('Ошибка при получении поста:', error);
     return null;
@@ -160,8 +158,8 @@ export async function createPost(data: {
   }
 
   try {
-    // Для тестирования возвращаем фиктивный ID
-    return 'post-' + Date.now();
+    // Вызываем Firebase функцию
+    return await createFirebasePost(data);
   } catch (error) {
     console.error('Ошибка при создании поста:', error);
     return null;
@@ -226,6 +224,38 @@ export async function hasUserLikedComment(commentId: string, userId: string): Pr
     return await hasFirebaseUserLikedComment(commentId, userId);
   } catch (error) {
     console.error('Ошибка при проверке лайка комментария:', error);
+    return false;
+  }
+}
+
+// Лайк публикации
+export async function likePost(postId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await likeFirebasePost(postId, userId);
+  } catch (error) {
+    console.error('Ошибка при лайке/анлайке публикации:', error);
+    return false;
+  }
+}
+
+// Проверка, лайкнул ли пользователь публикацию
+export async function hasUserLikedPost(postId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await hasFirebaseUserLikedPost(postId, userId);
+  } catch (error) {
+    console.error('Ошибка при проверке лайка публикации:', error);
     return false;
   }
 }

@@ -12,8 +12,10 @@ import { CommentForm } from "@/components/comment-form"
 import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark } from "lucide-react"
 import { useEffect, useState } from 'react'
 import React from 'react'
-import { getPostById } from '@/lib/client-api'
+import { getPostById, recordView, likePost, hasUserLikedPost } from '@/lib/client-api'
 import { Post } from '@/types/database'
+import { useAuth } from '@/context/auth-context'
+import { useToast } from '@/components/ui/use-toast'
 
 // Функция для обрезки длинных строк
 const truncateString = (str: string, maxLength: number) => {
@@ -39,12 +41,21 @@ export default function PostPage({ params }: { params: { id: string } }) {
 
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isLiked, setIsLiked] = useState(false)
+  const { user } = useAuth()
+  const { toast } = useToast()
 
+  // Загрузка поста и запись просмотра
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const postData = await getPostById(postId)
         setPost(postData)
+
+        // Записываем просмотр, если пользователь авторизован
+        if (user) {
+          await recordView(postId, user.uid)
+        }
       } catch (error) {
         console.error('Ошибка при загрузке публикации:', error)
       } finally {
@@ -53,7 +64,73 @@ export default function PostPage({ params }: { params: { id: string } }) {
     }
 
     fetchPost()
-  }, [postId])
+  }, [postId, user])
+
+  // Проверка, лайкнул ли пользователь пост
+  useEffect(() => {
+    const checkIfLiked = async () => {
+      if (user && postId) {
+        try {
+          const liked = await hasUserLikedPost(postId, user.uid)
+          setIsLiked(liked)
+        } catch (error) {
+          console.error('Ошибка при проверке лайка:', error)
+        }
+      }
+    }
+
+    checkIfLiked()
+  }, [postId, user])
+
+  // Обработчик лайка/анлайка
+  const handleLike = async () => {
+    if (!user) {
+      toast({
+        title: "Ошибка",
+        description: "Вы должны быть авторизованы для отправки лайков",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const result = await likePost(postId, user.uid)
+
+      // Запоминаем предыдущее состояние лайка
+      const wasLiked = isLiked;
+
+      // Обновляем состояние лайка
+      setIsLiked(result)
+
+      // Обновляем счетчик лайков в UI
+      // result=true означает, что лайк был добавлен, result=false - удален
+      if (post) {
+        // Если ранее не было лайка и мы его добавили, увеличиваем счетчик
+        // Если ранее был лайк и мы его удалили, уменьшаем счетчик
+        let newLikesCount = post.likesCount || 0;
+
+        if (result && !wasLiked) {
+          // Добавили лайк
+          newLikesCount += 1;
+        } else if (!result && wasLiked) {
+          // Удалили лайк
+          newLikesCount = Math.max(0, newLikesCount - 1);
+        }
+
+        setPost({
+          ...post,
+          likesCount: newLikesCount
+        })
+      }
+    } catch (error) {
+      console.error('Ошибка при лайке/анлайке:', error)
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обработать лайк",
+        variant: "destructive"
+      })
+    }
+  }
 
   if (loading) {
     return (
@@ -151,8 +228,12 @@ export default function PostPage({ params }: { params: { id: string } }) {
               </div>
 
               <div className="flex items-center space-x-6 mt-6">
-                <Button variant="outline" className="flex items-center gap-1">
-                  <ThumbsUp className="h-4 w-4" />
+                <Button
+                  variant="outline"
+                  className={`flex items-center gap-1 ${isLiked ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' : ''}`}
+                  onClick={handleLike}
+                >
+                  <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
                   <span>{post.likesCount || 0}</span>
                 </Button>
                 <div className="flex items-center gap-1 text-muted-foreground">

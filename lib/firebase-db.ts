@@ -414,6 +414,75 @@ export async function hasUserLikedComment(commentId: string, userId: string): Pr
   }
 }
 
+// Лайк публикации
+export async function likePost(postId: string, userId: string): Promise<boolean> {
+  try {
+    // Проверяем, не лайкнул ли пользователь эту публикацию ранее
+    const likeQuery = query(
+      collection(db, "likes"),
+      where("post_id", "==", postId),
+      where("user_id", "==", userId)
+    );
+
+    const likeSnapshot = await getDocs(likeQuery);
+
+    if (!likeSnapshot.empty) {
+      // Пользователь уже лайкнул эту публикацию - удаляем лайк
+      const batch = writeBatch(db);
+
+      likeSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+
+      // Обновляем счетчик лайков в посте
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        likesCount: increment(-1)
+      });
+
+      return false; // Возвращаем false, чтобы показать, что лайк был удален
+    }
+
+    // Добавляем лайк
+    await addDoc(collection(db, "likes"), {
+      post_id: postId,
+      user_id: userId,
+      created_at: serverTimestamp()
+    });
+
+    // Обновляем счетчик лайков в посте
+    const postRef = doc(db, "posts", postId);
+    await updateDoc(postRef, {
+      likesCount: increment(1)
+    });
+
+    return true; // Возвращаем true, чтобы показать, что лайк был добавлен
+  } catch (error) {
+    console.error("Error liking/unliking post:", error);
+    return false;
+  }
+}
+
+// Проверка, лайкнул ли пользователь публикацию
+export async function hasUserLikedPost(postId: string, userId: string): Promise<boolean> {
+  try {
+    const likeQuery = query(
+      collection(db, "likes"),
+      where("post_id", "==", postId),
+      where("user_id", "==", userId)
+    );
+
+    const likeSnapshot = await getDocs(likeQuery);
+
+    return !likeSnapshot.empty;
+  } catch (error) {
+    console.error("Error checking if user liked post:", error);
+    return false;
+  }
+}
+
 // Получение всех тегов
 export async function getAllTags(): Promise<Tag[]> {
   try {
@@ -488,6 +557,12 @@ export async function recordView(postId: string, userId: string): Promise<void> 
         post_id: postId,
         user_id: userId,
         created_at: serverTimestamp()
+      });
+
+      // Обновляем счетчик просмотров в посте
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, {
+        viewsCount: increment(1)
       });
     }
   } catch (error) {
