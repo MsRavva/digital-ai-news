@@ -6,51 +6,65 @@ service cloud.firestore {
       allow read: if true;
       allow create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // Посты
     match /posts/{postId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
-                            (resource.data.author_id == request.auth.uid || 
-                             get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
-                             get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
+      // Разрешаем обновление только поля likesCount всем авторизованным пользователям
+      allow update: if request.auth != null &&
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likesCount", "viewsCount"]) ||
+                     resource.data.author_id == request.auth.uid ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
+      // Разрешаем удаление только автору, админу или учителю
+      allow delete: if request.auth != null &&
+                    (resource.data.author_id == request.auth.uid ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
     }
-    
+
     // Комментарии
     match /comments/{commentId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
-                            (resource.data.author_id == request.auth.uid || 
-                             get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
-                             get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
+      // Разрешаем обновление только поля likesCount всем авторизованным пользователям
+      allow update: if request.auth != null &&
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likesCount"]) ||
+                     resource.data.author_id == request.auth.uid ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
+      // Разрешаем удаление только автору, админу или учителю
+      allow delete: if request.auth != null &&
+                    (resource.data.author_id == request.auth.uid ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
+                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
     }
-    
+
     // Лайки комментариев
     match /comment_likes/{likeId} {
       allow read: if true;
       allow create, delete: if request.auth != null;
     }
-    
+
     // Лайки постов
     match /likes/{likeId} {
       allow read: if true;
       allow create, delete: if request.auth != null;
     }
-    
+
     // Теги
     match /tags/{tagId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    
+
     // Связи постов с тегами
     match /post_tags/{docId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
-    
+
     // Просмотры
     match /views/{viewId} {
       allow read: if true;
