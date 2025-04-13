@@ -14,9 +14,12 @@ import { auth, db } from "./firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Profile } from "@/types/database";
 
+// Проверка, что код выполняется в браузере
+const isBrowser = typeof window !== 'undefined';
+
 // Проверка подключения к интернету
 const checkOnlineStatus = (): boolean => {
-  return typeof navigator !== 'undefined' && navigator.onLine;
+  return isBrowser && navigator.onLine;
 };
 
 // Регистрация нового пользователя
@@ -26,6 +29,11 @@ export const signUp = async (
   username: string,
   role: string
 ): Promise<{ user: FirebaseUser | null; error: any }> => {
+  // Если код выполняется на сервере, возвращаем ошибку
+  if (!isBrowser) {
+    return { user: null, error: { message: "Auth is only available in the browser" } };
+  }
+
   try {
     // Создаем пользователя в Firebase Auth
     const userCredential: UserCredential = await createUserWithEmailAndPassword(
@@ -53,6 +61,11 @@ export const signIn = async (
   email: string,
   password: string
 ): Promise<{ user: FirebaseUser | null; error: any }> => {
+  // Если код выполняется на сервере, возвращаем ошибку
+  if (!isBrowser) {
+    return { user: null, error: { message: "Auth is only available in the browser" } };
+  }
+
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return { user: userCredential.user, error: null };
@@ -63,11 +76,21 @@ export const signIn = async (
 
 // Выход пользователя
 export const signOut = async (): Promise<void> => {
+  // Если код выполняется на сервере, ничего не делаем
+  if (!isBrowser) {
+    return;
+  }
+
   await firebaseSignOut(auth);
 };
 
 // Получение профиля пользователя
 export const getUserProfile = async (userId: string): Promise<Profile | null> => {
+  // Если код выполняется на сервере, возвращаем null
+  if (!isBrowser) {
+    return null;
+  }
+
   try {
     const profileDoc = await getDoc(doc(db, "profiles", userId));
 
@@ -86,11 +109,21 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
 export const subscribeToAuthChanges = (
   callback: (user: FirebaseUser | null) => void
 ) => {
+  // Если код выполняется на сервере, возвращаем пустую функцию
+  if (!isBrowser) {
+    return () => {};
+  }
+
   return onAuthStateChanged(auth, callback);
 };
 
 // Аутентификация через Google
 export const signInWithGoogle = async (): Promise<{ user: FirebaseUser | null; error: any }> => {
+  // Если код выполняется на сервере, возвращаем ошибку
+  if (!isBrowser) {
+    return { user: null, error: { message: "Auth is only available in the browser" } };
+  }
+
   try {
     // Проверяем подключение к интернету
     if (!checkOnlineStatus()) {
@@ -136,6 +169,11 @@ export const signInWithGoogle = async (): Promise<{ user: FirebaseUser | null; e
 
 // Аутентификация через GitHub
 export const signInWithGithub = async (): Promise<{ user: FirebaseUser | null; error: any }> => {
+  // Если код выполняется на сервере, возвращаем ошибку
+  if (!isBrowser) {
+    return { user: null, error: { message: "Auth is only available in the browser" } };
+  }
+
   try {
     // Проверяем подключение к интернету
     if (!checkOnlineStatus()) {

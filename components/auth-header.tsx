@@ -6,7 +6,7 @@ import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { useAuth } from "@/context/auth-context"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,22 +89,10 @@ export function AuthHeader() {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative p-0 bg-transparent hover:bg-transparent border-2 border-[hsl(var(--saas-purple))] rounded-md h-10 px-3 transition-all duration-200 flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[hsl(var(--saas-purple))]">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <span className="text-[hsl(var(--saas-purple))] font-bold text-lg">
-                    {(() => {
-                      const nameParts = profile.username.split(' ');
-                      if (nameParts.length >= 2) {
-                        // Фамилия + Имя (первые буквы)
-                        return `${nameParts[0][0]}${nameParts[1][0]}`;
-                      } else {
-                        // Если только одно слово, берем первые две буквы
-                        return profile.username.substring(0, 2);
-                      }
-                    })().toUpperCase()}
+                <Button variant="ghost" className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-10 px-3 transition-all duration-200 flex items-center gap-2">
+                  <SimpleAvatar username={profile.username} size="sm" />
+                  <span className="text-[hsl(var(--saas-purple))] font-bold">
+                    {profile.username}
                   </span>
                 </Button>
               </DropdownMenuTrigger>

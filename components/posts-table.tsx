@@ -1,11 +1,11 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, ThumbsUp, Eye } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 
 interface PostsTableProps {
   posts: Post[]
@@ -37,22 +37,7 @@ export function PostsTable({ posts }: PostsTableProps) {
             <tr key={post.id} className="border-b border-border hover:bg-muted/30 transition-colors">
               <td className="py-3 px-4">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="h-8 w-8 avatar">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt={post.author?.username || ""} />
-                    <AvatarFallback className="avatar-fallback text-xs">
-                      {(() => {
-                        if (!post.author?.username) return "??";
-                        const nameParts = post.author.username.split(' ');
-                        if (nameParts.length >= 2) {
-                          // Фамилия + Имя (первые буквы)
-                          return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
-                        } else {
-                          // Если только одно слово, берем первые две буквы
-                          return post.author.username.substring(0, 2).toUpperCase();
-                        }
-                      })()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <SimpleAvatar username={post.author?.username} />
                   <div>
                     <div className="font-medium text-sm">{post.author?.username}</div>
                     <Badge

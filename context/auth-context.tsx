@@ -8,6 +8,9 @@ import { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/types/database"
 import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub } from "@/lib/firebase-auth"
 
+// Проверка, что код выполняется в браузере
+const isBrowser = typeof window !== 'undefined';
+
 interface AuthContextType {
   user: FirebaseUser | null
   profile: Profile | null
@@ -28,6 +31,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
+    // Выполняем только на клиенте
+    if (!isBrowser) {
+      return;
+    }
+
     // Подписываемся на изменения состояния аутентификации
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
       setUser(firebaseUser)

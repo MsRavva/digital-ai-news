@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -115,22 +115,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <Avatar className="h-10 w-10 avatar">
-                    <AvatarImage src="/placeholder.svg" alt={post.author?.username || ""} />
-                    <AvatarFallback className="avatar-fallback">
-                      {(() => {
-                        if (!post.author?.username) return "??";
-                        const nameParts = post.author.username.split(' ');
-                        if (nameParts.length >= 2) {
-                          // Фамилия + Имя (первые буквы)
-                          return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
-                        } else {
-                          // Если только одно слово, берем первые две буквы
-                          return post.author.username.substring(0, 2).toUpperCase();
-                        }
-                      })()}
-                    </AvatarFallback>
-                  </Avatar>
+                  <SimpleAvatar username={post.author?.username} size="lg" />
                   <div>
                     <div className="font-medium">{post.author?.username}</div>
                     <div className="flex items-center">

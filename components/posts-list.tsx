@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, ThumbsUp, Eye, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
@@ -23,22 +23,7 @@ export function PostsList({ posts }: PostsListProps) {
         <Link href={`/posts/${post.id}`} key={post.id}>
           <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg">
             <div className="flex items-start gap-4">
-              <Avatar className="h-10 w-10 avatar">
-                <AvatarImage src="/placeholder.svg?height=40&width=40" alt={post.author?.username || ""} />
-                <AvatarFallback className="avatar-fallback">
-                  {(() => {
-                    if (!post.author?.username) return "??";
-                    const nameParts = post.author.username.split(' ');
-                    if (nameParts.length >= 2) {
-                      // Фамилия + Имя (первые буквы)
-                      return `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase();
-                    } else {
-                      // Если только одно слово, берем первые две буквы
-                      return post.author.username.substring(0, 2).toUpperCase();
-                    }
-                  })()}
-                </AvatarFallback>
-              </Avatar>
+              <SimpleAvatar username={post.author?.username} size="lg" />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap items-center gap-2">

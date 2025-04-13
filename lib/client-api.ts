@@ -9,6 +9,9 @@ import {
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
+// Проверка, что код выполняется в браузере
+const isBrowser = typeof window !== 'undefined';
+
 // Моковые данные для тестирования
 const mockPosts: Post[] = [
   {
@@ -54,6 +57,14 @@ const mockTags: Tag[] = [
 
 // Клиентские версии API функций
 export async function getPosts(category?: string): Promise<Post[]> {
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    if (category) {
+      return mockPosts.filter(post => post.category === category);
+    }
+    return mockPosts;
+  }
+
   try {
     // Для тестирования используем моковые данные
     if (category) {
@@ -67,6 +78,11 @@ export async function getPosts(category?: string): Promise<Post[]> {
 }
 
 export async function getAllTags(): Promise<Tag[]> {
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    return mockTags;
+  }
+
   try {
     // Для тестирования используем моковые данные
     return mockTags;
@@ -77,6 +93,12 @@ export async function getAllTags(): Promise<Tag[]> {
 }
 
 export async function getPostById(id: string) {
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    const post = mockPosts.find(p => p.id === id);
+    return post || null;
+  }
+
   try {
     // Для тестирования используем моковые данные
     const post = mockPosts.find(p => p.id === id);
@@ -88,6 +110,11 @@ export async function getPostById(id: string) {
 }
 
 export async function getCommentsByPostId(postId: string) {
+  // Если код выполняется на сервере, возвращаем пустой массив
+  if (!isBrowser) {
+    return [];
+  }
+
   try {
     // Для тестирования возвращаем пустой массив
     return [];
@@ -103,6 +130,11 @@ export async function addComment(data: {
   author_id: string;
   parent_id?: string;
 }) {
+  // Если код выполняется на сервере, возвращаем фиктивный ID
+  if (!isBrowser) {
+    return 'comment-' + Date.now();
+  }
+
   try {
     // Для тестирования возвращаем фиктивный ID
     return 'comment-' + Date.now();
@@ -119,6 +151,11 @@ export async function createPost(data: {
   author_id: string;
   tags: string[];
 }) {
+  // Если код выполняется на сервере, возвращаем фиктивный ID
+  if (!isBrowser) {
+    return 'post-' + Date.now();
+  }
+
   try {
     // Для тестирования возвращаем фиктивный ID
     return 'post-' + Date.now();
@@ -129,6 +166,11 @@ export async function createPost(data: {
 }
 
 export async function recordView(postId: string, userId: string) {
+  // Если код выполняется на сервере, ничего не делаем
+  if (!isBrowser) {
+    return;
+  }
+
   try {
     // Для тестирования ничего не делаем
     return;

@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation"
 import { createPost } from "@/lib/firebase-db"
 import { uploadFile } from "@/lib/firebase-storage"
 import { Progress } from "@/components/ui/progress"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 
 interface Attachment {
   type: 'link' | 'image' | 'document' | 'file';
@@ -278,20 +278,7 @@ export function CreatePostForm() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <Avatar className="avatar">
-                <AvatarFallback className="avatar-fallback">
-                  {(() => {
-                    const nameParts = previewData.author.username.split(' ');
-                    if (nameParts.length >= 2) {
-                      // Фамилия + Имя (первые буквы)
-                      return `${nameParts[0][0]}${nameParts[1][0]}`;
-                    } else {
-                      // Если только одно слово, берем первые две буквы
-                      return previewData.author.username.substring(0, 2);
-                    }
-                  })().toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <SimpleAvatar username={previewData.author.username} size="md" />
               <div>
                 <div className="font-medium">{previewData.author.username}</div>
                 <div className="text-sm text-muted-foreground">{formattedDate}</div>

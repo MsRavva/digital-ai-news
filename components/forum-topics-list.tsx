@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
 import { MessageSquare, Eye } from "lucide-react"
 import Link from "next/link"
@@ -101,10 +101,7 @@ export function ForumTopicsList({ filter }: ForumTopicsListProps) {
         <Link href={`/forum/topics/${topic.id}`} key={topic.id}>
           <div className="p-4 hover:bg-muted/50 transition-colors">
             <div className="flex items-start gap-4">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={topic.author.avatar || "/placeholder.svg"} alt={topic.author.name} />
-                <AvatarFallback>{topic.author.name.substring(0, 2)}</AvatarFallback>
-              </Avatar>
+              <SimpleAvatar username={topic.author.name} size="lg" />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <div>
@@ -138,13 +135,7 @@ export function ForumTopicsList({ filter }: ForumTopicsListProps) {
                   </div>
                   {topic.lastReply && (
                     <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage
-                          src={topic.lastReply.author.avatar || "/placeholder.svg"}
-                          alt={topic.lastReply.author.name}
-                        />
-                        <AvatarFallback>{topic.lastReply.author.name.substring(0, 2)}</AvatarFallback>
-                      </Avatar>
+                      <SimpleAvatar username={topic.lastReply.author.name} size="sm" />
                       <div className="text-xs">
                         <span className="text-muted-foreground">Последний ответ от </span>
                         <span className="font-medium">{topic.lastReply.author.name}</span>
