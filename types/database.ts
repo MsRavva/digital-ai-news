@@ -8,9 +8,8 @@ export interface Profile {
   location?: string
   website?: string
   social?: {
-    twitter?: string
     github?: string
-    linkedin?: string
+    vk?: string
   }
   avatar_url?: string
 }

@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { getPosts } from "@/lib/client-api"
 import { Post } from "@/types/database"
 import Link from "next/link"
-import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Twitter, Linkedin, Pencil, Save } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Pencil, Save } from "lucide-react"
 
 export default function ProfilePage() {
   const { user, profile, updateProfile } = useAuth()
@@ -28,9 +28,8 @@ export default function ProfilePage() {
     bio: '',
     location: '',
     website: '',
-    twitter: '',
     github: '',
-    linkedin: ''
+    vk: ''
   })
   const [userPosts, setUserPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -47,9 +46,8 @@ export default function ProfilePage() {
         bio: profile.bio || '',
         location: profile.location || '',
         website: profile.website || '',
-        twitter: profile.social?.twitter || '',
         github: profile.social?.github || '',
-        linkedin: profile.social?.linkedin || ''
+        vk: profile.social?.vk || ''
       })
     }
   }, [profile])
@@ -88,9 +86,9 @@ export default function ProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!user || !profile) return
-    
+
     try {
       const updatedProfile = {
         username: formData.username,
@@ -98,14 +96,13 @@ export default function ProfilePage() {
         location: formData.location,
         website: formData.website,
         social: {
-          twitter: formData.twitter,
           github: formData.github,
-          linkedin: formData.linkedin
+          vk: formData.vk
         }
       }
-      
+
       const { success, error } = await updateProfile(updatedProfile)
-      
+
       if (success) {
         toast({
           title: "Профиль обновлен",
@@ -169,9 +166,9 @@ export default function ProfilePage() {
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-center">
                     <CardTitle>Профиль</CardTitle>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setIsEditing(!isEditing)}
                       className="text-[hsl(var(--saas-purple))]"
                     >
@@ -197,7 +194,7 @@ export default function ProfilePage() {
                       {profile.role === "teacher" ? "Учитель" : profile.role === "admin" ? "Администратор" : "Ученик"}
                     </Badge>
                     <p className="text-muted-foreground">{user.email}</p>
-                    
+
                     {!isEditing && (
                       <div className="mt-4 text-left w-full">
                         {profile.bio && (
@@ -205,7 +202,7 @@ export default function ProfilePage() {
                             <p>{profile.bio}</p>
                           </div>
                         )}
-                        
+
                         {(profile.location || profile.website || profile.social) && (
                           <div className="space-y-2 mt-4">
                             {profile.location && (
@@ -214,13 +211,13 @@ export default function ProfilePage() {
                                 <span>{profile.location}</span>
                               </div>
                             )}
-                            
+
                             {profile.website && (
                               <div className="flex items-center text-sm">
                                 <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <a 
-                                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`} 
-                                  target="_blank" 
+                                <a
+                                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-[hsl(var(--saas-purple))] hover:underline"
                                 >
@@ -228,38 +225,29 @@ export default function ProfilePage() {
                                 </a>
                               </div>
                             )}
-                            
+
                             <div className="flex items-center gap-3 mt-2">
                               {profile.social?.github && (
-                                <a 
-                                  href={`https://github.com/${profile.social.github}`} 
-                                  target="_blank" 
+                                <a
+                                  href={`https://github.com/${profile.social.github}`}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-muted-foreground hover:text-[hsl(var(--saas-purple))]"
                                 >
                                   <Github className="h-5 w-5" />
                                 </a>
                               )}
-                              
-                              {profile.social?.twitter && (
-                                <a 
-                                  href={`https://twitter.com/${profile.social.twitter}`} 
-                                  target="_blank" 
+
+                              {profile.social?.vk && (
+                                <a
+                                  href={`https://vk.com/${profile.social.vk}`}
+                                  target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-muted-foreground hover:text-[hsl(var(--saas-purple))]"
                                 >
-                                  <Twitter className="h-5 w-5" />
-                                </a>
-                              )}
-                              
-                              {profile.social?.linkedin && (
-                                <a 
-                                  href={`https://linkedin.com/in/${profile.social.linkedin}`} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-muted-foreground hover:text-[hsl(var(--saas-purple))]"
-                                >
-                                  <Linkedin className="h-5 w-5" />
+                                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M21.5 0h-19C1.12 0 0 1.12 0 2.5v19C0 22.88 1.12 24 2.5 24h19c1.38 0 2.5-1.12 2.5-2.5v-19C24 1.12 22.88 0 21.5 0zm-3.77 14.14c.67.66 1.37 1.29 1.96 2.03.26.33.5.67.69 1.06.26.52.03 1.09-.43 1.12l-2.83-.01c-.73.06-1.31-.23-1.8-.73-.39-.4-.75-.82-1.12-1.23-.15-.17-.31-.33-.5-.47-.38-.28-.71-.19-.93.22-.22.42-.28.89-.3 1.36-.03.68-.24.86-.92.89-1.45.05-2.82-.15-4.1-.85-1.13-.62-2-1.5-2.77-2.5C2.45 11.33 1.4 8.42.7 5.39c-.2-.86.05-1.31.94-1.33 1.05-.03 2.1-.03 3.15 0 .43.01.71.25.88.65.59 1.36 1.31 2.65 2.22 3.84.24.31.49.62.84.83.39.24.68.16.86-.25.12-.27.17-.56.2-.85.09-1 .1-1.99-.05-2.98-.09-.61-.44-1-.98-1.12-.29-.06-.25-.18-.11-.36.25-.31.49-.5.96-.5h3.2c.5.1.62.33.69.83l.01 3.58c-.01.2.1.78.46.91.29.09.48-.14.65-.32.78-.81 1.34-1.78 1.83-2.76.22-.44.41-.9.59-1.36.14-.33.35-.49.74-.48l3.09.01c.09 0 .18 0 .27.02.51.09.65.31.49.8-.25.77-.74 1.41-1.22 2.05-.51.69-1.06 1.36-1.57 2.05-.47.63-.43.94.15 1.48z"/>
+                                  </svg>
                                 </a>
                               )}
                             </div>
@@ -267,7 +255,7 @@ export default function ProfilePage() {
                         )}
                       </div>
                     )}
-                    
+
                     {isEditing && (
                       <form onSubmit={handleSubmit} className="w-full mt-4 text-left">
                         <div className="space-y-4">
@@ -281,7 +269,7 @@ export default function ProfilePage() {
                               className="mt-1"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="bio">О себе</Label>
                             <Textarea
@@ -293,7 +281,7 @@ export default function ProfilePage() {
                               rows={3}
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="location">Местоположение</Label>
                             <Input
@@ -304,7 +292,7 @@ export default function ProfilePage() {
                               className="mt-1"
                             />
                           </div>
-                          
+
                           <div>
                             <Label htmlFor="website">Веб-сайт</Label>
                             <Input
@@ -315,7 +303,7 @@ export default function ProfilePage() {
                               className="mt-1"
                             />
                           </div>
-                          
+
                           <div>
                             <Label>Социальные сети</Label>
                             <div className="space-y-2 mt-1">
@@ -329,34 +317,25 @@ export default function ProfilePage() {
                                   placeholder="username"
                                 />
                               </div>
-                              
+
                               <div className="flex items-center">
-                                <Twitter className="h-4 w-4 mr-2 text-muted-foreground" />
+                                <svg className="h-4 w-4 mr-2 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M21.5 0h-19C1.12 0 0 1.12 0 2.5v19C0 22.88 1.12 24 2.5 24h19c1.38 0 2.5-1.12 2.5-2.5v-19C24 1.12 22.88 0 21.5 0zm-3.77 14.14c.67.66 1.37 1.29 1.96 2.03.26.33.5.67.69 1.06.26.52.03 1.09-.43 1.12l-2.83-.01c-.73.06-1.31-.23-1.8-.73-.39-.4-.75-.82-1.12-1.23-.15-.17-.31-.33-.5-.47-.38-.28-.71-.19-.93.22-.22.42-.28.89-.3 1.36-.03.68-.24.86-.92.89-1.45.05-2.82-.15-4.1-.85-1.13-.62-2-1.5-2.77-2.5C2.45 11.33 1.4 8.42.7 5.39c-.2-.86.05-1.31.94-1.33 1.05-.03 2.1-.03 3.15 0 .43.01.71.25.88.65.59 1.36 1.31 2.65 2.22 3.84.24.31.49.62.84.83.39.24.68.16.86-.25.12-.27.17-.56.2-.85.09-1 .1-1.99-.05-2.98-.09-.61-.44-1-.98-1.12-.29-.06-.25-.18-.11-.36.25-.31.49-.5.96-.5h3.2c.5.1.62.33.69.83l.01 3.58c-.01.2.1.78.46.91.29.09.48-.14.65-.32.78-.81 1.34-1.78 1.83-2.76.22-.44.41-.9.59-1.36.14-.33.35-.49.74-.48l3.09.01c.09 0 .18 0 .27.02.51.09.65.31.49.8-.25.77-.74 1.41-1.22 2.05-.51.69-1.06 1.36-1.57 2.05-.47.63-.43.94.15 1.48z"/>
+                                </svg>
                                 <Input
-                                  id="twitter"
-                                  name="twitter"
-                                  value={formData.twitter}
-                                  onChange={handleInputChange}
-                                  placeholder="username"
-                                />
-                              </div>
-                              
-                              <div className="flex items-center">
-                                <Linkedin className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <Input
-                                  id="linkedin"
-                                  name="linkedin"
-                                  value={formData.linkedin}
+                                  id="vk"
+                                  name="vk"
+                                  value={formData.vk}
                                   onChange={handleInputChange}
                                   placeholder="username"
                                 />
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="flex justify-end">
-                            <Button 
-                              type="submit" 
+                            <Button
+                              type="submit"
                               className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
                             >
                               Сохранить изменения
@@ -368,7 +347,7 @@ export default function ProfilePage() {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Статистика</CardTitle>
@@ -391,7 +370,7 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
             </div>
-            
+
             {/* Публикации пользователя */}
             <div className="md:col-span-2">
               <Card>
