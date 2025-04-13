@@ -51,12 +51,6 @@ export function AuthHeader() {
             >
               Главная
             </Link>
-            <Link
-              href="/forum"
-              className="text-base font-medium transition-all duration-200 hover:text-[hsl(var(--saas-purple))] relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-[hsl(var(--saas-purple))] after:transition-all after:duration-200"
-            >
-              Форум
-            </Link>
           </nav>
         </div>
         <div className="flex items-center space-x-8">

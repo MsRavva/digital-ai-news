@@ -6,6 +6,8 @@ import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface PostsTableProps {
   posts: Post[]
@@ -36,10 +38,12 @@ export function PostsTable({ posts }: PostsTableProps) {
           {posts.map((post) => (
             <tr key={post.id} className="border-b border-border hover:bg-muted/30 transition-colors">
               <td className="py-3 px-4">
-                <div className="flex items-center space-x-3">
-                  <SimpleAvatar username={post.author?.username} />
-                  <div>
-                    <div className="font-medium text-sm">{post.author?.username}</div>
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <SimpleAvatar username={post.author?.username} />
+                    <span className="font-medium text-sm whitespace-nowrap">{post.author?.username}</span>
+                  </div>
+                  <div className="flex justify-center">
                     <Badge
                       variant="outline"
                       className="text-xs bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)]"
@@ -53,9 +57,25 @@ export function PostsTable({ posts }: PostsTableProps) {
                 <Link href={`/posts/${post.id}`} className="font-medium hover:text-[hsl(var(--saas-purple))] transition-colors">
                   {post.title}
                 </Link>
-                <p className="text-muted-foreground text-sm line-clamp-1 mt-1">
-                  {post.content.length > 100 ? post.content.substring(0, 100) + "..." : post.content}
-                </p>
+                <div className="text-muted-foreground text-sm line-clamp-1 mt-1 prose dark:prose-invert prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
+                    // Отключаем заголовки и другие блочные элементы в превью
+                    h1: 'span',
+                    h2: 'span',
+                    h3: 'span',
+                    h4: 'span',
+                    h5: 'span',
+                    h6: 'span',
+                    // Ограничиваем длину текста
+                    p: ({node, ...props}) => {
+                      const content = props.children?.toString() || '';
+                      const truncated = content.length > 100 ? content.substring(0, 100) + '...' : content;
+                      return <span {...props}>{truncated}</span>;
+                    }
+                  }}>
+                    {post.content}
+                  </ReactMarkdown>
+                </div>
               </td>
               <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">
                 {formatDate(post.created_at)}

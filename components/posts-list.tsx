@@ -133,14 +133,16 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
               <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg w-full">
                 <div className="w-full">
                   <div className="flex items-center justify-between w-full mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-shrink-0 mr-2">
-                        <SimpleAvatar username={post.author?.username} size="md" />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-shrink-0 mr-1">
+                          <SimpleAvatar username={post.author?.username} size="md" />
+                        </div>
+                        <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))] whitespace-nowrap">
                           {post.author?.username}
                         </span>
+                      </div>
+                      <div className="flex items-center gap-2 ml-1">
                         <Badge
                           variant="outline"
                           className="bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
