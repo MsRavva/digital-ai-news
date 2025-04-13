@@ -80,16 +80,7 @@ export default function Home() {
               <h1 className="text-3xl font-bold tracking-tight mb-2">AI News</h1>
               <p className="text-muted-foreground">Последние новости и обсуждения в мире искусственного интеллекта</p>
             </div>
-            <div className="mt-4 flex gap-3 md:hidden">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-[hsl(var(--saas-purple))]" />
-                <Input
-                  type="search"
-                  placeholder="Поиск..."
-                  className="w-full pl-9 bg-background/50 backdrop-blur-sm border-[hsl(var(--saas-purple)/0.2)] focus:border-[hsl(var(--saas-purple))] focus:ring-[hsl(var(--saas-purple)/0.1)] transition-all duration-200 dark:bg-gray-800/50 dark:border-gray-700"
-                />
-              </div>
-            </div>
+
           </div>
 
           <div className="saas-window mb-8">
@@ -102,24 +93,34 @@ export default function Home() {
               <div className="w-full">
                 <Tabs defaultValue="all" className="mb-6">
                   <div className="flex justify-between items-center mb-4">
-                    <div className="filter-container">
-                      <TabsList className="bg-transparent border-none p-0 shadow-none">
-                        <TabsTrigger value="all" className="filter-item">Все</TabsTrigger>
-                        <TabsTrigger value="news" className="filter-item">Новости</TabsTrigger>
-                        <TabsTrigger value="materials" className="filter-item">Учебные материалы</TabsTrigger>
-                        <TabsTrigger value="discussions" className="filter-item">Обсуждения</TabsTrigger>
-                      </TabsList>
+                    <div className="flex items-center gap-4">
+                      <div className="filter-container">
+                        <TabsList className="bg-transparent border-none p-0 shadow-none">
+                          <TabsTrigger value="all" className="filter-item">Все</TabsTrigger>
+                          <TabsTrigger value="news" className="filter-item">Новости</TabsTrigger>
+                          <TabsTrigger value="materials" className="filter-item">Учебные материалы</TabsTrigger>
+                          <TabsTrigger value="discussions" className="filter-item">Обсуждения</TabsTrigger>
+                        </TabsList>
+                      </div>
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4" />
+                        <Input
+                          type="search"
+                          placeholder="Поиск..."
+                          className="w-full max-w-[200px] pl-8 h-9 bg-background/50 backdrop-blur-sm border-gray-300 dark:border-gray-700 focus:border-[hsl(var(--saas-purple))] focus:ring-[hsl(var(--saas-purple)/0.1)] transition-all duration-200 dark:bg-gray-800/50"
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Button variant="saas-secondary" size="sm" className="gap-1">
+                        <Filter className="h-4 w-4" /> Фильтры
+                      </Button>
+                      <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
                       <Link href="/create">
                         <Button variant="saas" size="sm">
                           <Plus className="mr-2 h-4 w-4" /> Создать публикацию
                         </Button>
                       </Link>
-                      <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
-                      <Button variant="saas-secondary" size="sm" className="gap-1">
-                        <Filter className="h-4 w-4" /> Фильтры
-                      </Button>
                     </div>
                   </div>
                   <TabsContent value="all">

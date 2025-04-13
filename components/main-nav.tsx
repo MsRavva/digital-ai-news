@@ -35,14 +35,6 @@ export function MainNav() {
           </Link>
         </nav>
       </div>
-      <div className="relative w-full max-w-xs hidden md:block ml-auto">
-        <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-[hsl(var(--saas-purple))]" />
-        <Input
-          type="search"
-          placeholder="Поиск..."
-          className="w-full pl-9 h-9 bg-background/50 backdrop-blur-sm border-[hsl(var(--saas-purple)/0.2)] focus:border-[hsl(var(--saas-purple))] focus:ring-[hsl(var(--saas-purple)/0.1)] transition-all duration-200 dark:bg-gray-800/50 dark:border-gray-700"
-        />
-      </div>
     </div>
   )
 }
