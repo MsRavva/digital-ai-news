@@ -103,12 +103,12 @@ export default function Home() {
                         </TabsList>
                       </div>
                       <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4" />
                         <Input
                           type="search"
                           placeholder="Поиск..."
-                          className="w-full max-w-[200px] pl-8 h-9 bg-background/50 backdrop-blur-sm border-gray-300 dark:border-gray-700 focus:border-[hsl(var(--saas-purple))] focus:ring-[hsl(var(--saas-purple)/0.1)] transition-all duration-200 dark:bg-gray-800/50"
+                          className="w-full max-w-[200px] pl-9 h-9"
                         />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
