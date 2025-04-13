@@ -68,9 +68,9 @@ export function CommentsList({ postId }: CommentsListProps) {
   const renderComment = (comment: Comment, isReply = false) => (
     <div key={comment.id} className={`${isReply ? "ml-12 mt-4" : "mb-6"}`}>
       <div className="flex items-start gap-4">
-        <Avatar className="h-8 w-8">
+        <Avatar className="h-8 w-8 avatar">
           <AvatarImage src={comment.author.avatar || "/placeholder.svg"} alt={comment.author.name} />
-          <AvatarFallback>{comment.author.name.substring(0, 2)}</AvatarFallback>
+          <AvatarFallback className="avatar-fallback">{comment.author.name.substring(0, 2).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center">

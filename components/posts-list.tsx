@@ -23,9 +23,9 @@ export function PostsList({ posts }: PostsListProps) {
         <Link href={`/posts/${post.id}`} key={post.id}>
           <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg">
             <div className="flex items-start gap-4">
-              <Avatar className="h-10 w-10 border-2 border-[hsl(var(--saas-purple)/0.5)]">
+              <Avatar className="h-10 w-10 avatar">
                 <AvatarImage src="/placeholder.svg?height=40&width=40" alt={post.author?.username || ""} />
-                <AvatarFallback className="bg-[#333] text-white font-medium">
+                <AvatarFallback className="avatar-fallback">
                   {(() => {
                     if (!post.author?.username) return "??";
                     const nameParts = post.author.username.split(' ');

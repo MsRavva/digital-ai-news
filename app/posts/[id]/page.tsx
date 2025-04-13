@@ -115,9 +115,9 @@ export default function PostPage({ params }: { params: { id: string } }) {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  <Avatar>
+                  <Avatar className="h-10 w-10 avatar">
                     <AvatarImage src="/placeholder.svg" alt={post.author?.username || ""} />
-                    <AvatarFallback className="bg-[#333] text-white font-medium">
+                    <AvatarFallback className="avatar-fallback">
                       {(() => {
                         if (!post.author?.username) return "??";
                         const nameParts = post.author.username.split(' ');

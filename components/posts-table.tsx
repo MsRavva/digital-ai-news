@@ -37,9 +37,9 @@ export function PostsTable({ posts }: PostsTableProps) {
             <tr key={post.id} className="border-b border-border hover:bg-muted/30 transition-colors">
               <td className="py-3 px-4">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="h-8 w-8 border-2 border-[hsl(var(--saas-purple)/0.2)]">
+                  <Avatar className="h-8 w-8 avatar">
                     <AvatarImage src="/placeholder.svg?height=32&width=32" alt={post.author?.username || ""} />
-                    <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white font-medium text-xs">
+                    <AvatarFallback className="avatar-fallback text-xs">
                       {(() => {
                         if (!post.author?.username) return "??";
                         const nameParts = post.author.username.split(' ');

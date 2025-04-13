@@ -278,8 +278,8 @@ export function CreatePostForm() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <Avatar>
-                <AvatarFallback className="bg-[hsl(var(--saas-purple))] text-white">
+              <Avatar className="avatar">
+                <AvatarFallback className="avatar-fallback">
                   {(() => {
                     const nameParts = previewData.author.username.split(' ');
                     if (nameParts.length >= 2) {

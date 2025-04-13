@@ -594,3 +594,15 @@ body {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* Avatar styles */
+.avatar-fallback {
+  background-color: hsl(var(--saas-purple));
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.avatar {
+  border: 2px solid hsl(var(--saas-purple)/0.5);
+}
