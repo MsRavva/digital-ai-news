@@ -3,6 +3,16 @@ export interface Profile {
   username: string
   role: "student" | "teacher" | "admin"
   created_at: string
+  updated_at?: string
+  bio?: string
+  location?: string
+  website?: string
+  social?: {
+    twitter?: string
+    github?: string
+    linkedin?: string
+  }
+  avatar_url?: string
 }
 
 export interface Post {

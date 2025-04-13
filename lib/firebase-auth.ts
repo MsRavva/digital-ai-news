@@ -11,7 +11,7 @@ import {
   OAuthProvider
 } from "firebase/auth";
 import { auth, db } from "./firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { Profile } from "@/types/database";
 
 // Проверка, что код выполняется в браузере
@@ -27,7 +27,7 @@ export const signUp = async (
   email: string,
   password: string,
   username: string,
-  role: string
+  role: string = "student" // По умолчанию роль student
 ): Promise<{ user: FirebaseUser | null; error: any }> => {
   // Если код выполняется на сервере, возвращаем ошибку
   if (!isBrowser) {
@@ -102,6 +102,30 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
   } catch (error) {
     console.error("Error fetching user profile:", error);
     return null;
+  }
+};
+
+// Обновление профиля пользователя
+export const updateUserProfile = async (
+  userId: string,
+  profileData: Partial<Profile>
+): Promise<{ success: boolean; error: any }> => {
+  // Если код выполняется на сервере, возвращаем ошибку
+  if (!isBrowser) {
+    return { success: false, error: { message: "Profile update is only available in the browser" } };
+  }
+
+  try {
+    // Обновляем профиль пользователя в Firestore
+    await updateDoc(doc(db, "profiles", userId), {
+      ...profileData,
+      updated_at: new Date().toISOString()
+    });
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return { success: false, error };
   }
 };
 

@@ -4,7 +4,7 @@ import React from 'react'
 
 interface SimpleAvatarProps {
   username?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
 
@@ -22,7 +22,8 @@ export function SimpleAvatar({ username, size = 'md', className = '' }: SimpleAv
   const sizeClasses = {
     sm: 'h-6 w-6 text-xs',
     md: 'h-8 w-8 text-sm',
-    lg: 'h-10 w-10 text-base'
+    lg: 'h-10 w-10 text-base',
+    xl: 'h-11 w-11 text-lg'
   };
 
   return (

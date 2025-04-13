@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Newspaper } from "lucide-react"
 
 export function MainNav() {
   return (
@@ -8,12 +7,7 @@ export function MainNav() {
       <div className="flex items-center">
         <Link href="/" className="font-bold text-xl flex items-center group mr-8">
           <div className="relative mr-3 group-hover:scale-110 transition-transform duration-200">
-            <img
-              src="/robot-purple.svg"
-              alt="AI Robot Logo"
-              width="48"
-              height="48"
-            />
+            <img src="/newspaper-icon.svg" alt="AI News Logo" width="40" height="40" />
           </div>
           <div className="flex items-center">
             <span className="bg-[radial-gradient(circle_at_center,_#3b82f6_0%,_hsl(var(--saas-purple))_100%)] bg-clip-text text-transparent font-extrabold">AI</span>

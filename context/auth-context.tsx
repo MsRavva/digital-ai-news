@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/types/database"
-import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub } from "@/lib/firebase-auth"
+import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, updateUserProfile as firebaseUpdateUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub } from "@/lib/firebase-auth"
 
 // Проверка, что код выполняется в браузере
 const isBrowser = typeof window !== 'undefined';
@@ -16,9 +16,10 @@ interface AuthContextType {
   profile: Profile | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, username: string, role: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, username: string, role?: string) => Promise<{ error: any }>
   signInWithGoogle: () => Promise<{ error: any }>
   signInWithGithub: () => Promise<{ error: any }>
+  updateProfile: (profileData: Partial<Profile>) => Promise<{ success: boolean; error: any }>
   signOut: () => Promise<void>
 }
 
@@ -62,8 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
-  const signUp = async (email: string, password: string, username: string, role: string) => {
-    const { user, error } = await firebaseSignUp(email, password, username, role)
+  const signUp = async (email: string, password: string, username: string, role: string = "student") => {
+    // Всегда используем роль student независимо от переданного значения
+    const { user, error } = await firebaseSignUp(email, password, username, "student")
     return { error }
   }
 
@@ -82,8 +84,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/")
   }
 
+  const updateProfile = async (profileData: Partial<Profile>) => {
+    if (!user) {
+      return { success: false, error: { message: "User not authenticated" } }
+    }
+
+    const result = await firebaseUpdateUserProfile(user.uid, profileData)
+
+    // Если обновление прошло успешно, обновляем локальный профиль
+    if (result.success && profile) {
+      setProfile({ ...profile, ...profileData })
+    }
+
+    return result
+  }
+
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signInWithGoogle, signInWithGithub, signOut }}>
+    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signInWithGoogle, signInWithGithub, updateProfile, signOut }}>
       {children}
     </AuthContext.Provider>
   )
