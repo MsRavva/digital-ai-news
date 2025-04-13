@@ -216,7 +216,7 @@ export default function Register() {
 
               <div className="relative my-2">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-gray-300 dark:border-gray-700"></span>
+                  <span className="w-full border-t-2 border-[hsl(var(--saas-purple)/0.3)] dark:border-gray-700"></span>
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="bg-white dark:bg-[#0e1012] px-2 text-gray-500">

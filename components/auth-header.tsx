@@ -75,10 +75,10 @@ export function AuthHeader() {
           {!user || !profile ? (
             <div className="flex items-center space-x-4">
               <Link href="/login">
-                <Button variant="default" size="sm">Войти</Button>
+                <Button variant="saas" size="sm">Войти</Button>
               </Link>
               <Link href="/register">
-                <Button variant="saas-gradient" size="sm">Регистрация</Button>
+                <Button variant="saas-secondary" size="sm">Регистрация</Button>
               </Link>
             </div>
           ) : (

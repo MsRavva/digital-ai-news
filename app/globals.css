@@ -174,7 +174,7 @@ body {
   align-items: center;
   gap: 0.25rem;
   padding: 0.5rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid hsl(var(--saas-purple)/0.3);
 }
 
 .dark .saas-window-header {
@@ -398,13 +398,13 @@ body {
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: 1px solid rgba(243, 244, 246, 0.7);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.1);
   height: 100%;
 }
 
 .post-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), 0 16px 32px -6px rgba(0, 0, 0, 0.15);
 }
 
 .dark .post-card {
@@ -522,6 +522,115 @@ body {
 .dark .filter-item.active {
   background-color: #333;
   color: #ffffff;
+}
+
+/* Markdown styles */
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  color: hsl(var(--foreground));
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.prose h1 {
+  font-size: 2em;
+}
+
+.prose h2 {
+  font-size: 1.5em;
+}
+
+.prose h3 {
+  font-size: 1.25em;
+}
+
+.prose p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose ul, .prose ol {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose blockquote {
+  border-left: 3px solid hsl(var(--saas-purple));
+  padding-left: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.prose code {
+  background-color: hsl(var(--muted) / 0.5);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-size: 0.9em;
+}
+
+.prose pre {
+  background-color: hsl(var(--muted) / 0.7);
+  padding: 1em;
+  border-radius: 0.5em;
+  overflow-x: auto;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.9em;
+}
+
+.prose a {
+  color: hsl(var(--saas-purple));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  color: hsl(var(--saas-purple-dark));
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid hsl(var(--border));
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+
+.dark .prose code {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.dark .prose pre {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.dark .prose a {
+  color: hsl(var(--saas-purple-light));
+}
+
+.dark .prose a:hover {
+  color: hsl(var(--saas-purple));
 }
 
 /* View mode styles */

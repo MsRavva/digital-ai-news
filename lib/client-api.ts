@@ -10,7 +10,9 @@ import {
   unlikeComment as unlikeFirebaseComment,
   hasUserLikedComment as hasFirebaseUserLikedComment,
   likePost as likeFirebasePost,
-  hasUserLikedPost as hasFirebaseUserLikedPost
+  hasUserLikedPost as hasFirebaseUserLikedPost,
+  deletePost as deleteFirebasePost,
+  updatePost as updateFirebasePost
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
@@ -256,6 +258,44 @@ export async function hasUserLikedPost(postId: string, userId: string): Promise<
     return await hasFirebaseUserLikedPost(postId, userId);
   } catch (error) {
     console.error('Ошибка при проверке лайка публикации:', error);
+    return false;
+  }
+}
+
+// Обновление поста
+export async function updatePost(data: {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+}): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await updateFirebasePost(data);
+  } catch (error) {
+    console.error('Ошибка при обновлении поста:', error);
+    return false;
+  }
+}
+
+// Удаление поста
+export async function deletePost(postId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await deleteFirebasePost(postId);
+  } catch (error) {
+    console.error('Ошибка при удалении поста:', error);
     return false;
   }
 }

@@ -18,6 +18,8 @@ import { createPost } from "@/lib/firebase-db"
 import { uploadFile } from "@/lib/firebase-storage"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 interface Attachment {
   type: 'link' | 'image' | 'document' | 'file';
@@ -251,11 +253,7 @@ export function CreatePostForm() {
       fullContent = `${previewData.content}\n\n${attachmentsContent}`;
     }
 
-    // Преобразуем маркдаун в HTML
-    const contentHtml = fullContent
-      .replace(/\n/g, '<br>')
-      .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; margin: 10px 0;" />')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="post-link">$1</a>');
+    // Используем ReactMarkdown для преобразования Markdown в HTML
 
     // Определяем название категории
     const categoryName = {
@@ -287,7 +285,11 @@ export function CreatePostForm() {
             <Badge variant="outline">{categoryName}</Badge>
           </div>
           <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
-          <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: contentHtml }} />
+          <div className="prose dark:prose-invert max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {fullContent}
+            </ReactMarkdown>
+          </div>
         </div>
         {previewData.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">

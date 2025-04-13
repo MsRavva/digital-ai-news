@@ -1,0 +1,641 @@
+"use client"
+
+import type React from "react"
+import { useState, useRef, useEffect, ChangeEvent } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { X, Upload, FileText, ImageIcon, LinkIcon, Loader2, Pencil } from "lucide-react"
+import { LinkPopover } from "./link-popover"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/context/auth-context"
+import { useRouter } from "next/navigation"
+import { getPostById, updatePost } from "@/lib/client-api"
+import { uploadFile } from "@/lib/firebase-storage"
+import { Progress } from "@/components/ui/progress"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { Post } from "@/types/database"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+
+interface Attachment {
+  type: 'link' | 'image' | 'document' | 'file';
+  name: string;
+  url?: string;
+  file?: File;
+  progress?: number;
+  uploading?: boolean;
+}
+
+interface PreviewData {
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  attachments: Attachment[];
+  author: {
+    username: string;
+    role: string;
+  };
+  created_at: string;
+}
+
+interface EditPostFormProps {
+  postId: string;
+}
+
+export function EditPostForm({ postId }: EditPostFormProps) {
+  const [title, setTitle] = useState("")
+  const [content, setContent] = useState("")
+  const [category, setCategory] = useState<string>("")
+  const [tags, setTags] = useState<string[]>([])
+  const [tagInput, setTagInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingPost, setIsLoadingPost] = useState(true)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null)
+  const [post, setPost] = useState<Post | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [canEdit, setCanEdit] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { user, profile } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+
+  // Загрузка данных поста
+  useEffect(() => {
+    const fetchPost = async () => {
+      if (!user) return;
+
+      try {
+        setIsLoadingPost(true);
+        const postData = await getPostById(postId);
+
+        if (!postData) {
+          setError("Публикация не найдена");
+          return;
+        }
+
+        setPost(postData);
+
+        // Проверяем права на редактирование
+        const isOwner = postData.author?.username === profile?.username;
+        const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
+
+        if (!isOwner && !isTeacherOrAdmin) {
+          setError("У вас нет прав на редактирование этой публикации");
+          return;
+        }
+
+        setCanEdit(true);
+
+        // Заполняем форму данными поста
+        setTitle(postData.title);
+        setContent(postData.content);
+        setCategory(postData.category);
+        setTags(postData.tags || []);
+
+        // Извлекаем вложения из контента
+        const linkRegex = /\[Ссылка: (.*?)\]\((.*?)\)/g;
+        const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
+        const fileRegex = /\[(.*?)\]\((.*?)\)/g;
+
+        const extractedAttachments: Attachment[] = [];
+        let cleanContent = postData.content;
+
+        // Извлекаем ссылки
+        let linkMatch;
+        while ((linkMatch = linkRegex.exec(postData.content)) !== null) {
+          extractedAttachments.push({
+            type: 'link',
+            name: linkMatch[1],
+            url: linkMatch[2]
+          });
+          cleanContent = cleanContent.replace(linkMatch[0], '');
+        }
+
+        // Извлекаем изображения
+        let imageMatch;
+        while ((imageMatch = imageRegex.exec(postData.content)) !== null) {
+          extractedAttachments.push({
+            type: 'image',
+            name: imageMatch[1],
+            url: imageMatch[2]
+          });
+          cleanContent = cleanContent.replace(imageMatch[0], '');
+        }
+
+        // Извлекаем файлы (не изображения и не ссылки)
+        let fileMatch;
+        while ((fileMatch = fileRegex.exec(cleanContent)) !== null) {
+          // Проверяем, что это не ссылка и не изображение
+          if (!extractedAttachments.some(a => a.url === fileMatch[2])) {
+            extractedAttachments.push({
+              type: 'file',
+              name: fileMatch[1],
+              url: fileMatch[2]
+            });
+            cleanContent = cleanContent.replace(fileMatch[0], '');
+          }
+        }
+
+        // Очищаем контент от вложений
+        setContent(cleanContent.trim());
+        setAttachments(extractedAttachments);
+
+      } catch (error) {
+        console.error("Ошибка при загрузке публикации:", error);
+        setError("Ошибка при загрузке публикации");
+      } finally {
+        setIsLoadingPost(false);
+      }
+    };
+
+    fetchPost();
+  }, [postId, user, profile]);
+
+  // Обработчик добавления тега
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()])
+      setTagInput("")
+    }
+  }
+
+  // Обработчик удаления тега
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter(t => t !== tag))
+  }
+
+  // Обработчик нажатия Enter в поле ввода тега
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddTag()
+    }
+  }
+
+  // Обработчик открытия диалога выбора файла
+  const handleFileButtonClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  // Обработчик выбора файла
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    const file = files[0]
+    const fileType = file.type.startsWith('image/') ? 'image' : 'file'
+
+    // Добавляем файл в список вложений
+    setAttachments([...attachments, {
+      type: fileType,
+      name: file.name,
+      file,
+      uploading: true,
+      progress: 0
+    }])
+
+    // Сбрасываем значение input, чтобы можно было выбрать тот же файл повторно
+    e.target.value = ''
+
+    // Загружаем файл
+    handleFileUpload(file)
+  }
+
+  // Обработчик загрузки файла
+  const handleFileUpload = async (file: File) => {
+    if (!user) {
+      toast({
+        title: "Ошибка",
+        description: "Необходимо авторизоваться для загрузки файлов",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      // Путь для загрузки файла в Firebase Storage
+      const path = `posts/${user.uid}/${Date.now()}_${file.name}`;
+
+      // Загружаем файл и получаем URL
+      const url = await uploadFile(file, path, (progress) => {
+        setUploadProgress(progress);
+        setAttachments(prev => prev.map(a =>
+          a.name === file.name ? { ...a, progress } : a
+        ));
+      });
+
+      // Обновляем состояние с URL файла
+      setAttachments(prev => prev.map(a =>
+        a.name === file.name ? { ...a, url, uploading: false } : a
+      ));
+
+      toast({
+        title: "Файл загружен",
+        description: `Файл ${file.name} успешно загружен`,
+      });
+    } catch (error) {
+      console.error("Ошибка при загрузке файла:", error);
+
+      // Удаляем файл из списка вложений
+      setAttachments(prev => prev.filter(a => a.name !== file.name));
+
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить файл",
+        variant: "destructive",
+      });
+    }
+  }
+
+  // Обработчик добавления ссылки
+  const handleAddLink = (url: string, name: string) => {
+    if (!url || !name) return;
+
+    setAttachments([...attachments, {
+      type: 'link',
+      name,
+      url
+    }]);
+  }
+
+  // Обработчик удаления вложения
+  const handleRemoveAttachment = (attachment: Attachment) => {
+    setAttachments(attachments.filter(a => a !== attachment));
+  }
+
+  // Обработчик предпросмотра
+  const handlePreview = () => {
+    if (!user || !profile) return;
+
+    setPreviewData({
+      title,
+      content,
+      category,
+      tags,
+      attachments,
+      author: {
+        username: profile.username || "Unknown",
+        role: profile.role || "student"
+      },
+      created_at: new Date().toISOString()
+    });
+  }
+
+  // Обработчик отправки формы
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!user) {
+      toast({
+        title: "Ошибка",
+        description: "Необходимо авторизоваться для обновления публикации",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!title || !content || !category) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все обязательные поля",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Проверяем, что все файлы загружены
+    const uploadingFiles = attachments.filter(a => a.uploading)
+    if (uploadingFiles.length > 0) {
+      toast({
+        title: "Дождитесь загрузки файлов",
+        description: "Некоторые файлы еще загружаются",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      // Подготавливаем данные для обновления поста
+      const postData = {
+        id: postId,
+        title,
+        content,
+        category,
+        tags,
+      };
+
+      // Если есть прикрепленные файлы, добавляем их URL в содержимое
+      if (attachments.length > 0) {
+        const attachmentsContent = attachments.map(a => {
+          if (a.type === 'link') {
+            return `[Ссылка: ${a.name}](${a.url})`;
+          } else if (a.type === 'image' && a.url) {
+            return `![${a.name}](${a.url})`;
+          } else if (a.url) {
+            return `[${a.name}](${a.url})`;
+          }
+          return '';
+        }).filter(Boolean).join('\n\n');
+
+        postData.content = `${content}\n\n${attachmentsContent}`;
+      }
+
+      // Обновляем пост в Firebase
+      const success = await updatePost(postData);
+
+      if (!success) {
+        throw new Error("Не удалось обновить публикацию");
+      }
+
+      toast({
+        title: "Успех",
+        description: "Публикация успешно обновлена",
+      })
+
+      router.push(`/posts/${postId}`)
+      router.refresh()
+    } catch (error: any) {
+      toast({
+        title: "Ошибка",
+        description: error.message || "Произошла ошибка при обновлении публикации",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Функция для отображения предпросмотра
+  const renderPreview = () => {
+    if (!previewData) return null;
+
+    // Функция для обрезки длинных строк
+    const truncateString = (str: string, maxLength: number) => {
+      if (str.length <= maxLength) return str;
+      return str.substring(0, maxLength) + '...';
+    };
+
+    // Преобразуем содержимое с прикрепленными файлами
+    let fullContent = previewData.content;
+
+    if (previewData.attachments.length > 0) {
+      const attachmentsContent = previewData.attachments.map(a => {
+        if (a.type === 'link') {
+          // Обрезаем длинные ссылки
+          const displayName = truncateString(a.name, 60);
+          return `[Ссылка: ${displayName}](${a.url})`;
+        } else if (a.type === 'image' && a.url) {
+          return `![${a.name}](${a.url})`;
+        } else if (a.url) {
+          return `[${a.name}](${a.url})`;
+        }
+        return '';
+      }).filter(Boolean).join('\n\n');
+
+      fullContent = `${fullContent}\n\n${attachmentsContent}`;
+    }
+
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Предпросмотр</CardTitle>
+          <CardDescription>Так будет выглядеть ваша публикация</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="post-preview">
+            <div className="flex items-center space-x-4 mb-4">
+              <SimpleAvatar username={previewData.author.username} size="md" />
+              <div>
+                <div className="font-medium">{previewData.author.username}</div>
+                <div className="flex items-center">
+                  <Badge variant="outline">{previewData.author.role === "teacher" ? "Учитель" : "Ученик"}</Badge>
+                  <span className="text-sm text-muted-foreground ml-2">
+                    {new Date(previewData.created_at).toLocaleDateString("ru-RU")}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
+            <div className="prose dark:prose-invert max-w-none mb-4">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {fullContent}
+              </ReactMarkdown>
+            </div>
+            {previewData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {previewData.tags.map(tag => (
+                  <span key={tag} className="tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (isLoadingPost) {
+    return (
+      <Card className="p-6">
+        <div className="flex justify-center items-center h-40">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Загрузка публикации...</span>
+        </div>
+      </Card>
+    );
+  }
+
+  if (error || !canEdit) {
+    return (
+      <Card className="p-6">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error || "У вас нет прав на редактирование этой публикации"}</p>
+          <Button onClick={() => router.push('/')}>Вернуться на главную</Button>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Редактирование публикации</CardTitle>
+          <CardDescription>Обновите информацию о вашей публикации</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-6">
+              <div className="grid gap-3">
+                <Label htmlFor="title">Заголовок</Label>
+                <Input
+                  id="title"
+                  placeholder="Введите заголовок"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="content">Содержание</Label>
+                <Textarea
+                  id="content"
+                  placeholder="Введите содержание публикации"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="min-h-[200px]"
+                  required
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="category">Категория</Label>
+                <Select value={category} onValueChange={setCategory} required>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Выберите категорию" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="news">Новости</SelectItem>
+                    <SelectItem value="materials">Учебные материалы</SelectItem>
+                    <SelectItem value="project-ideas">Идеи для проектов</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="tags">Теги</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="tags"
+                    placeholder="Добавьте тег"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                  />
+                  <Button type="button" onClick={handleAddTag} variant="outline">Добавить</Button>
+                </div>
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {tags.map(tag => (
+                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <X
+                          className="h-3 w-3 cursor-pointer"
+                          onClick={() => handleRemoveTag(tag)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-3">
+                <Label>Вложения</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleFileButtonClick}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Загрузить файл
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <LinkPopover onAddLink={handleAddLink}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                      Добавить ссылку
+                    </Button>
+                  </LinkPopover>
+                </div>
+                {attachments.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    {attachments.map((attachment, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 border rounded-md"
+                      >
+                        <div className="flex items-center gap-2">
+                          {attachment.type === 'image' ? (
+                            <ImageIcon className="h-5 w-5 text-blue-500" />
+                          ) : attachment.type === 'link' ? (
+                            <LinkIcon className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <FileText className="h-5 w-5 text-orange-500" />
+                          )}
+                          <span className="text-sm truncate max-w-[200px]">
+                            {attachment.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {attachment.uploading && (
+                            <div className="w-24">
+                              <Progress value={attachment.progress} className="h-2" />
+                            </div>
+                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveAttachment(attachment)}
+                            disabled={attachment.uploading}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-between">
+                <Button type="button" variant="outline" onClick={handlePreview}>
+                  Предпросмотр
+                </Button>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => router.push(`/posts/${postId}`)}>
+                    Отмена
+                  </Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Сохранение...
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Сохранить изменения
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+      {previewData && renderPreview()}
+    </>
+  )
+}

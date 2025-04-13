@@ -9,13 +9,16 @@ import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
-import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { useEffect, useState } from 'react'
 import React from 'react'
 import { getPostById, recordView, likePost, hasUserLikedPost } from '@/lib/client-api'
 import { Post } from '@/types/database'
 import { useAuth } from '@/context/auth-context'
 import { useToast } from '@/components/ui/use-toast'
+import { useRouter } from 'next/navigation'
 
 // Функция для обрезки длинных строк
 const truncateString = (str: string, maxLength: number) => {
@@ -42,8 +45,16 @@ export default function PostPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const { toast } = useToast()
+  const router = useRouter()
+
+  // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
+  const canEdit = post && profile && (
+    profile.role === "teacher" ||
+    profile.role === "admin" ||
+    post.author?.username === profile.username
+  )
 
   // Загрузка поста и запись просмотра
   useEffect(() => {
@@ -204,6 +215,17 @@ export default function PostPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
                 <div className="flex space-x-2">
+                  {canEdit && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
+                      onClick={() => router.push(`/edit/${post.id}`)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Редактировать
+                    </Button>
+                  )}
                   <Button variant="ghost" size="icon">
                     <Bookmark className="h-4 w-4" />
                   </Button>
@@ -223,8 +245,10 @@ export default function PostPage({ params }: { params: { id: string } }) {
                 ))}
               </div>
 
-              <div className="prose max-w-none">
-                <p>{post.content}</p>
+              <div className="prose dark:prose-invert max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {post.content}
+                </ReactMarkdown>
               </div>
 
               <div className="flex items-center space-x-6 mt-6">

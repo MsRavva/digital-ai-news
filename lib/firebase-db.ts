@@ -27,9 +27,10 @@ const convertTimestampToISO = (timestamp: Timestamp): string => {
   return timestamp.toDate().toISOString();
 };
 
-// Получение всех постов
+// Получение всех постов (оптимизированная версия)
 export async function getPosts(category?: string): Promise<Post[]> {
   try {
+    // Шаг 1: Получаем все посты
     let postsQuery = collection(db, "posts");
 
     if (category) {
@@ -46,39 +47,110 @@ export async function getPosts(category?: string): Promise<Post[]> {
     }
 
     const postsSnapshot = await getDocs(postsQuery);
-    const posts: Post[] = [];
 
-    for (const postDoc of postsSnapshot.docs) {
-      const postData = postDoc.data();
+    if (postsSnapshot.empty) {
+      return [];
+    }
 
-      // Получаем автора
-      const authorDoc = await getDoc(doc(db, "profiles", postData.author_id));
-      const authorData = authorDoc.data();
+    // Шаг 2: Собираем все ID авторов для пакетного запроса
+    const authorIds = [...new Set(postsSnapshot.docs.map(doc => doc.data().author_id))];
+    const postIds = postsSnapshot.docs.map(doc => doc.id);
 
-      // Получаем теги
-      const postTagsQuery = query(
-        collection(db, "post_tags"),
-        where("post_id", "==", postDoc.id)
-      );
-      const postTagsSnapshot = await getDocs(postTagsQuery);
+    // Шаг 3: Получаем всех авторов одним запросом
+    const authorsMap = new Map();
+    for (const authorId of authorIds) {
+      const authorDoc = await getDoc(doc(db, "profiles", authorId));
+      if (authorDoc.exists()) {
+        authorsMap.set(authorId, authorDoc.data());
+      }
+    }
 
-      const tagIds = postTagsSnapshot.docs.map(doc => doc.data().tag_id);
-      const tags: string[] = [];
+    // Шаг 4: Получаем все связи постов с тегами одним запросом
+    const postTagsQuery = query(
+      collection(db, "post_tags"),
+      where("post_id", "in", postIds)
+    );
+    const postTagsSnapshot = await getDocs(postTagsQuery);
 
-      if (tagIds.length > 0) {
-        for (const tagId of tagIds) {
-          const tagDoc = await getDoc(doc(db, "tags", tagId));
-          if (tagDoc.exists()) {
-            tags.push(tagDoc.data().name);
-          }
+    // Группируем связи по ID поста
+    const postTagsMap = new Map();
+    postTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (!postTagsMap.has(data.post_id)) {
+        postTagsMap.set(data.post_id, []);
+      }
+      postTagsMap.get(data.post_id).push(data.tag_id);
+    });
+
+    // Шаг 5: Получаем все теги одним запросом
+    const allTagIds = [...new Set(postTagsSnapshot.docs.map(doc => doc.data().tag_id))];
+    const tagsMap = new Map();
+
+    if (allTagIds.length > 0) {
+      for (const tagId of allTagIds) {
+        const tagDoc = await getDoc(doc(db, "tags", tagId));
+        if (tagDoc.exists()) {
+          tagsMap.set(tagId, tagDoc.data().name);
         }
       }
+    }
+
+    // Шаг 6: Получаем статистику для всех постов
+    // Лайки
+    const likesQuery = query(
+      collection(db, "likes"),
+      where("post_id", "in", postIds)
+    );
+    const likesSnapshot = await getDocs(likesQuery);
+    const likesCountMap = new Map();
+    likesSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      likesCountMap.set(data.post_id, (likesCountMap.get(data.post_id) || 0) + 1);
+    });
+
+    // Комментарии
+    const commentsQuery = query(
+      collection(db, "comments"),
+      where("post_id", "in", postIds)
+    );
+    const commentsSnapshot = await getDocs(commentsQuery);
+    const commentsCountMap = new Map();
+    commentsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      commentsCountMap.set(data.post_id, (commentsCountMap.get(data.post_id) || 0) + 1);
+    });
+
+    // Просмотры
+    const viewsQuery = query(
+      collection(db, "views"),
+      where("post_id", "in", postIds)
+    );
+    const viewsSnapshot = await getDocs(viewsQuery);
+    const viewsCountMap = new Map();
+    viewsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      viewsCountMap.set(data.post_id, (viewsCountMap.get(data.post_id) || 0) + 1);
+    });
+
+    // Шаг 7: Формируем итоговый массив постов
+    const posts: Post[] = postsSnapshot.docs.map(postDoc => {
+      const postData = postDoc.data();
+      const postId = postDoc.id;
+
+      // Получаем автора
+      const authorData = authorsMap.get(postData.author_id);
+
+      // Получаем теги
+      const tagIds = postTagsMap.get(postId) || [];
+      const tags = tagIds.map(tagId => tagsMap.get(tagId)).filter(Boolean);
 
       // Получаем статистику
-      const stats = await getPostStats(postDoc.id);
+      const likesCount = likesCountMap.get(postId) || 0;
+      const commentsCount = commentsCountMap.get(postId) || 0;
+      const viewsCount = viewsCountMap.get(postId) || 0;
 
-      posts.push({
-        id: postDoc.id,
+      return {
+        id: postId,
         title: postData.title,
         content: postData.content,
         author: {
@@ -88,9 +160,11 @@ export async function getPosts(category?: string): Promise<Post[]> {
         created_at: convertTimestampToISO(postData.created_at),
         category: postData.category,
         tags,
-        ...stats
-      });
-    }
+        likesCount,
+        commentsCount,
+        viewsCount
+      };
+    });
 
     return posts;
   } catch (error) {
@@ -99,7 +173,7 @@ export async function getPosts(category?: string): Promise<Post[]> {
   }
 }
 
-// Получение поста по ID
+// Получение поста по ID (оптимизированная версия)
 export async function getPostById(id: string): Promise<Post | null> {
   try {
     const postDoc = await getDoc(doc(db, "posts", id));
@@ -125,16 +199,52 @@ export async function getPostById(id: string): Promise<Post | null> {
     const tags: string[] = [];
 
     if (tagIds.length > 0) {
-      for (const tagId of tagIds) {
-        const tagDoc = await getDoc(doc(db, "tags", tagId));
-        if (tagDoc.exists()) {
-          tags.push(tagDoc.data().name);
+      // Получаем все теги одним запросом
+      const tagsQuery = query(
+        collection(db, "tags"),
+        where("__name__", "in", tagIds)
+      );
+      const tagsSnapshot = await getDocs(tagsQuery);
+
+      // Создаем маппинг тегов
+      const tagsMap = new Map();
+      tagsSnapshot.docs.forEach(doc => {
+        tagsMap.set(doc.id, doc.data().name);
+      });
+
+      // Добавляем теги в массив
+      tagIds.forEach(tagId => {
+        const tagName = tagsMap.get(tagId);
+        if (tagName) {
+          tags.push(tagName);
         }
-      }
+      });
     }
 
-    // Получаем статистику
-    const stats = await getPostStats(id);
+    // Получаем статистику одним запросом
+    // Лайки
+    const likesQuery = query(
+      collection(db, "likes"),
+      where("post_id", "==", id)
+    );
+    const likesSnapshot = await getDocs(likesQuery);
+    const likesCount = likesSnapshot.size;
+
+    // Комментарии
+    const commentsQuery = query(
+      collection(db, "comments"),
+      where("post_id", "==", id)
+    );
+    const commentsSnapshot = await getDocs(commentsQuery);
+    const commentsCount = commentsSnapshot.size;
+
+    // Просмотры
+    const viewsQuery = query(
+      collection(db, "views"),
+      where("post_id", "==", id)
+    );
+    const viewsSnapshot = await getDocs(viewsQuery);
+    const viewsCount = viewsSnapshot.size;
 
     return {
       id: postDoc.id,
@@ -147,7 +257,9 @@ export async function getPostById(id: string): Promise<Post | null> {
       created_at: convertTimestampToISO(postData.created_at),
       category: postData.category,
       tags,
-      ...stats
+      likesCount,
+      commentsCount,
+      viewsCount
     };
   } catch (error) {
     console.error("Error fetching post:", error);
@@ -526,7 +638,7 @@ export async function getAllTags(): Promise<Tag[]> {
   }
 }
 
-// Получение статистики поста
+// Получение статистики поста (устаревшая версия, используется только для обратной совместимости)
 export async function getPostStats(postId: string): Promise<PostStats> {
   try {
     // Получаем количество лайков
@@ -603,5 +715,153 @@ export async function recordView(postId: string, userId: string): Promise<void> 
     }
   } catch (error) {
     console.error("Error recording view:", error);
+  }
+}
+
+// Обновление поста
+export async function updatePost(data: {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+}): Promise<boolean> {
+  try {
+    // Используем транзакцию для обновления поста и связанных тегов
+    const batch = writeBatch(db);
+
+    // Обновляем пост
+    const postRef = doc(db, "posts", data.id);
+    batch.update(postRef, {
+      title: data.title,
+      content: data.content,
+      category: data.category,
+      updated_at: serverTimestamp()
+    });
+
+    // Удаляем старые связи с тегами
+    const postTagsQuery = query(
+      collection(db, "post_tags"),
+      where("post_id", "==", data.id)
+    );
+    const postTagsSnapshot = await getDocs(postTagsQuery);
+    postTagsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // Добавляем новые теги
+    for (const tagName of data.tags) {
+      // Проверяем, существует ли тег
+      const tagsQuery = query(
+        collection(db, "tags"),
+        where("name", "==", tagName)
+      );
+      const tagsSnapshot = await getDocs(tagsQuery);
+
+      let tagId: string;
+
+      if (tagsSnapshot.empty) {
+        // Создаем новый тег
+        const tagRef = doc(collection(db, "tags"));
+        batch.set(tagRef, { name: tagName });
+        tagId = tagRef.id;
+      } else {
+        tagId = tagsSnapshot.docs[0].id;
+      }
+
+      // Создаем связь поста с тегом
+      const postTagRef = doc(collection(db, "post_tags"));
+      batch.set(postTagRef, {
+        post_id: data.id,
+        tag_id: tagId
+      });
+    }
+
+    // Выполняем транзакцию
+    await batch.commit();
+
+    return true;
+  } catch (error) {
+    console.error("Error updating post:", error);
+    return false;
+  }
+}
+
+// Удаление поста
+export async function deletePost(postId: string): Promise<boolean> {
+  try {
+    // Используем транзакцию для удаления поста и связанных данных
+    const batch = writeBatch(db);
+
+    // Удаляем пост
+    const postRef = doc(db, "posts", postId);
+    batch.delete(postRef);
+
+    // Удаляем связи с тегами
+    const postTagsQuery = query(
+      collection(db, "post_tags"),
+      where("post_id", "==", postId)
+    );
+    const postTagsSnapshot = await getDocs(postTagsQuery);
+    postTagsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // Удаляем лайки поста
+    const likesQuery = query(
+      collection(db, "likes"),
+      where("post_id", "==", postId)
+    );
+    const likesSnapshot = await getDocs(likesQuery);
+    likesSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // Удаляем просмотры поста
+    const viewsQuery = query(
+      collection(db, "views"),
+      where("post_id", "==", postId)
+    );
+    const viewsSnapshot = await getDocs(viewsQuery);
+    viewsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // Находим все комментарии к посту
+    const commentsQuery = query(
+      collection(db, "comments"),
+      where("post_id", "==", postId)
+    );
+    const commentsSnapshot = await getDocs(commentsQuery);
+
+    // Получаем ID всех комментариев
+    const commentIds = commentsSnapshot.docs.map(doc => doc.id);
+
+    // Удаляем комментарии
+    commentsSnapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    // Удаляем лайки комментариев
+    if (commentIds.length > 0) {
+      for (const commentId of commentIds) {
+        const commentLikesQuery = query(
+          collection(db, "comment_likes"),
+          where("comment_id", "==", commentId)
+        );
+        const commentLikesSnapshot = await getDocs(commentLikesQuery);
+        commentLikesSnapshot.docs.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+      }
+    }
+
+    // Выполняем транзакцию
+    await batch.commit();
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    return false;
   }
 }
