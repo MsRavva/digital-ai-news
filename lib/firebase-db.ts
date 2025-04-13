@@ -320,8 +320,12 @@ export async function addComment(data: {
     const postDoc = await getDoc(postRef);
 
     if (postDoc.exists()) {
+      // Проверяем, существует ли поле commentsCount
+      const postData = postDoc.data();
+      const currentComments = postData.commentsCount || 0;
+
       await updateDoc(postRef, {
-        commentsCount: increment(1)
+        commentsCount: currentComments + 1
       });
     }
 
@@ -438,9 +442,25 @@ export async function likePost(postId: string, userId: string): Promise<boolean>
 
       // Обновляем счетчик лайков в посте
       const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        likesCount: increment(-1)
-      });
+      const postDoc = await getDoc(postRef);
+
+      if (postDoc.exists()) {
+        // Проверяем, существует ли поле likesCount
+        const postData = postDoc.data();
+        const currentLikes = postData.likesCount || 0;
+
+        // Убеждаемся, что счетчик не станет отрицательным
+        if (currentLikes > 0) {
+          await updateDoc(postRef, {
+            likesCount: increment(-1)
+          });
+        } else {
+          // Если счетчик уже 0, не уменьшаем его
+          await updateDoc(postRef, {
+            likesCount: 0
+          });
+        }
+      }
 
       return false; // Возвращаем false, чтобы показать, что лайк был удален
     }
@@ -454,9 +474,17 @@ export async function likePost(postId: string, userId: string): Promise<boolean>
 
     // Обновляем счетчик лайков в посте
     const postRef = doc(db, "posts", postId);
-    await updateDoc(postRef, {
-      likesCount: increment(1)
-    });
+    const postDoc = await getDoc(postRef);
+
+    if (postDoc.exists()) {
+      // Проверяем, существует ли поле likesCount
+      const postData = postDoc.data();
+      const currentLikes = postData.likesCount || 0;
+
+      await updateDoc(postRef, {
+        likesCount: currentLikes + 1
+      });
+    }
 
     return true; // Возвращаем true, чтобы показать, что лайк был добавлен
   } catch (error) {
@@ -561,9 +589,17 @@ export async function recordView(postId: string, userId: string): Promise<void> 
 
       // Обновляем счетчик просмотров в посте
       const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, {
-        viewsCount: increment(1)
-      });
+      const postDoc = await getDoc(postRef);
+
+      if (postDoc.exists()) {
+        // Проверяем, существует ли поле viewsCount
+        const postData = postDoc.data();
+        const currentViews = postData.viewsCount || 0;
+
+        await updateDoc(postRef, {
+          viewsCount: currentViews + 1
+        });
+      }
     }
   } catch (error) {
     console.error("Error recording view:", error);
