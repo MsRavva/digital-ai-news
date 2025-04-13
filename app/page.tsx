@@ -80,8 +80,8 @@ export default function Home() {
               <h1 className="text-3xl font-bold tracking-tight mb-2">AI News</h1>
               <p className="text-muted-foreground">Последние новости и обсуждения в мире искусственного интеллекта</p>
             </div>
-            <div className="mt-4 flex gap-3">
-              <div className="relative md:hidden">
+            <div className="mt-4 flex gap-3 md:hidden">
+              <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-[hsl(var(--saas-purple))]" />
                 <Input
                   type="search"
@@ -89,11 +89,6 @@ export default function Home() {
                   className="w-full pl-9 bg-background/50 backdrop-blur-sm border-[hsl(var(--saas-purple)/0.2)] focus:border-[hsl(var(--saas-purple))] focus:ring-[hsl(var(--saas-purple)/0.1)] transition-all duration-200 dark:bg-gray-800/50 dark:border-gray-700"
                 />
               </div>
-              <Link href="/create">
-                <Button variant="saas">
-                  <Plus className="mr-2 h-4 w-4" /> Создать публикацию
-                </Button>
-              </Link>
             </div>
           </div>
 
@@ -116,6 +111,11 @@ export default function Home() {
                       </TabsList>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Link href="/create">
+                        <Button variant="saas" size="sm">
+                          <Plus className="mr-2 h-4 w-4" /> Создать публикацию
+                        </Button>
+                      </Link>
                       <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
                       <Button variant="saas-secondary" size="sm" className="gap-1">
                         <Filter className="h-4 w-4" /> Фильтры
