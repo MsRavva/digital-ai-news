@@ -261,7 +261,7 @@ export function CreatePostForm() {
     const categoryName = {
       'news': 'Новости',
       'materials': 'Учебные материалы',
-      'discussions': 'Обсуждения'
+      'project-ideas': 'Идеи для проектов'
     }[previewData.category] || previewData.category;
 
     // Форматируем дату
@@ -340,7 +340,7 @@ export function CreatePostForm() {
               <SelectContent>
                 <SelectItem value="news">Новости</SelectItem>
                 <SelectItem value="materials">Учебные материалы</SelectItem>
-                <SelectItem value="discussions">Обсуждения</SelectItem>
+                <SelectItem value="project-ideas">Идеи для проектов</SelectItem>
               </SelectContent>
             </Select>
           </div>

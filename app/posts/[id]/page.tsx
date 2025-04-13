@@ -169,11 +169,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
             <Separator className="my-6" />
 
             <div>
-              <h2 className="text-xl font-semibold mb-4">Комментарии</h2>
-              <CommentForm />
-              <div className="mt-6">
-                <CommentsList postId={postId} />
-              </div>
+              <CommentsList postId={postId} />
             </div>
           </Card>
         </div>

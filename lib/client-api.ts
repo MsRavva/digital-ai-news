@@ -5,7 +5,10 @@ import {
   getCommentsByPostId as getFirebaseCommentsByPostId,
   addComment as addFirebaseComment,
   createPost as createFirebasePost,
-  recordView as recordFirebaseView
+  recordView as recordFirebaseView,
+  likeComment as likeFirebaseComment,
+  unlikeComment as unlikeFirebaseComment,
+  hasUserLikedComment as hasFirebaseUserLikedComment
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
@@ -116,8 +119,8 @@ export async function getCommentsByPostId(postId: string) {
   }
 
   try {
-    // Для тестирования возвращаем пустой массив
-    return [];
+    // Вызываем Firebase функцию
+    return await getFirebaseCommentsByPostId(postId);
   } catch (error) {
     console.error('Ошибка при получении комментариев:', error);
     return [];
@@ -136,8 +139,8 @@ export async function addComment(data: {
   }
 
   try {
-    // Для тестирования возвращаем фиктивный ID
-    return 'comment-' + Date.now();
+    // Вызываем Firebase функцию
+    return await addFirebaseComment(data);
   } catch (error) {
     console.error('Ошибка при добавлении комментария:', error);
     return null;
@@ -172,9 +175,57 @@ export async function recordView(postId: string, userId: string) {
   }
 
   try {
-    // Для тестирования ничего не делаем
-    return;
+    // Вызываем Firebase функцию
+    return await recordFirebaseView(postId, userId);
   } catch (error) {
     console.error('Ошибка при записи просмотра:', error);
+  }
+}
+
+// Лайк комментария
+export async function likeComment(commentId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await likeFirebaseComment(commentId, userId);
+  } catch (error) {
+    console.error('Ошибка при лайке комментария:', error);
+    return false;
+  }
+}
+
+// Удаление лайка комментария
+export async function unlikeComment(commentId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await unlikeFirebaseComment(commentId, userId);
+  } catch (error) {
+    console.error('Ошибка при удалении лайка комментария:', error);
+    return false;
+  }
+}
+
+// Проверка, лайкнул ли пользователь комментарий
+export async function hasUserLikedComment(commentId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await hasFirebaseUserLikedComment(commentId, userId);
+  } catch (error) {
+    console.error('Ошибка при проверке лайка комментария:', error);
+    return false;
   }
 }

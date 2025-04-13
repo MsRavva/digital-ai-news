@@ -306,7 +306,7 @@ export default function ProfilePage() {
                             <Label>Социальные сети</Label>
                             <div className="space-y-2 mt-1">
                               <div className="flex items-center">
-                                <Github className="h-4 w-4 mr-2 text-muted-foreground" />
+                                <Github className="h-6 w-6 mr-2 text-muted-foreground" />
                                 <Input
                                   id="github"
                                   name="github"
@@ -317,7 +317,7 @@ export default function ProfilePage() {
                               </div>
 
                               <div className="flex items-center">
-                                <img src="/vk.svg" alt="VK" className="h-4 w-4 mr-2 text-muted-foreground" />
+                                <img src="/vk.svg" alt="VK" className="h-6 w-6 mr-2 text-muted-foreground" />
                                 <Input
                                   id="vk"
                                   name="vk"

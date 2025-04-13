@@ -10,7 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 const categories = [
   { id: "news", name: "Новости" },
   { id: "materials", name: "Учебные материалы" },
-  { id: "discussions", name: "Обсуждения" },
+  { id: "project-ideas", name: "Идеи для проектов" },
 ]
 
 interface TagsFilterProps {

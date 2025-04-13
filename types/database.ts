@@ -23,7 +23,7 @@ export interface Post {
     role: string
   }
   created_at: string
-  category: "news" | "materials" | "discussions"
+  category: "news" | "materials" | "project-ideas"
   tags: string[]
   likesCount?: number
   commentsCount?: number
@@ -45,6 +45,7 @@ export interface Comment {
   created_at: string
   parent_id: string | null
   replies?: Comment[]
+  likesCount?: number
 }
 
 export interface PostStats {

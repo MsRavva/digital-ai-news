@@ -20,7 +20,7 @@ export default function Home() {
     all: [],
     news: [],
     materials: [],
-    discussions: []
+    'project-ideas': []
   })
   const [tags, setTags] = useState([])
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
@@ -36,8 +36,8 @@ export default function Home() {
         console.log('Новости:', newsPosts)
         const materialsPosts = await getPosts("materials")
         console.log('Материалы:', materialsPosts)
-        const discussionsPosts = await getPosts("discussions")
-        console.log('Обсуждения:', discussionsPosts)
+        const projectIdeasPosts = await getPosts("project-ideas")
+        console.log('Идеи для проектов:', projectIdeasPosts)
         const allTags = await getAllTags()
         console.log('Теги:', allTags)
 
@@ -45,7 +45,7 @@ export default function Home() {
           all: allPosts,
           news: newsPosts,
           materials: materialsPosts,
-          discussions: discussionsPosts
+          'project-ideas': projectIdeasPosts
         })
         setTags(allTags)
       } catch (error) {
@@ -99,7 +99,7 @@ export default function Home() {
                           <TabsTrigger value="all" className="filter-item">Все</TabsTrigger>
                           <TabsTrigger value="news" className="filter-item">Новости</TabsTrigger>
                           <TabsTrigger value="materials" className="filter-item">Учебные материалы</TabsTrigger>
-                          <TabsTrigger value="discussions" className="filter-item">Обсуждения</TabsTrigger>
+                          <TabsTrigger value="project-ideas" className="filter-item">Идеи для проектов</TabsTrigger>
                         </TabsList>
                       </div>
                       <div className="relative">
@@ -162,16 +162,16 @@ export default function Home() {
                       )}
                     </Card>
                   </TabsContent>
-                  <TabsContent value="discussions">
+                  <TabsContent value="project-ideas">
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
                       {loading ? (
                         <div className="p-8 text-center">
                           <p className="text-muted-foreground">Загрузка публикаций...</p>
                         </div>
                       ) : viewMode === 'grid' ? (
-                        <PostsList posts={posts.discussions} />
+                        <PostsList posts={posts['project-ideas']} />
                       ) : (
-                        <PostsTable posts={posts.discussions} />
+                        <PostsTable posts={posts['project-ideas']} />
                       )}
                     </Card>
                   </TabsContent>

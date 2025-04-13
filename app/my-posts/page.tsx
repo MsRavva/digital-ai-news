@@ -19,12 +19,12 @@ export default function MyPostsPage() {
     all: Post[];
     news: Post[];
     materials: Post[];
-    discussions: Post[];
+    'project-ideas': Post[];
   }>({
     all: [],
     news: [],
     materials: [],
-    discussions: []
+    'project-ideas': []
   })
   const [loading, setLoading] = useState(true)
 
@@ -35,12 +35,12 @@ export default function MyPostsPage() {
           const allPosts = await getPosts()
           // Фильтруем посты текущего пользователя (в реальном приложении это должно делаться на сервере)
           const userPosts = allPosts.filter(post => post.author?.username === profile?.username)
-          
+
           setPosts({
             all: userPosts,
             news: userPosts.filter(post => post.category === 'news'),
             materials: userPosts.filter(post => post.category === 'materials'),
-            discussions: userPosts.filter(post => post.category === 'discussions')
+            'project-ideas': userPosts.filter(post => post.category === 'project-ideas')
           })
         } catch (error) {
           console.error('Ошибка при загрузке публикаций пользователя:', error)
@@ -83,7 +83,7 @@ export default function MyPostsPage() {
         </div>
       )
     }
-    
+
     if (categoryPosts.length === 0) {
       return (
         <div className="text-center p-4">
@@ -91,7 +91,7 @@ export default function MyPostsPage() {
         </div>
       )
     }
-    
+
     return (
       <div className="space-y-4">
         {categoryPosts.map((post) => (
@@ -164,7 +164,7 @@ export default function MyPostsPage() {
               </Button>
             </Link>
           </div>
-          
+
           <Card>
             <CardHeader>
               <Tabs defaultValue="all" className="w-full">
@@ -172,7 +172,7 @@ export default function MyPostsPage() {
                   <TabsTrigger value="all">Все</TabsTrigger>
                   <TabsTrigger value="news">Новости</TabsTrigger>
                   <TabsTrigger value="materials">Учебные материалы</TabsTrigger>
-                  <TabsTrigger value="discussions">Обсуждения</TabsTrigger>
+                  <TabsTrigger value="project-ideas">Идеи для проектов</TabsTrigger>
                 </TabsList>
                 <CardContent className="pt-6">
                   <TabsContent value="all">
@@ -184,8 +184,8 @@ export default function MyPostsPage() {
                   <TabsContent value="materials">
                     {renderPosts(posts.materials)}
                   </TabsContent>
-                  <TabsContent value="discussions">
-                    {renderPosts(posts.discussions)}
+                  <TabsContent value="project-ideas">
+                    {renderPosts(posts['project-ideas'])}
                   </TabsContent>
                 </CardContent>
               </Tabs>
