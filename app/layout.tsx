@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Mulish } from "next/font/google"
 import { AuthProvider } from "@/context/auth-context"
 import "./globals.css"
+import "@/styles/shake-animation.css"
 
 const mulish = Mulish({
   subsets: ["latin", "cyrillic"],

@@ -12,7 +12,8 @@ import {
   likePost as likeFirebasePost,
   hasUserLikedPost as hasFirebaseUserLikedPost,
   deletePost as deleteFirebasePost,
-  updatePost as updateFirebasePost
+  updatePost as updateFirebasePost,
+  deleteComment as deleteFirebaseComment
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
@@ -280,6 +281,22 @@ export async function updatePost(data: {
     return await updateFirebasePost(data);
   } catch (error) {
     console.error('Ошибка при обновлении поста:', error);
+    return false;
+  }
+}
+
+// Удаление комментария
+export async function deleteComment(commentId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await deleteFirebaseComment(commentId);
+  } catch (error) {
+    console.error('Ошибка при удалении комментария:', error);
     return false;
   }
 }

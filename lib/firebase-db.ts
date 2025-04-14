@@ -787,6 +787,101 @@ export async function updatePost(data: {
   }
 }
 
+// Удаление комментария (с каскадным удалением дочерних комментариев)
+export async function deleteComment(commentId: string): Promise<boolean> {
+  try {
+    // Получаем информацию о комментарии
+    const commentDoc = await getDoc(doc(db, "comments", commentId));
+
+    if (!commentDoc.exists()) {
+      console.error("Comment not found:", commentId);
+      return false;
+    }
+
+    const commentData = commentDoc.data();
+    const postId = commentData.post_id;
+
+    // Используем транзакцию для удаления комментария и связанных данных
+    const batch = writeBatch(db);
+
+    // Находим все дочерние комментарии (рекурсивно)
+    const childCommentIds = await getAllChildCommentIds(commentId);
+
+    // Добавляем текущий комментарий к списку для удаления
+    const allCommentIds = [commentId, ...childCommentIds];
+
+    // Удаляем все комментарии
+    for (const id of allCommentIds) {
+      batch.delete(doc(db, "comments", id));
+    }
+
+    // Удаляем лайки всех комментариев
+    for (const id of allCommentIds) {
+      const commentLikesQuery = query(
+        collection(db, "comment_likes"),
+        where("comment_id", "==", id)
+      );
+      const commentLikesSnapshot = await getDocs(commentLikesQuery);
+      commentLikesSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+    }
+
+    // Обновляем счетчик комментариев в посте
+    const postRef = doc(db, "posts", postId);
+    const postDoc = await getDoc(postRef);
+
+    if (postDoc.exists()) {
+      const postData = postDoc.data();
+      const currentComments = postData.commentsCount || 0;
+
+      // Убеждаемся, что счетчик не станет отрицательным
+      const newCount = Math.max(0, currentComments - allCommentIds.length);
+
+      batch.update(postRef, {
+        commentsCount: newCount
+      });
+    }
+
+    // Выполняем транзакцию
+    await batch.commit();
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    return false;
+  }
+}
+
+// Рекурсивная функция для получения всех дочерних комментариев
+async function getAllChildCommentIds(parentId: string): Promise<string[]> {
+  const childIds: string[] = [];
+
+  // Находим прямых потомков
+  const childrenQuery = query(
+    collection(db, "comments"),
+    where("parent_id", "==", parentId)
+  );
+
+  const childrenSnapshot = await getDocs(childrenQuery);
+
+  if (childrenSnapshot.empty) {
+    return [];
+  }
+
+  // Добавляем ID прямых потомков
+  const directChildIds = childrenSnapshot.docs.map(doc => doc.id);
+  childIds.push(...directChildIds);
+
+  // Рекурсивно находим потомков для каждого прямого потомка
+  for (const childId of directChildIds) {
+    const nestedChildIds = await getAllChildCommentIds(childId);
+    childIds.push(...nestedChildIds);
+  }
+
+  return childIds;
+}
+
 // Удаление поста
 export async function deletePost(postId: string): Promise<boolean> {
   try {
