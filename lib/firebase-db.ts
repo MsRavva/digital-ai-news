@@ -623,6 +623,98 @@ export async function hasUserLikedPost(postId: string, userId: string): Promise<
   }
 }
 
+// Добавление/удаление поста в избранное
+export async function toggleBookmark(postId: string, userId: string): Promise<boolean> {
+  try {
+    // Проверяем, добавил ли пользователь этот пост в избранное ранее
+    const bookmarkQuery = query(
+      collection(db, "bookmarks"),
+      where("post_id", "==", postId),
+      where("user_id", "==", userId)
+    );
+
+    const bookmarkSnapshot = await getDocs(bookmarkQuery);
+
+    if (!bookmarkSnapshot.empty) {
+      // Пользователь уже добавил этот пост в избранное - удаляем
+      const batch = writeBatch(db);
+
+      bookmarkSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+      return false; // Возвращаем false, чтобы показать, что закладка была удалена
+    }
+
+    // Добавляем в избранное
+    await addDoc(collection(db, "bookmarks"), {
+      post_id: postId,
+      user_id: userId,
+      created_at: serverTimestamp()
+    });
+
+    return true; // Возвращаем true, чтобы показать, что закладка была добавлена
+  } catch (error) {
+    console.error("Error toggling bookmark:", error);
+    return false;
+  }
+}
+
+// Проверка, добавил ли пользователь пост в избранное
+export async function hasUserBookmarkedPost(postId: string, userId: string): Promise<boolean> {
+  try {
+    const bookmarkQuery = query(
+      collection(db, "bookmarks"),
+      where("post_id", "==", postId),
+      where("user_id", "==", userId)
+    );
+
+    const bookmarkSnapshot = await getDocs(bookmarkQuery);
+
+    return !bookmarkSnapshot.empty;
+  } catch (error) {
+    console.error("Error checking if user bookmarked post:", error);
+    return false;
+  }
+}
+
+// Получение всех избранных постов пользователя
+export async function getBookmarkedPosts(userId: string): Promise<Post[]> {
+  try {
+    // Получаем все закладки пользователя
+    const bookmarksQuery = query(
+      collection(db, "bookmarks"),
+      where("user_id", "==", userId),
+      orderBy("created_at", "desc")
+    );
+
+    const bookmarksSnapshot = await getDocs(bookmarksQuery);
+
+    if (bookmarksSnapshot.empty) {
+      return [];
+    }
+
+    // Получаем ID всех закладок
+    const postIds = bookmarksSnapshot.docs.map(doc => doc.data().post_id);
+
+    // Получаем данные всех постов
+    const posts: Post[] = [];
+
+    for (const postId of postIds) {
+      const post = await getPostById(postId);
+      if (post) {
+        posts.push(post);
+      }
+    }
+
+    return posts;
+  } catch (error) {
+    console.error("Error fetching bookmarked posts:", error);
+    return [];
+  }
+}
+
 // Получение всех тегов
 export async function getAllTags(): Promise<Tag[]> {
   try {

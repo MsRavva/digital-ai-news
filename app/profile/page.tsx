@@ -14,10 +14,10 @@ import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { getPosts } from "@/lib/client-api"
+import { getPosts, getBookmarkedPosts } from "@/lib/client-api"
 import { Post } from "@/types/database"
 import Link from "next/link"
-import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Pencil, Save } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Pencil, Save, Bookmark } from "lucide-react"
 
 export default function ProfilePage() {
   const { user, profile, updateProfile } = useAuth()
@@ -32,7 +32,9 @@ export default function ProfilePage() {
     vk: ''
   })
   const [userPosts, setUserPosts] = useState<Post[]>([])
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingBookmarks, setLoadingBookmarks] = useState(true)
   const [stats, setStats] = useState({
     posts: 0,
     comments: 0,
@@ -75,6 +77,24 @@ export default function ProfilePage() {
 
     fetchUserPosts()
   }, [user, profile])
+
+  // Загрузка избранных постов
+  useEffect(() => {
+    const fetchBookmarkedPosts = async () => {
+      if (user) {
+        try {
+          const posts = await getBookmarkedPosts(user.uid)
+          setBookmarkedPosts(posts)
+        } catch (error) {
+          console.error('Ошибка при загрузке избранных публикаций:', error)
+        } finally {
+          setLoadingBookmarks(false)
+        }
+      }
+    }
+
+    fetchBookmarkedPosts()
+  }, [user])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -371,61 +391,132 @@ export default function ProfilePage() {
             <div className="md:col-span-2">
               <Card>
                 <CardHeader>
-                  <CardTitle>Мои публикации</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="text-center p-4">
-                      <p className="text-muted-foreground">Загрузка публикаций...</p>
-                    </div>
-                  ) : userPosts.length === 0 ? (
-                    <div className="text-center p-4">
-                      <p className="text-muted-foreground">У вас пока нет публикаций</p>
-                      <Button className="mt-4 bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
-                        <Link href="/create">Создать публикацию</Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {userPosts.map((post) => (
-                        <div key={post.id} className="border rounded-lg p-4 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200">
-                          <Link href={`/posts/${post.id}`}>
-                            <h3 className="text-xl font-semibold mb-2 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                              {post.title}
-                            </h3>
-                          </Link>
-                          <p className="text-muted-foreground mb-3 line-clamp-2">
-                            {post.content}
-                          </p>
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {post.tags?.map((tag) => (
-                              <Badge key={tag} variant="secondary">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <span className="mr-4">{new Date(post.created_at).toLocaleDateString("ru-RU")}</span>
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-1">
-                                <MessageSquare className="h-4 w-4" />
-                                <span>{post.commentsCount || 0}</span>
+                  <Tabs defaultValue="posts" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="posts" className="flex items-center gap-2">
+                        <Pencil className="h-4 w-4" />
+                        Мои публикации
+                      </TabsTrigger>
+                      <TabsTrigger value="bookmarks" className="flex items-center gap-2">
+                        <Bookmark className="h-4 w-4" />
+                        Избранное
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="posts" className="pt-4">
+                      {loading ? (
+                        <div className="text-center p-4">
+                          <p className="text-muted-foreground">Загрузка публикаций...</p>
+                        </div>
+                      ) : userPosts.length === 0 ? (
+                        <div className="text-center p-4">
+                          <p className="text-muted-foreground">У вас пока нет публикаций</p>
+                          <Button className="mt-4 bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
+                            <Link href="/create">Создать публикацию</Link>
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {userPosts.map((post) => (
+                            <div key={post.id} className="border rounded-lg p-4 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200">
+                              <Link href={`/posts/${post.id}`}>
+                                <h3 className="text-xl font-semibold mb-2 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                                  {post.title}
+                                </h3>
+                              </Link>
+                              <p className="text-muted-foreground mb-3 line-clamp-2">
+                                {post.content}
+                              </p>
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                {post.tags?.map((tag) => (
+                                  <Badge key={tag} variant="secondary">
+                                    {tag}
+                                  </Badge>
+                                ))}
                               </div>
-                              <div className="flex items-center gap-1">
-                                <ThumbsUp className="h-4 w-4" />
-                                <span>{post.likesCount || 0}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="h-4 w-4" />
-                                <span>{post.viewsCount || 0}</span>
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <span className="mr-4">{new Date(post.created_at).toLocaleDateString("ru-RU")}</span>
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-1">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span>{post.commentsCount || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <ThumbsUp className="h-4 w-4" />
+                                    <span>{post.likesCount || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Eye className="h-4 w-4" />
+                                    <span>{post.viewsCount || 0}</span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="bookmarks" className="pt-4">
+                      {loadingBookmarks ? (
+                        <div className="text-center p-4">
+                          <p className="text-muted-foreground">Загрузка избранных публикаций...</p>
+                        </div>
+                      ) : bookmarkedPosts.length === 0 ? (
+                        <div className="text-center p-4">
+                          <p className="text-muted-foreground">У вас пока нет избранных публикаций</p>
+                          <p className="text-sm text-muted-foreground mt-2">Добавляйте публикации в избранное, нажимая на иконку закладки в публикации</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {bookmarkedPosts.map((post) => (
+                            <div key={post.id} className="border rounded-lg p-4 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200">
+                              <div className="flex justify-between items-start mb-2">
+                                <Link href={`/posts/${post.id}`}>
+                                  <h3 className="text-xl font-semibold hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                                    {post.title}
+                                  </h3>
+                                </Link>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">
+                                    {post.author.username}
+                                  </Badge>
+                                </div>
+                              </div>
+                              <p className="text-muted-foreground mb-3 line-clamp-2">
+                                {post.content}
+                              </p>
+                              <div className="flex flex-wrap gap-2 mb-3">
+                                {post.tags?.map((tag) => (
+                                  <Badge key={tag} variant="secondary">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                              <div className="flex items-center text-sm text-muted-foreground">
+                                <span className="mr-4">{new Date(post.created_at).toLocaleDateString("ru-RU")}</span>
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-1">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span>{post.commentsCount || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <ThumbsUp className="h-4 w-4" />
+                                    <span>{post.likesCount || 0}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Eye className="h-4 w-4" />
+                                    <span>{post.viewsCount || 0}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </CardHeader>
               </Card>
             </div>
           </div>

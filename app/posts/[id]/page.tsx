@@ -14,7 +14,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useEffect, useState } from 'react'
 import React from 'react'
-import { getPostById, recordView, likePost, hasUserLikedPost } from '@/lib/client-api'
+import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost } from '@/lib/client-api'
 import { Post } from '@/types/database'
 import { useAuth } from '@/context/auth-context'
 import { useToast } from '@/components/ui/use-toast'
@@ -45,6 +45,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
+  const [isBookmarked, setIsBookmarked] = useState(false)
   const { user, profile } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -93,6 +94,22 @@ export default function PostPage({ params }: { params: { id: string } }) {
     checkIfLiked()
   }, [postId, user])
 
+  // Проверка, добавил ли пользователь пост в избранное
+  useEffect(() => {
+    const checkIfBookmarked = async () => {
+      if (user && postId) {
+        try {
+          const bookmarked = await hasUserBookmarkedPost(postId, user.uid)
+          setIsBookmarked(bookmarked)
+        } catch (error) {
+          console.error('Ошибка при проверке избранного:', error)
+        }
+      }
+    }
+
+    checkIfBookmarked()
+  }, [postId, user])
+
   // Обработчик лайка/анлайка
   const handleLike = async () => {
     if (!user) {
@@ -138,6 +155,35 @@ export default function PostPage({ params }: { params: { id: string } }) {
       toast({
         title: "Ошибка",
         description: "Не удалось обработать лайк",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Обработчик добавления/удаления из избранного
+  const handleBookmark = async () => {
+    if (!user) {
+      toast({
+        title: "Ошибка",
+        description: "Вы должны быть авторизованы для добавления в избранное",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      const result = await toggleBookmark(postId, user.uid)
+      setIsBookmarked(result)
+
+      toast({
+        title: result ? "Добавлено в избранное" : "Удалено из избранного",
+        description: result ? "Публикация добавлена в избранное" : "Публикация удалена из избранного",
+      })
+    } catch (error) {
+      console.error('Ошибка при добавлении/удалении из избранного:', error)
+      toast({
+        title: "Ошибка",
+        description: "Не удалось обработать действие",
         variant: "destructive"
       })
     }
@@ -226,8 +272,13 @@ export default function PostPage({ params }: { params: { id: string } }) {
                       Редактировать
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon">
-                    <Bookmark className="h-4 w-4" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleBookmark}
+                    className={isBookmarked ? 'text-[hsl(var(--saas-purple))]' : ''}
+                  >
+                    <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                   </Button>
                   <Button variant="ghost" size="icon">
                     <Share2 className="h-4 w-4" />

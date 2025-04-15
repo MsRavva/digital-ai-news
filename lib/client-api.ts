@@ -13,7 +13,10 @@ import {
   hasUserLikedPost as hasFirebaseUserLikedPost,
   deletePost as deleteFirebasePost,
   updatePost as updateFirebasePost,
-  deleteComment as deleteFirebaseComment
+  deleteComment as deleteFirebaseComment,
+  toggleBookmark as toggleFirebaseBookmark,
+  hasUserBookmarkedPost as hasFirebaseUserBookmarkedPost,
+  getBookmarkedPosts as getFirebaseBookmarkedPosts
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
@@ -260,6 +263,54 @@ export async function hasUserLikedPost(postId: string, userId: string): Promise<
   } catch (error) {
     console.error('Ошибка при проверке лайка публикации:', error);
     return false;
+  }
+}
+
+// Добавление/удаление поста в избранное
+export async function toggleBookmark(postId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await toggleFirebaseBookmark(postId, userId);
+  } catch (error) {
+    console.error('Ошибка при добавлении/удалении избранного:', error);
+    return false;
+  }
+}
+
+// Проверка, добавил ли пользователь пост в избранное
+export async function hasUserBookmarkedPost(postId: string, userId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await hasFirebaseUserBookmarkedPost(postId, userId);
+  } catch (error) {
+    console.error('Ошибка при проверке избранного:', error);
+    return false;
+  }
+}
+
+// Получение всех избранных постов пользователя
+export async function getBookmarkedPosts(userId: string): Promise<Post[]> {
+  // Если код выполняется на сервере, возвращаем пустой массив
+  if (!isBrowser) {
+    return [];
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await getFirebaseBookmarkedPosts(userId);
+  } catch (error) {
+    console.error('Ошибка при получении избранных постов:', error);
+    return [];
   }
 }
 
