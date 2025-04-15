@@ -9,12 +9,19 @@ service cloud.firestore {
 
     // Посты
     match /posts/{postId} {
-      allow read: if true;
+      // Разрешаем чтение архивированных постов только учителям и админам, а также по прямой ссылке
+      allow read: if resource.data.archived == true ?
+                    (request.auth != null && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role in ["admin", "teacher"]) ||
+                    request.path.size() == 2 // Разрешаем доступ по прямой ссылке (ID поста)
+                  : true;
+
       allow create: if request.auth != null;
-      // Разрешаем обновление только поля likesCount всем авторизованным пользователям
+      // Разрешаем обновление только поля likesCount и viewsCount всем авторизованным пользователям
       allow update: if request.auth != null &&
                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likesCount", "viewsCount"]) ||
-                     resource.data.author_id == request.auth.uid ||
+                     // Автор может обновлять свои посты, но не может изменять поле archived
+                     (resource.data.author_id == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["archived"])) ||
+                     // Учитель или админ могут обновлять любые посты и менять поле archived
                      get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
                      get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
       // Разрешаем удаление только автору, админу или учителю

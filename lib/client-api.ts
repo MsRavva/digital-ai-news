@@ -16,7 +16,10 @@ import {
   deleteComment as deleteFirebaseComment,
   toggleBookmark as toggleFirebaseBookmark,
   hasUserBookmarkedPost as hasFirebaseUserBookmarkedPost,
-  getBookmarkedPosts as getFirebaseBookmarkedPosts
+  getBookmarkedPosts as getFirebaseBookmarkedPosts,
+  archivePost as archiveFirebasePost,
+  unarchivePost as unarchiveFirebasePost,
+  getArchivedPosts as getFirebaseArchivedPosts
 } from './firebase-db';
 import { Post, Tag } from '@/types/database';
 
@@ -67,18 +70,27 @@ const mockTags: Tag[] = [
 ];
 
 // Клиентские версии API функций
-export async function getPosts(category?: string): Promise<Post[]> {
+export async function getPosts(category?: string, includeArchived: boolean = false): Promise<Post[]> {
   // Если код выполняется на сервере, возвращаем моковые данные
   if (!isBrowser) {
+    let filteredPosts = mockPosts;
+
+    // Фильтруем по категории, если указана
     if (category) {
-      return mockPosts.filter(post => post.category === category);
+      filteredPosts = filteredPosts.filter(post => post.category === category);
     }
-    return mockPosts;
+
+    // Исключаем архивированные посты, если не указано обратное
+    if (!includeArchived) {
+      filteredPosts = filteredPosts.filter(post => !post.archived);
+    }
+
+    return filteredPosts;
   }
 
   try {
     // Вызываем Firebase функцию
-    return await getFirebasePosts(category);
+    return await getFirebasePosts(category, includeArchived);
   } catch (error) {
     console.error('Ошибка при получении постов:', error);
     return [];
@@ -310,6 +322,54 @@ export async function getBookmarkedPosts(userId: string): Promise<Post[]> {
     return await getFirebaseBookmarkedPosts(userId);
   } catch (error) {
     console.error('Ошибка при получении избранных постов:', error);
+    return [];
+  }
+}
+
+// Архивирование поста
+export async function archivePost(postId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await archiveFirebasePost(postId);
+  } catch (error) {
+    console.error('Ошибка при архивировании поста:', error);
+    return false;
+  }
+}
+
+// Восстановление поста из архива
+export async function unarchivePost(postId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await unarchiveFirebasePost(postId);
+  } catch (error) {
+    console.error('Ошибка при восстановлении поста из архива:', error);
+    return false;
+  }
+}
+
+// Получение архивированных постов
+export async function getArchivedPosts(): Promise<Post[]> {
+  // Если код выполняется на сервере, возвращаем пустой массив
+  if (!isBrowser) {
+    return [];
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await getFirebaseArchivedPosts();
+  } catch (error) {
+    console.error('Ошибка при получении архивированных постов:', error);
     return [];
   }
 }

@@ -28,23 +28,29 @@ const convertTimestampToISO = (timestamp: Timestamp): string => {
 };
 
 // Получение всех постов (оптимизированная версия)
-export async function getPosts(category?: string): Promise<Post[]> {
+export async function getPosts(category?: string, includeArchived: boolean = false): Promise<Post[]> {
   try {
     // Шаг 1: Получаем все посты
     let postsQuery = collection(db, "posts");
 
+    // Создаем массив условий для запроса
+    const conditions = [];
+
+    // Добавляем фильтр по категории, если указана
     if (category) {
-      postsQuery = query(
-        postsQuery,
-        where("category", "==", category),
-        orderBy("created_at", "desc")
-      );
-    } else {
-      postsQuery = query(
-        postsQuery,
-        orderBy("created_at", "desc")
-      );
+      conditions.push(where("category", "==", category));
     }
+
+    // Исключаем архивированные посты, если не указано обратное
+    if (!includeArchived) {
+      conditions.push(where("archived", "in", [false, null]));
+    }
+
+    // Добавляем сортировку
+    conditions.push(orderBy("created_at", "desc"));
+
+    // Создаем запрос с условиями
+    postsQuery = query(postsQuery, ...conditions);
 
     const postsSnapshot = await getDocs(postsQuery);
 
@@ -711,6 +717,71 @@ export async function getBookmarkedPosts(userId: string): Promise<Post[]> {
     return posts;
   } catch (error) {
     console.error("Error fetching bookmarked posts:", error);
+    return [];
+  }
+}
+
+// Архивирование поста
+export async function archivePost(postId: string): Promise<boolean> {
+  try {
+    const postRef = doc(db, "posts", postId);
+    const postDoc = await getDoc(postRef);
+
+    if (!postDoc.exists()) {
+      console.error("Post not found:", postId);
+      return false;
+    }
+
+    // Обновляем пост, устанавливая поле archived в true
+    await updateDoc(postRef, {
+      archived: true,
+      updated_at: serverTimestamp()
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error archiving post:", error);
+    return false;
+  }
+}
+
+// Восстановление поста из архива
+export async function unarchivePost(postId: string): Promise<boolean> {
+  try {
+    const postRef = doc(db, "posts", postId);
+    const postDoc = await getDoc(postRef);
+
+    if (!postDoc.exists()) {
+      console.error("Post not found:", postId);
+      return false;
+    }
+
+    // Обновляем пост, устанавливая поле archived в false
+    await updateDoc(postRef, {
+      archived: false,
+      updated_at: serverTimestamp()
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error unarchiving post:", error);
+    return false;
+  }
+}
+
+// Получение архивированных постов
+export async function getArchivedPosts(): Promise<Post[]> {
+  try {
+    // Получаем все архивированные посты
+    const postsQuery = query(
+      collection(db, "posts"),
+      where("archived", "==", true),
+      orderBy("created_at", "desc")
+    );
+
+    return await fetchPostsWithDetails(postsQuery);
+  } catch (error) {
+    console.error("Error fetching archived posts:", error);
     return [];
   }
 }

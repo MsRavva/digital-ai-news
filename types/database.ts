@@ -23,11 +23,12 @@ export interface Post {
     role: string
   }
   created_at: string
-  category: "news" | "materials" | "project-ideas"
+  category: "news" | "materials" | "project-ideas" | "archived"
   tags: string[]
   likesCount?: number
   commentsCount?: number
   viewsCount?: number
+  archived?: boolean
 }
 
 export interface Tag {

@@ -9,16 +9,27 @@ import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
-import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useEffect, useState } from 'react'
 import React from 'react'
-import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost } from '@/lib/client-api'
+import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost } from '@/lib/client-api'
 import { Post } from '@/types/database'
 import { useAuth } from '@/context/auth-context'
 import { useToast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 // Функция для обрезки длинных строк
 const truncateString = (str: string, maxLength: number) => {
@@ -46,6 +57,8 @@ export default function PostPage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false)
+  const [isArchived, setIsArchived] = useState(false)
+  const [isArchiving, setIsArchiving] = useState(false)
   const { user, profile } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -63,6 +76,11 @@ export default function PostPage({ params }: { params: { id: string } }) {
       try {
         const postData = await getPostById(postId)
         setPost(postData)
+
+        // Устанавливаем состояние архивации
+        if (postData) {
+          setIsArchived(!!postData.archived)
+        }
 
         // Записываем просмотр, если пользователь авторизован
         if (user) {
@@ -189,6 +207,104 @@ export default function PostPage({ params }: { params: { id: string } }) {
     }
   }
 
+  // Обработчик архивирования поста
+  const handleArchive = async () => {
+    if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
+      toast({
+        title: "Ошибка",
+        description: "У вас нет прав для архивирования публикаций",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsArchiving(true)
+
+    try {
+      const success = await archivePost(postId)
+
+      if (success) {
+        setIsArchived(true)
+
+        if (post) {
+          setPost({
+            ...post,
+            archived: true
+          })
+        }
+
+        toast({
+          title: "Публикация архивирована",
+          description: "Публикация успешно перемещена в архив"
+        })
+      } else {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось архивировать публикацию",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Ошибка при архивировании публикации:', error)
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при архивировании публикации",
+        variant: "destructive"
+      })
+    } finally {
+      setIsArchiving(false)
+    }
+  }
+
+  // Обработчик восстановления поста из архива
+  const handleUnarchive = async () => {
+    if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
+      toast({
+        title: "Ошибка",
+        description: "У вас нет прав для восстановления публикаций из архива",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsArchiving(true)
+
+    try {
+      const success = await unarchivePost(postId)
+
+      if (success) {
+        setIsArchived(false)
+
+        if (post) {
+          setPost({
+            ...post,
+            archived: false
+          })
+        }
+
+        toast({
+          title: "Публикация восстановлена",
+          description: "Публикация успешно восстановлена из архива"
+        })
+      } else {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось восстановить публикацию из архива",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Ошибка при восстановлении публикации из архива:', error)
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при восстановлении публикации из архива",
+        variant: "destructive"
+      })
+    } finally {
+      setIsArchiving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
@@ -272,6 +388,74 @@ export default function PostPage({ params }: { params: { id: string } }) {
                       Редактировать
                     </Button>
                   )}
+
+                  {/* Кнопки архивирования/восстановления для учителей и админов */}
+                  {profile && (profile.role === "teacher" || profile.role === "admin") && (
+                    isArchived ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                          >
+                            <ArchiveRestore className="h-4 w-4" />
+                            Восстановить
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Восстановить публикацию из архива?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Публикация будет восстановлена и станет доступна всем пользователям.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Отмена</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleUnarchive}
+                              disabled={isArchiving}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {isArchiving ? "Восстановление..." : "Восстановить"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                          >
+                            <Archive className="h-4 w-4" />
+                            В архив
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Архивировать публикацию?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Публикация будет перемещена в архив и станет недоступна для обычных пользователей.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Отмена</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleArchive}
+                              disabled={isArchiving}
+                              className="bg-amber-600 hover:bg-amber-700"
+                            >
+                              {isArchiving ? "Архивирование..." : "Архивировать"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )
+                  )}
+
                   <Button
                     variant="ghost"
                     size="icon"
