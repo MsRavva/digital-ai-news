@@ -63,7 +63,7 @@ export default function Login() {
     setIsGoogleLoading(true)
 
     try {
-      const { error } = await signInWithGoogle()
+      const { error, user, profile } = await signInWithGoogle()
 
       if (error) {
         toast({
@@ -78,6 +78,22 @@ export default function Login() {
         title: "Успешный вход",
         description: "Вы успешно вошли в систему через Google",
       })
+
+      // Проверяем имя пользователя на соответствие требованиям
+      if (profile && profile.username) {
+        const { validateUsername } = await import('@/lib/validation');
+        const usernameError = validateUsername(profile.username);
+        if (usernameError) {
+          // Если имя пользователя не соответствует требованиям, перенаправляем на страницу профиля
+          toast({
+            title: "Пожалуйста, обновите ваш профиль",
+            description: "Пожалуйста, введите корректные Имя и Фамилию",
+            duration: 5000,
+          })
+          router.push('/profile?update=username');
+          return;
+        }
+      }
 
       // Перенаправляем на главную страницу
       router.push("/")
@@ -96,7 +112,7 @@ export default function Login() {
     setIsGithubLoading(true)
 
     try {
-      const { error } = await signInWithGithub()
+      const { error, user, profile } = await signInWithGithub()
 
       if (error) {
         toast({
@@ -111,6 +127,22 @@ export default function Login() {
         title: "Успешный вход",
         description: "Вы успешно вошли в систему через GitHub",
       })
+
+      // Проверяем имя пользователя на соответствие требованиям
+      if (profile && profile.username) {
+        const { validateUsername } = await import('@/lib/validation');
+        const usernameError = validateUsername(profile.username);
+        if (usernameError) {
+          // Если имя пользователя не соответствует требованиям, перенаправляем на страницу профиля
+          toast({
+            title: "Пожалуйста, обновите ваш профиль",
+            description: "Пожалуйста, введите корректные Имя и Фамилию",
+            duration: 5000,
+          })
+          router.push('/profile?update=username');
+          return;
+        }
+      }
 
       // Перенаправляем на главную страницу
       router.push("/")

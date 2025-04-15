@@ -19,8 +19,8 @@ interface AuthContextType {
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, username: string, role?: string) => Promise<{ error: any }>
-  signInWithGoogle: () => Promise<{ error: any }>
-  signInWithGithub: () => Promise<{ error: any }>
+  signInWithGoogle: () => Promise<{ user: FirebaseUser | null, error: any, profile: Profile | null }>
+  signInWithGithub: () => Promise<{ user: FirebaseUser | null, error: any, profile: Profile | null }>
   updateProfile: (profileData: Partial<Profile>) => Promise<{ success: boolean; error: any }>
   signOut: () => Promise<void>
 }
@@ -97,12 +97,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     const { user, error } = await firebaseSignInWithGoogle()
-    return { error }
+    let profile = null;
+    if (user) {
+      profile = await getUserProfile(user.uid);
+    }
+    return { user, error, profile }
   }
 
   const signInWithGithub = async () => {
     const { user, error } = await firebaseSignInWithGithub()
-    return { error }
+    let profile = null;
+    if (user) {
+      profile = await getUserProfile(user.uid);
+    }
+    return { user, error, profile }
   }
 
   const signOut = async () => {
