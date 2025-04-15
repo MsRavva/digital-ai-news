@@ -1,3 +1,5 @@
+"use client"
+
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { CreatePostForm } from "@/components/create-post-form"
