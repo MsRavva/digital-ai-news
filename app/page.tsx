@@ -31,7 +31,8 @@ export default function Home() {
       try {
         console.log('Загрузка данных...')
         // Делаем только один запрос для всех постов
-        const posts = await getPosts()
+        // Явно указываем includeArchived=false, чтобы получить только неархивированные посты
+        const posts = await getPosts(undefined, false)
         console.log('Все посты:', posts)
 
         // Загружаем теги

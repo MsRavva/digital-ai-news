@@ -57,38 +57,56 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
     // Фильтруем архивированные посты на клиенте, если необходимо
     // Это позволит корректно обрабатывать посты без поля archived
     let filteredDocs = postsSnapshot.docs;
+
+    // Если includeArchived=false, то показываем только неархивированные посты
+    // Если includeArchived=true, то показываем все посты
     if (!includeArchived) {
       filteredDocs = postsSnapshot.docs.filter(doc => {
         const data = doc.data();
         return data.archived !== true; // Показываем посты, где archived не true (включая undefined и false)
       });
-    } else {
-      // Если нужно показать только архивированные посты
-      filteredDocs = postsSnapshot.docs.filter(doc => {
-        const data = doc.data();
-        return data.archived === true; // Показываем только архивированные посты
-      });
     }
+    // Не фильтруем посты, если includeArchived=true
 
     // Шаг 2: Собираем все ID авторов для пакетного запроса
-    const authorIds = [...new Set(filteredDocs.map(doc => doc.data().author_id))];
+    const authorIds = [...new Set(filteredDocs.map(doc => doc.data().author_id).filter(id => id !== undefined && id !== null))];
     const postIds = filteredDocs.map(doc => doc.id);
 
     // Шаг 3: Получаем всех авторов одним запросом
     const authorsMap = new Map();
     for (const authorId of authorIds) {
-      const authorDoc = await getDoc(doc(db, "profiles", authorId));
-      if (authorDoc.exists()) {
-        authorsMap.set(authorId, authorDoc.data());
+      if (authorId) { // Проверяем, что authorId не undefined и не null
+        try {
+          const authorDoc = await getDoc(doc(db, "profiles", authorId));
+          if (authorDoc.exists()) {
+            authorsMap.set(authorId, authorDoc.data());
+          }
+        } catch (error) {
+          console.error(`Ошибка при получении профиля автора ${authorId}:`, error);
+        }
       }
     }
 
-    // Шаг 4: Получаем все связи постов с тегами одним запросом
-    const postTagsQuery = query(
-      collection(db, "post_tags"),
-      where("post_id", "in", postIds)
-    );
-    const postTagsSnapshot = await getDocs(postTagsQuery);
+    // Шаг 4: Получаем все связи постов с тегами по частям (максимум 30 значений в IN)
+    // Создаем массив для хранения всех документов
+    let allPostTagsDocs = [];
+
+    // Разбиваем массив postIds на части по 30 элементов
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const postTagsQuery = query(
+          collection(db, "post_tags"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const batchSnapshot = await getDocs(postTagsQuery);
+        allPostTagsDocs = [...allPostTagsDocs, ...batchSnapshot.docs];
+      }
+    }
+
+    // Создаем объект с нужной структурой
+    const postTagsSnapshot = { docs: allPostTagsDocs };
 
     // Группируем связи по ID поста
     const postTagsMap = new Map();
@@ -113,42 +131,63 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
       }
     }
 
-    // Шаг 6: Получаем статистику для всех постов
+    // Шаг 6: Получаем статистику для всех постов по частям
     // Лайки
-    const likesQuery = query(
-      collection(db, "likes"),
-      where("post_id", "in", postIds)
-    );
-    const likesSnapshot = await getDocs(likesQuery);
     const likesCountMap = new Map();
-    likesSnapshot.docs.forEach(doc => {
-      const data = doc.data();
-      likesCountMap.set(data.post_id, (likesCountMap.get(data.post_id) || 0) + 1);
-    });
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const likesQuery = query(
+          collection(db, "likes"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const likesSnapshot = await getDocs(likesQuery);
+
+        likesSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          likesCountMap.set(data.post_id, (likesCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
 
     // Комментарии
-    const commentsQuery = query(
-      collection(db, "comments"),
-      where("post_id", "in", postIds)
-    );
-    const commentsSnapshot = await getDocs(commentsQuery);
     const commentsCountMap = new Map();
-    commentsSnapshot.docs.forEach(doc => {
-      const data = doc.data();
-      commentsCountMap.set(data.post_id, (commentsCountMap.get(data.post_id) || 0) + 1);
-    });
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const commentsQuery = query(
+          collection(db, "comments"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const commentsSnapshot = await getDocs(commentsQuery);
+
+        commentsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          commentsCountMap.set(data.post_id, (commentsCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
 
     // Просмотры
-    const viewsQuery = query(
-      collection(db, "views"),
-      where("post_id", "in", postIds)
-    );
-    const viewsSnapshot = await getDocs(viewsQuery);
     const viewsCountMap = new Map();
-    viewsSnapshot.docs.forEach(doc => {
-      const data = doc.data();
-      viewsCountMap.set(data.post_id, (viewsCountMap.get(data.post_id) || 0) + 1);
-    });
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const viewsQuery = query(
+          collection(db, "views"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const viewsSnapshot = await getDocs(viewsQuery);
+
+        viewsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          viewsCountMap.set(data.post_id, (viewsCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
 
     // Шаг 7: Формируем итоговый массив постов
     const posts: Post[] = filteredDocs.map(postDoc => {

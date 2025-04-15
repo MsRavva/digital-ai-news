@@ -90,7 +90,14 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
 
   try {
     // Вызываем Firebase функцию
-    return await getFirebasePosts(category, includeArchived);
+    const posts = await getFirebasePosts(category, includeArchived);
+
+    // Дополнительная проверка для фильтрации архивированных постов
+    if (!includeArchived) {
+      return posts.filter(post => !post.archived);
+    }
+
+    return posts;
   } catch (error) {
     console.error('Ошибка при получении постов:', error);
     return [];

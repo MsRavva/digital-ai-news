@@ -53,7 +53,9 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
     setPosts(initialPosts);
   }, [initialPosts]);
 
-  if (!posts || posts.length === 0) {
+  // Проверяем, что posts не undefined, не null и является массивом
+  if (!posts || !Array.isArray(posts) || posts.length === 0) {
+    console.log('Нет публикаций для отображения:', posts);
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground">Публикации не найдены</p>
