@@ -3,54 +3,43 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { PostsList } from "@/components/posts-list"
 import { PostsTable } from "@/components/posts-table"
 import { TagsFilter } from "@/components/tags-filter"
 import { ViewToggle } from "@/components/view-toggle"
+import { CategoryFilter } from "@/components/category-filter"
 import { getPosts, getAllTags } from "@/lib/client-api"
 import Link from "next/link"
-import { Search, Plus, Filter } from "lucide-react"
+import { Search, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/context/auth-context"
 
 export default function Home() {
   const { user } = useAuth()
-  const [posts, setPosts] = useState({
-    all: [],
-    news: [],
-    materials: [],
-    'project-ideas': []
-  })
+  const [allPosts, setAllPosts] = useState([])
+  const [filteredPosts, setFilteredPosts] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState('all')
   const [tags, setTags] = useState([])
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [loading, setLoading] = useState(true)
 
+  // Загрузка постов и тегов
   useEffect(() => {
     const fetchData = async () => {
       try {
         console.log('Загрузка данных...')
         // Делаем только один запрос для всех постов
-        const allPosts = await getPosts()
-        console.log('Все посты:', allPosts)
-
-        // Фильтруем посты на клиенте
-        const newsPosts = allPosts.filter(post => post.category === "news")
-        const materialsPosts = allPosts.filter(post => post.category === "materials")
-        const projectIdeasPosts = allPosts.filter(post => post.category === "project-ideas")
+        const posts = await getPosts()
+        console.log('Все посты:', posts)
 
         // Загружаем теги
         const allTags = await getAllTags()
         console.log('Теги:', allTags)
 
-        setPosts({
-          all: allPosts,
-          news: newsPosts,
-          materials: materialsPosts,
-          'project-ideas': projectIdeasPosts
-        })
+        setAllPosts(posts)
+        setFilteredPosts(posts) // По умолчанию показываем все посты
         setTags(allTags)
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error)
@@ -62,8 +51,24 @@ export default function Home() {
     fetchData()
   }, [])
 
+  // Фильтрация постов при изменении категории
+  useEffect(() => {
+    if (allPosts.length === 0) return;
+
+    if (selectedCategory === 'all') {
+      setFilteredPosts(allPosts);
+    } else {
+      const filtered = allPosts.filter(post => post.category === selectedCategory);
+      setFilteredPosts(filtered);
+    }
+  }, [selectedCategory, allPosts])
+
   const handleViewChange = (view: 'grid' | 'table') => {
     setViewMode(view)
+  }
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
   }
 
   return (
@@ -108,17 +113,10 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <Tabs defaultValue="all" className="mb-6">
+                  <div className="mb-6">
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="filter-container">
-                          <TabsList className="bg-transparent border-none p-0 shadow-none">
-                            <TabsTrigger value="all" className="filter-item">Все</TabsTrigger>
-                            <TabsTrigger value="news" className="filter-item">Новости</TabsTrigger>
-                            <TabsTrigger value="materials" className="filter-item">Учебные материалы</TabsTrigger>
-                            <TabsTrigger value="project-ideas" className="filter-item">Идеи для проектов</TabsTrigger>
-                          </TabsList>
-                        </div>
+                        <CategoryFilter onCategoryChange={handleCategoryChange} />
                         <div className="relative">
                           <Input
                             type="search"
@@ -129,9 +127,6 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="saas-secondary" size="sm" className="gap-1">
-                          <Filter className="h-4 w-4" /> Фильтры
-                        </Button>
                         <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
                         <Link href="/create">
                           <Button variant="saas" size="sm">
@@ -140,59 +135,18 @@ export default function Home() {
                         </Link>
                       </div>
                     </div>
-                  <TabsContent value="all">
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
                       {loading ? (
                         <div className="p-8 text-center">
                           <p className="text-muted-foreground">Загрузка публикаций...</p>
                         </div>
                       ) : viewMode === 'grid' ? (
-                        <PostsList posts={posts.all} />
+                        <PostsList posts={filteredPosts} />
                       ) : (
-                        <PostsTable posts={posts.all} />
+                        <PostsTable posts={filteredPosts} />
                       )}
                     </Card>
-                  </TabsContent>
-                  <TabsContent value="news">
-                    <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      {loading ? (
-                        <div className="p-8 text-center">
-                          <p className="text-muted-foreground">Загрузка публикаций...</p>
-                        </div>
-                      ) : viewMode === 'grid' ? (
-                        <PostsList posts={posts.news} />
-                      ) : (
-                        <PostsTable posts={posts.news} />
-                      )}
-                    </Card>
-                  </TabsContent>
-                  <TabsContent value="materials">
-                    <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      {loading ? (
-                        <div className="p-8 text-center">
-                          <p className="text-muted-foreground">Загрузка публикаций...</p>
-                        </div>
-                      ) : viewMode === 'grid' ? (
-                        <PostsList posts={posts.materials} />
-                      ) : (
-                        <PostsTable posts={posts.materials} />
-                      )}
-                    </Card>
-                  </TabsContent>
-                  <TabsContent value="project-ideas">
-                    <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      {loading ? (
-                        <div className="p-8 text-center">
-                          <p className="text-muted-foreground">Загрузка публикаций...</p>
-                        </div>
-                      ) : viewMode === 'grid' ? (
-                        <PostsList posts={posts['project-ideas']} />
-                      ) : (
-                        <PostsTable posts={posts['project-ideas']} />
-                      )}
-                    </Card>
-                  </TabsContent>
-                </Tabs>
+                  </div>
                 )}
               </div>
             </div>
