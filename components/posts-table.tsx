@@ -1,20 +1,78 @@
 'use client'
 
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, ThumbsUp, Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { MessageSquare, ThumbsUp, Eye, Pencil, Trash2 } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { useAuth } from "@/context/auth-context"
+import { deletePost } from "@/lib/client-api"
+import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
+import { useRouter } from "next/navigation"
 
 interface PostsTableProps {
   posts: Post[]
 }
 
-export function PostsTable({ posts }: PostsTableProps) {
-  if (!posts || posts.length === 0) {
+export function PostsTable({ posts: initialPosts }: PostsTableProps) {
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Проверка, имеет ли пользователь права на удаление (учитель или админ)
+  const canDelete = profile?.role === "teacher" || profile?.role === "admin";
+
+  // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
+  const canEdit = (post: Post) => {
+    if (!profile) return false;
+    return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
+  };
+
+  // Обработчик удаления публикации
+  const handleDelete = async (postId: string) => {
+    if (!canDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const success = await deletePost(postId);
+
+      if (success) {
+        // Удаляем пост из локального состояния
+        setPosts(posts.filter(post => post.id !== postId));
+
+        toast({
+          title: "Успешно",
+          description: "Публикация была удалена",
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Ошибка",
+          description: "Не удалось удалить публикацию",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error("Ошибка при удалении публикации:", error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при удалении публикации",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  // Проверяем, что posts не undefined, не null и является массивом
+  if (!posts || !Array.isArray(posts) || posts.length === 0) {
+    console.log('Нет публикаций для отображения в таблице:', posts);
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground">Публикации не найдены</p>
@@ -32,6 +90,9 @@ export function PostsTable({ posts }: PostsTableProps) {
             <th className="py-3 px-4 text-left font-medium text-muted-foreground">Дата</th>
             <th className="py-3 px-4 text-left font-medium text-muted-foreground">Теги</th>
             <th className="py-3 px-4 text-left font-medium text-muted-foreground">Статистика</th>
+            {canDelete && (
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Действия</th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -108,6 +169,31 @@ export function PostsTable({ posts }: PostsTableProps) {
                   </div>
                 </div>
               </td>
+              {canDelete && (
+                <td className="py-3 px-4">
+                  <div className="flex items-center space-x-2">
+                    {canEdit(post) && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-[hsl(var(--saas-purple))]"
+                        onClick={() => router.push(`/edit/${post.id}`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-500"
+                      onClick={() => handleDelete(post.id)}
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

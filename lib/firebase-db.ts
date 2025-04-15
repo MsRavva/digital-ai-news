@@ -23,8 +23,29 @@ import { db } from "./firebase";
 import { Post, Comment, Tag, PostStats } from "@/types/database";
 
 // Преобразование Timestamp в строку ISO
-const convertTimestampToISO = (timestamp: Timestamp): string => {
-  return timestamp.toDate().toISOString();
+const convertTimestampToISO = (timestamp: any): string => {
+  // Проверяем, является ли timestamp объектом Firebase Timestamp
+  if (timestamp && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate().toISOString();
+  }
+
+  // Если это строка в формате ISO
+  if (typeof timestamp === 'string') {
+    return timestamp;
+  }
+
+  // Если это число (миллисекунды)
+  if (typeof timestamp === 'number') {
+    return new Date(timestamp).toISOString();
+  }
+
+  // Если это объект Date
+  if (timestamp instanceof Date) {
+    return timestamp.toISOString();
+  }
+
+  // Если ничего не подходит, возвращаем текущую дату
+  return new Date().toISOString();
 };
 
 // Получение всех постов (оптимизированная версия)

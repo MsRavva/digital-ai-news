@@ -63,10 +63,46 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
     )
   }
 
-  const handleDeleteClick = (e: React.MouseEvent, postId: string) => {
+  const handleDeleteClick = async (e: React.MouseEvent, postId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setPostToDelete(postId);
+
+    // Если пользователь админ или учитель, удаляем без подтверждения
+    if (profile?.role === "teacher" || profile?.role === "admin") {
+      setIsDeleting(true);
+      try {
+        const success = await deletePost(postId);
+
+        if (success) {
+          // Удаляем пост из локального состояния
+          setPosts(posts.filter(post => post.id !== postId));
+
+          toast({
+            title: "Успешно",
+            description: "Публикация была удалена",
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Ошибка",
+            description: "Не удалось удалить публикацию",
+            variant: "destructive"
+          });
+        }
+      } catch (error) {
+        console.error("Ошибка при удалении публикации:", error);
+        toast({
+          title: "Ошибка",
+          description: "Произошла ошибка при удалении публикации",
+          variant: "destructive"
+        });
+      } finally {
+        setIsDeleting(false);
+      }
+    } else {
+      // Для обычных пользователей показываем диалог подтверждения
+      setPostToDelete(postId);
+    }
   }
 
   const confirmDelete = async () => {
