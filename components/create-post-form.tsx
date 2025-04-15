@@ -9,25 +9,21 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { X, Upload, FileText, ImageIcon, LinkIcon, Loader2 } from "lucide-react"
+import { X, LinkIcon, Loader2 } from "lucide-react"
 import { LinkPopover } from "./link-popover"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import { createPost } from "@/lib/firebase-db"
-import { uploadFile } from "@/lib/firebase-storage"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
 interface Attachment {
-  type: 'link' | 'image' | 'document' | 'file';
+  type: 'link';
   name: string;
   url?: string;
-  file?: File;
-  progress?: number;
-  uploading?: boolean;
 }
 
 interface PreviewData {
@@ -51,10 +47,8 @@ export function CreatePostForm() {
   const [tagInput, setTagInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [uploadProgress, setUploadProgress] = useState<number>(0)
   const [showPreview, setShowPreview] = useState(false)
   const [previewData, setPreviewData] = useState<PreviewData | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { user, profile } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -73,67 +67,7 @@ export function CreatePostForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove))
   }
 
-  // Обработчики для прикрепления файлов
-  const handleFileUpload = async (file: File, type: 'image' | 'document' | 'file') => {
-    if (!user) return;
 
-    const newAttachment: Attachment = {
-      type,
-      name: file.name,
-      file,
-      progress: 0,
-      uploading: true
-    };
-
-    setAttachments(prev => [...prev, newAttachment]);
-
-    try {
-      // Путь для загрузки файла в Firebase Storage
-      const path = `posts/${user.uid}/${Date.now()}_${file.name}`;
-
-      // Загружаем файл и получаем URL
-      const url = await uploadFile(file, path, (progress) => {
-        setUploadProgress(progress);
-        setAttachments(prev => prev.map(a =>
-          a.name === file.name ? { ...a, progress } : a
-        ));
-      });
-
-      // Обновляем состояние с URL файла
-      setAttachments(prev => prev.map(a =>
-        a.name === file.name ? { ...a, url, uploading: false } : a
-      ));
-
-      toast({
-        title: "Файл загружен",
-        description: `Файл ${file.name} успешно загружен`,
-      });
-    } catch (error: any) {
-      console.error("Error uploading file:", error);
-
-      // Удаляем неудачную загрузку из списка
-      setAttachments(prev => prev.filter(a => a.name !== file.name));
-
-      toast({
-        title: "Ошибка загрузки",
-        description: error.message || "Произошла ошибка при загрузке файла",
-        variant: "destructive",
-      });
-    } finally {
-      setUploadProgress(0);
-    }
-  };
-
-  const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFileUpload(files[0], 'file');
-    }
-    // Сбрасываем значение input, чтобы можно было загрузить тот же файл повторно
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleAttachmentRemove = (name: string) => {
     setAttachments(prev => prev.filter(a => a.name !== name));
@@ -182,17 +116,10 @@ export function CreatePostForm() {
         tags,
       };
 
-      // Если есть прикрепленные файлы, добавляем их URL в содержимое
+      // Если есть прикрепленные ссылки, добавляем их в содержимое
       if (attachments.length > 0) {
         const attachmentsContent = attachments.map(a => {
-          if (a.type === 'link') {
-            return `[Ссылка: ${a.name}](${a.url})`;
-          } else if (a.type === 'image' && a.url) {
-            return `![${a.name}](${a.url})`;
-          } else if (a.url) {
-            return `[${a.name}](${a.url})`;
-          }
-          return '';
+          return `[Ссылка: ${a.name}](${a.url})`;
         }).filter(Boolean).join('\n\n');
 
         postData.content = `${content}\n\n${attachmentsContent}`;
@@ -238,16 +165,9 @@ export function CreatePostForm() {
 
     if (previewData.attachments.length > 0) {
       const attachmentsContent = previewData.attachments.map(a => {
-        if (a.type === 'link') {
-          // Обрезаем длинные ссылки
-          const displayName = truncateString(a.name, 60);
-          return `[Ссылка: ${displayName}](${a.url})`;
-        } else if (a.type === 'image' && a.url) {
-          return `![${a.name}](${a.url})`;
-        } else if (a.url) {
-          return `[${a.name}](${a.url})`;
-        }
-        return '';
+        // Обрезаем длинные ссылки
+        const displayName = truncateString(a.name, 60);
+        return `[Ссылка: ${displayName}](${a.url})`;
       }).filter(Boolean).join('\n\n');
 
       fullContent = `${previewData.content}\n\n${attachmentsContent}`;
@@ -383,45 +303,21 @@ export function CreatePostForm() {
               <Label>Прикрепить</Label>
               <div className="flex flex-wrap gap-2 mt-2">
                 <LinkPopover onLinkAdd={handleLinkAdd} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="h-4 w-4" />
-                  Загрузить файл
-                </Button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  onChange={handleFileInputChange}
-                />
               </div>
             </div>
 
-            {/* Список прикрепленных файлов */}
+            {/* Список прикрепленных ссылок */}
             {attachments.length > 0 && (
               <div className="border rounded-md p-3 space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                <h4 className="text-sm font-medium">Прикрепленные файлы:</h4>
+                <h4 className="text-sm font-medium">Прикрепленные ссылки:</h4>
                 <div className="space-y-2">
                   {attachments.map((attachment, index) => (
                     <div key={index} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
                       <div className="flex items-center gap-2 overflow-hidden">
-                        {attachment.type === 'link' && <LinkIcon className="h-4 w-4 text-blue-500" />}
-                        {attachment.type === 'image' && <ImageIcon className="h-4 w-4 text-green-500" />}
-                        {attachment.type === 'document' && <FileText className="h-4 w-4 text-orange-500" />}
-                        {attachment.type === 'file' && <FileText className="h-4 w-4 text-purple-500" />}
+                        <LinkIcon className="h-4 w-4 text-blue-500" />
                         <span className="text-sm truncate">{attachment.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {attachment.uploading && (
-                          <div className="w-20">
-                            <Progress value={attachment.progress} className="h-2" />
-                          </div>
-                        )}
                         <Button
                           type="button"
                           variant="ghost"

@@ -155,7 +155,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 md:p-8">
-          <div className="mx-auto max-w-4xl">
+          <div className="mx-auto w-full">
             <Card className="p-6 text-center">
               <p className="text-muted-foreground">Загрузка публикации...</p>
             </Card>
@@ -177,7 +177,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 md:p-8">
-          <div className="mx-auto max-w-4xl">
+          <div className="mx-auto w-full">
             <Card className="p-6 text-center">
               <p className="text-muted-foreground">Публикация не найдена</p>
             </Card>
@@ -198,7 +198,7 @@ export default function PostPage({ params }: { params: { id: string } }) {
         </div>
       </header>
       <main className="flex-1 p-4 sm:p-6 md:p-8">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto w-full">
           <Card className="p-6">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-4">

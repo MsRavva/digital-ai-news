@@ -9,13 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { X, Upload, FileText, ImageIcon, LinkIcon, Loader2, Pencil } from "lucide-react"
+import { X, LinkIcon, Loader2, Pencil } from "lucide-react"
 import { LinkPopover } from "./link-popover"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import { getPostById, updatePost } from "@/lib/client-api"
-import { uploadFile } from "@/lib/firebase-storage"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Post } from "@/types/database"
@@ -23,12 +22,9 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
 interface Attachment {
-  type: 'link' | 'image' | 'document' | 'file';
+  type: 'link';
   name: string;
   url?: string;
-  file?: File;
-  progress?: number;
-  uploading?: boolean;
 }
 
 interface PreviewData {
@@ -57,13 +53,10 @@ export function EditPostForm({ postId }: EditPostFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingPost, setIsLoadingPost] = useState(true)
   const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [previewData, setPreviewData] = useState<PreviewData | null>(null)
   const [post, setPost] = useState<Post | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [canEdit, setCanEdit] = useState(false)
-
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { user, profile } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
@@ -181,80 +174,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
     }
   }
 
-  // Обработчик открытия диалога выбора файла
-  const handleFileButtonClick = () => {
-    fileInputRef.current?.click()
-  }
 
-  // Обработчик выбора файла
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-
-    const file = files[0]
-    const fileType = file.type.startsWith('image/') ? 'image' : 'file'
-
-    // Добавляем файл в список вложений
-    setAttachments([...attachments, {
-      type: fileType,
-      name: file.name,
-      file,
-      uploading: true,
-      progress: 0
-    }])
-
-    // Сбрасываем значение input, чтобы можно было выбрать тот же файл повторно
-    e.target.value = ''
-
-    // Загружаем файл
-    handleFileUpload(file)
-  }
-
-  // Обработчик загрузки файла
-  const handleFileUpload = async (file: File) => {
-    if (!user) {
-      toast({
-        title: "Ошибка",
-        description: "Необходимо авторизоваться для загрузки файлов",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      // Путь для загрузки файла в Firebase Storage
-      const path = `posts/${user.uid}/${Date.now()}_${file.name}`;
-
-      // Загружаем файл и получаем URL
-      const url = await uploadFile(file, path, (progress) => {
-        setUploadProgress(progress);
-        setAttachments(prev => prev.map(a =>
-          a.name === file.name ? { ...a, progress } : a
-        ));
-      });
-
-      // Обновляем состояние с URL файла
-      setAttachments(prev => prev.map(a =>
-        a.name === file.name ? { ...a, url, uploading: false } : a
-      ));
-
-      toast({
-        title: "Файл загружен",
-        description: `Файл ${file.name} успешно загружен`,
-      });
-    } catch (error) {
-      console.error("Ошибка при загрузке файла:", error);
-
-      // Удаляем файл из списка вложений
-      setAttachments(prev => prev.filter(a => a.name !== file.name));
-
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить файл",
-        variant: "destructive",
-      });
-    }
-  }
 
   // Обработчик добавления ссылки
   const handleAddLink = (url: string, name: string) => {
@@ -312,16 +232,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
       return
     }
 
-    // Проверяем, что все файлы загружены
-    const uploadingFiles = attachments.filter(a => a.uploading)
-    if (uploadingFiles.length > 0) {
-      toast({
-        title: "Дождитесь загрузки файлов",
-        description: "Некоторые файлы еще загружаются",
-        variant: "destructive",
-      })
-      return
-    }
+
 
     setIsLoading(true)
 
@@ -335,17 +246,10 @@ export function EditPostForm({ postId }: EditPostFormProps) {
         tags,
       };
 
-      // Если есть прикрепленные файлы, добавляем их URL в содержимое
+      // Если есть прикрепленные ссылки, добавляем их в содержимое
       if (attachments.length > 0) {
         const attachmentsContent = attachments.map(a => {
-          if (a.type === 'link') {
-            return `[Ссылка: ${a.name}](${a.url})`;
-          } else if (a.type === 'image' && a.url) {
-            return `![${a.name}](${a.url})`;
-          } else if (a.url) {
-            return `[${a.name}](${a.url})`;
-          }
-          return '';
+          return `[Ссылка: ${a.name}](${a.url})`;
         }).filter(Boolean).join('\n\n');
 
         postData.content = `${content}\n\n${attachmentsContent}`;
@@ -391,16 +295,9 @@ export function EditPostForm({ postId }: EditPostFormProps) {
 
     if (previewData.attachments.length > 0) {
       const attachmentsContent = previewData.attachments.map(a => {
-        if (a.type === 'link') {
-          // Обрезаем длинные ссылки
-          const displayName = truncateString(a.name, 60);
-          return `[Ссылка: ${displayName}](${a.url})`;
-        } else if (a.type === 'image' && a.url) {
-          return `![${a.name}](${a.url})`;
-        } else if (a.url) {
-          return `[${a.name}](${a.url})`;
-        }
-        return '';
+        // Обрезаем длинные ссылки
+        const displayName = truncateString(a.name, 60);
+        return `[Ссылка: ${displayName}](${a.url})`;
       }).filter(Boolean).join('\n\n');
 
       fullContent = `${fullContent}\n\n${attachmentsContent}`;
@@ -542,31 +439,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               <div className="grid gap-3">
                 <Label>Вложения</Label>
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleFileButtonClick}
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Загрузить файл
-                  </Button>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <LinkPopover onAddLink={handleAddLink}>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex items-center gap-2"
-                    >
-                      <LinkIcon className="h-4 w-4" />
-                      Добавить ссылку
-                    </Button>
-                  </LinkPopover>
+                  <LinkPopover onLinkAdd={handleAddLink} />
                 </div>
                 {attachments.length > 0 && (
                   <div className="space-y-2 mt-2">
@@ -576,29 +449,17 @@ export function EditPostForm({ postId }: EditPostFormProps) {
                         className="flex items-center justify-between p-2 border rounded-md"
                       >
                         <div className="flex items-center gap-2">
-                          {attachment.type === 'image' ? (
-                            <ImageIcon className="h-5 w-5 text-blue-500" />
-                          ) : attachment.type === 'link' ? (
-                            <LinkIcon className="h-5 w-5 text-green-500" />
-                          ) : (
-                            <FileText className="h-5 w-5 text-orange-500" />
-                          )}
+                          <LinkIcon className="h-5 w-5 text-green-500" />
                           <span className="text-sm truncate max-w-[200px]">
                             {attachment.name}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          {attachment.uploading && (
-                            <div className="w-24">
-                              <Progress value={attachment.progress} className="h-2" />
-                            </div>
-                          )}
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => handleRemoveAttachment(attachment)}
-                            disabled={attachment.uploading}
                           >
                             <X className="h-4 w-4" />
                           </Button>

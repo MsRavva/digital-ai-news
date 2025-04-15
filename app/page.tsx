@@ -69,7 +69,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm dark:bg-[#090b0d]/90 dark:border-[#181c22]">
-        <div className="w-[75%] mx-auto flex h-16 items-center justify-between">
+        <div className="w-full px-4 mx-auto flex h-16 items-center justify-between">
           <MainNav />
           <div className="flex items-center space-x-4">
             <UserNav />
@@ -78,7 +78,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <div className="w-[75%] py-6 mx-auto">
+        <div className="w-full px-4 py-6 mx-auto">
           <div className="flex flex-col items-center mb-8 text-center">
             <div>
               <h1 className="text-3xl font-bold tracking-tight mb-2">AI News</h1>

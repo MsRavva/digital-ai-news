@@ -14,7 +14,7 @@ export default function CreatePost() {
         </div>
       </header>
       <main className="flex-1 p-4 sm:p-6 md:p-8">
-        <div className="mx-auto max-w-3xl">
+        <div className="mx-auto w-full">
           <h1 className="text-3xl font-bold tracking-tight mb-6">Создать публикацию</h1>
           <CreatePostForm />
         </div>
