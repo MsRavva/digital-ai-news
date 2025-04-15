@@ -33,34 +33,40 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
     // Шаг 1: Получаем все посты
     let postsQuery = collection(db, "posts");
 
-    // Создаем массив условий для запроса
-    const conditions = [];
+    // Создаем запрос с условиями
+    let queryConditions = [];
 
     // Добавляем фильтр по категории, если указана
     if (category) {
-      conditions.push(where("category", "==", category));
-    }
-
-    // Исключаем архивированные посты, если не указано обратное
-    if (!includeArchived) {
-      conditions.push(where("archived", "in", [false, null]));
+      queryConditions.push(where("category", "==", category));
     }
 
     // Добавляем сортировку
-    conditions.push(orderBy("created_at", "desc"));
+    queryConditions.push(orderBy("created_at", "desc"));
 
     // Создаем запрос с условиями
-    postsQuery = query(postsQuery, ...conditions);
+    postsQuery = query(postsQuery, ...queryConditions);
 
+    // Получаем все посты
     const postsSnapshot = await getDocs(postsQuery);
 
     if (postsSnapshot.empty) {
       return [];
     }
 
+    // Фильтруем архивированные посты на клиенте, если необходимо
+    // Это позволит корректно обрабатывать посты без поля archived
+    let filteredDocs = postsSnapshot.docs;
+    if (!includeArchived) {
+      filteredDocs = postsSnapshot.docs.filter(doc => {
+        const data = doc.data();
+        return data.archived !== true; // Показываем посты, где archived не true (включая undefined и false)
+      });
+    }
+
     // Шаг 2: Собираем все ID авторов для пакетного запроса
-    const authorIds = [...new Set(postsSnapshot.docs.map(doc => doc.data().author_id))];
-    const postIds = postsSnapshot.docs.map(doc => doc.id);
+    const authorIds = [...new Set(filteredDocs.map(doc => doc.data().author_id))];
+    const postIds = filteredDocs.map(doc => doc.id);
 
     // Шаг 3: Получаем всех авторов одним запросом
     const authorsMap = new Map();
@@ -139,7 +145,7 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
     });
 
     // Шаг 7: Формируем итоговый массив постов
-    const posts: Post[] = postsSnapshot.docs.map(postDoc => {
+    const posts: Post[] = filteredDocs.map(postDoc => {
       const postData = postDoc.data();
       const postId = postDoc.id;
 
@@ -772,14 +778,10 @@ export async function unarchivePost(postId: string): Promise<boolean> {
 // Получение архивированных постов
 export async function getArchivedPosts(): Promise<Post[]> {
   try {
-    // Получаем все архивированные посты
-    const postsQuery = query(
-      collection(db, "posts"),
-      where("archived", "==", true),
-      orderBy("created_at", "desc")
-    );
-
-    return await fetchPostsWithDetails(postsQuery);
+    // Используем существующую функцию getPosts с параметром includeArchived=true
+    // и фильтруем результаты, чтобы оставить только архивированные посты
+    const allPosts = await getPosts(undefined, true);
+    return allPosts.filter(post => post.archived === true);
   } catch (error) {
     console.error("Error fetching archived posts:", error);
     return [];
