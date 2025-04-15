@@ -21,6 +21,7 @@ export default function Register() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [username, setUsername] = useState("")
+  const [usernameError, setUsernameError] = useState<string | null>(null)
   // Роль всегда student
   const role = "student"
   const [isLoading, setIsLoading] = useState(false)
@@ -29,6 +30,22 @@ export default function Register() {
   const { signUp, signInWithGoogle, signInWithGithub } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
+
+  // Проверка имени пользователя при вводе
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+
+    // Пропускаем валидацию для пустого значения
+    if (!value.trim()) {
+      setUsernameError(null);
+      return;
+    }
+
+    // Проверяем имя пользователя
+    const error = validateUsername(value);
+    setUsernameError(error);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -186,11 +203,15 @@ export default function Register() {
                   id="username"
                   placeholder="Имя Фамилия"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={handleUsernameChange}
                   required
-                  className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1a1b23] rounded-md h-11 focus:border-saas-purple focus:ring-saas-purple text-gray-900 dark:text-white"
+                  className={`border ${usernameError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-saas-purple focus:ring-saas-purple'} bg-white dark:bg-[#1a1b23] rounded-md h-11 text-gray-900 dark:text-white`}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Укажите имя и фамилию на русском языке, например: Иван Иванов</p>
+                {usernameError ? (
+                  <p className="text-xs text-red-500 mt-1">{usernameError}</p>
+                ) : (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Укажите имя и фамилию на русском языке, например: Иван Иванов</p>
+                )}
               </div>
               <div className="space-y-1">
                 <Label htmlFor="password" className="text-sm text-gray-600 dark:text-gray-400">Пароль</Label>

@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Пожалуйста, введите корректные Имя и Фамилию",
         duration: 5000,
       })
-      router.push('/profile')
+      router.push('/profile?update=username')
       setNeedsProfileUpdate(false)
     }
   }, [needsProfileUpdate, profile, isLoading, router, toast])

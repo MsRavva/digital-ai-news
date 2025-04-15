@@ -18,11 +18,14 @@ import { Badge } from "@/components/ui/badge"
 import { getPosts, getBookmarkedPosts } from "@/lib/client-api"
 import { Post } from "@/types/database"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Pencil, Save, Bookmark } from "lucide-react"
 
 export default function ProfilePage() {
   const { user, profile, updateProfile } = useAuth()
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const updateParam = searchParams.get('update')
   // Режим редактирования всегда активен
   const [isEditing] = useState(true)
   const [formData, setFormData] = useState({
@@ -60,6 +63,22 @@ export default function ProfilePage() {
       });
     }
   }, [profile])
+
+  // Обработка параметра запроса update=username
+  useEffect(() => {
+    const updateParam = searchParams.get('update');
+    if (updateParam === 'username' && profile) {
+      // Фокусируемся на поле имени пользователя
+      setTimeout(() => {
+        const usernameInput = document.getElementById('username');
+        if (usernameInput) {
+          usernameInput.focus();
+          // Прокручиваем к полю
+          usernameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+    }
+  }, [searchParams, profile])
 
   // Проверка валидации имени пользователя при изменении
   useEffect(() => {
@@ -166,6 +185,11 @@ export default function ProfilePage() {
           title: "Профиль обновлен",
           description: "Ваш профиль был успешно обновлен",
         })
+
+        // Если был параметр update, удаляем его из URL
+        if (updateParam) {
+          window.history.replaceState({}, '', '/profile');
+        }
       } else {
         toast({
           title: "Ошибка",
@@ -243,11 +267,14 @@ export default function ProfilePage() {
                             name="username"
                             value={formData.username}
                             onChange={handleInputChange}
-                            className={`mt-1 ${validationErrors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            className={`mt-1 ${validationErrors.username || updateParam === 'username' ? 'border-red-500 focus-visible:ring-red-500' : ''} ${updateParam === 'username' ? 'animate-pulse' : ''}`}
                             placeholder="Иван Иванов"
                           />
                           {validationErrors.username && (
                             <p className="text-red-500 text-sm mt-1">{validationErrors.username}</p>
+                          )}
+                          {updateParam === 'username' && !validationErrors.username && (
+                            <p className="text-amber-500 text-sm mt-1">Пожалуйста, введите корректные Имя и Фамилию на русском языке</p>
                           )}
                           <p className="text-muted-foreground text-xs mt-1">Укажите имя и фамилию на русском языке, например: Иван Иванов</p>
                         </div>
