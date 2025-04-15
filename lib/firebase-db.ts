@@ -62,6 +62,12 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
         const data = doc.data();
         return data.archived !== true; // Показываем посты, где archived не true (включая undefined и false)
       });
+    } else {
+      // Если нужно показать только архивированные посты
+      filteredDocs = postsSnapshot.docs.filter(doc => {
+        const data = doc.data();
+        return data.archived === true; // Показываем только архивированные посты
+      });
     }
 
     // Шаг 2: Собираем все ID авторов для пакетного запроса
@@ -779,9 +785,8 @@ export async function unarchivePost(postId: string): Promise<boolean> {
 export async function getArchivedPosts(): Promise<Post[]> {
   try {
     // Используем существующую функцию getPosts с параметром includeArchived=true
-    // и фильтруем результаты, чтобы оставить только архивированные посты
-    const allPosts = await getPosts(undefined, true);
-    return allPosts.filter(post => post.archived === true);
+    // Теперь функция getPosts сама фильтрует только архивированные посты, если includeArchived=true
+    return await getPosts(undefined, true);
   } catch (error) {
     console.error("Error fetching archived posts:", error);
     return [];

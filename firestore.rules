@@ -9,11 +9,8 @@ service cloud.firestore {
 
     // Посты
     match /posts/{postId} {
-      // Разрешаем чтение архивированных постов только учителям и админам, а также по прямой ссылке
-      allow read: if resource.data.archived == true ?
-                    (request.auth != null && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role in ["admin", "teacher"]) ||
-                    request.path.size() == 2 // Разрешаем доступ по прямой ссылке (ID поста)
-                  : true;
+      // Разрешаем чтение всех постов всем пользователям
+      allow read: if true;
 
       allow create: if request.auth != null;
       // Разрешаем обновление только поля likesCount и viewsCount всем авторизованным пользователям

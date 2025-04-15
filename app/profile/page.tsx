@@ -22,7 +22,8 @@ import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Pencil, Save, Book
 export default function ProfilePage() {
   const { user, profile, updateProfile } = useAuth()
   const { toast } = useToast()
-  const [isEditing, setIsEditing] = useState(false)
+  // Режим редактирования всегда активен
+  const [isEditing] = useState(true)
   const [formData, setFormData] = useState({
     username: '',
     bio: '',
@@ -128,7 +129,6 @@ export default function ProfilePage() {
           title: "Профиль обновлен",
           description: "Ваш профиль был успешно обновлен",
         })
-        setIsEditing(false)
       } else {
         toast({
           title: "Ошибка",
@@ -185,25 +185,7 @@ export default function ProfilePage() {
               <Card className="mb-6">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-center">
-                    <CardTitle>Профиль</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsEditing(!isEditing)}
-                      className="text-[hsl(var(--saas-purple))]"
-                    >
-                      {isEditing ? (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Сохранить
-                        </>
-                      ) : (
-                        <>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Редактировать
-                        </>
-                      )}
-                    </Button>
+                    <CardTitle>Редактирование профиля</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="text-center">
@@ -215,151 +197,90 @@ export default function ProfilePage() {
                     </Badge>
                     <p className="text-muted-foreground">{user.email}</p>
 
-                    {!isEditing && (
-                      <div className="mt-4 text-left w-full">
-                        {profile.bio && (
-                          <div className="mb-4">
-                            <p>{profile.bio}</p>
-                          </div>
-                        )}
+                    <form onSubmit={handleSubmit} className="w-full mt-4 text-left">
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="username">Имя пользователя</Label>
+                          <Input
+                            id="username"
+                            name="username"
+                            value={formData.username}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                          />
+                        </div>
 
-                        {(profile.location || profile.website || profile.social) && (
-                          <div className="space-y-2 mt-4">
-                            {profile.location && (
-                              <div className="flex items-center text-sm">
-                                <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <span>{profile.location}</span>
-                              </div>
-                            )}
+                        <div>
+                          <Label htmlFor="bio">О себе</Label>
+                          <Textarea
+                            id="bio"
+                            name="bio"
+                            value={formData.bio}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                            rows={3}
+                          />
+                        </div>
 
-                            {profile.website && (
-                              <div className="flex items-center text-sm">
-                                <Globe className="h-4 w-4 mr-2 text-muted-foreground" />
-                                <a
-                                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[hsl(var(--saas-purple))] hover:underline"
-                                >
-                                  {profile.website}
-                                </a>
-                              </div>
-                            )}
+                        <div>
+                          <Label htmlFor="location">Местоположение</Label>
+                          <Input
+                            id="location"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                          />
+                        </div>
 
-                            <div className="flex items-center gap-3 mt-2">
-                              {profile.social?.github && (
-                                <a
-                                  href={`https://github.com/${profile.social.github}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-muted-foreground hover:text-[hsl(var(--saas-purple))]"
-                                >
-                                  <Github className="h-5 w-5" />
-                                </a>
-                              )}
+                        <div>
+                          <Label htmlFor="website">Веб-сайт</Label>
+                          <Input
+                            id="website"
+                            name="website"
+                            value={formData.website}
+                            onChange={handleInputChange}
+                            className="mt-1"
+                          />
+                        </div>
 
-                              {profile.social?.vk && (
-                                <a
-                                  href={`https://vk.com/${profile.social.vk}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-muted-foreground hover:text-[hsl(var(--saas-purple))]"
-                                >
-                                  <img src="/vk.svg" alt="VK" className="h-5 w-5" />
-                                </a>
-                              )}
+                        <div>
+                          <Label>Социальные сети</Label>
+                          <div className="space-y-2 mt-1">
+                            <div className="flex items-center">
+                              <Github className="h-6 w-6 mr-2 text-muted-foreground" />
+                              <Input
+                                id="github"
+                                name="github"
+                                value={formData.github}
+                                onChange={handleInputChange}
+                                placeholder="username"
+                              />
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
 
-                    {isEditing && (
-                      <form onSubmit={handleSubmit} className="w-full mt-4 text-left">
-                        <div className="space-y-4">
-                          <div>
-                            <Label htmlFor="username">Имя пользователя</Label>
-                            <Input
-                              id="username"
-                              name="username"
-                              value={formData.username}
-                              onChange={handleInputChange}
-                              className="mt-1"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="bio">О себе</Label>
-                            <Textarea
-                              id="bio"
-                              name="bio"
-                              value={formData.bio}
-                              onChange={handleInputChange}
-                              className="mt-1"
-                              rows={3}
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="location">Местоположение</Label>
-                            <Input
-                              id="location"
-                              name="location"
-                              value={formData.location}
-                              onChange={handleInputChange}
-                              className="mt-1"
-                            />
-                          </div>
-
-                          <div>
-                            <Label htmlFor="website">Веб-сайт</Label>
-                            <Input
-                              id="website"
-                              name="website"
-                              value={formData.website}
-                              onChange={handleInputChange}
-                              className="mt-1"
-                            />
-                          </div>
-
-                          <div>
-                            <Label>Социальные сети</Label>
-                            <div className="space-y-2 mt-1">
-                              <div className="flex items-center">
-                                <Github className="h-6 w-6 mr-2 text-muted-foreground" />
-                                <Input
-                                  id="github"
-                                  name="github"
-                                  value={formData.github}
-                                  onChange={handleInputChange}
-                                  placeholder="username"
-                                />
-                              </div>
-
-                              <div className="flex items-center">
-                                <img src="/vk.svg" alt="VK" className="h-6 w-6 mr-2 text-muted-foreground" />
-                                <Input
-                                  id="vk"
-                                  name="vk"
-                                  value={formData.vk}
-                                  onChange={handleInputChange}
-                                  placeholder="username"
-                                />
-                              </div>
+                            <div className="flex items-center">
+                              <img src="/vk.svg" alt="VK" className="h-6 w-6 mr-2 text-muted-foreground" />
+                              <Input
+                                id="vk"
+                                name="vk"
+                                value={formData.vk}
+                                onChange={handleInputChange}
+                                placeholder="username"
+                              />
                             </div>
-                          </div>
-
-                          <div className="flex justify-end">
-                            <Button
-                              type="submit"
-                              className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
-                            >
-                              Сохранить изменения
-                            </Button>
                           </div>
                         </div>
-                      </form>
-                    )}
+
+                        <div className="flex justify-end">
+                          <Button
+                            type="submit"
+                            className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+                          >
+                            Сохранить изменения
+                          </Button>
+                        </div>
+                      </div>
+                    </form>
                   </div>
                 </CardContent>
               </Card>
