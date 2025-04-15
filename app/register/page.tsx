@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 // Удалены неиспользуемые компоненты RadioGroup
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
+import { validateUsername } from "@/lib/validation"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Github } from "lucide-react"
@@ -41,6 +42,17 @@ export default function Register() {
       return
     }
 
+    // Проверка имени пользователя
+    const usernameError = validateUsername(username);
+    if (usernameError) {
+      toast({
+        title: "Ошибка валидации",
+        description: usernameError,
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -60,8 +72,8 @@ export default function Register() {
         description: "Вы успешно зарегистрировались",
       })
 
-      // Принудительно обновляем страницу для корректного отображения состояния аутентификации
-      window.location.href = "/"
+      // Перенаправляем на главную страницу
+      router.push("/")
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -93,8 +105,8 @@ export default function Register() {
         description: "Вы успешно вошли в систему через Google",
       })
 
-      // Принудительно обновляем страницу для корректного отображения состояния аутентификации
-      window.location.href = "/"
+      // Перенаправляем на главную страницу
+      router.push("/")
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -126,8 +138,8 @@ export default function Register() {
         description: "Вы успешно вошли в систему через GitHub",
       })
 
-      // Принудительно обновляем страницу для корректного отображения состояния аутентификации
-      window.location.href = "/"
+      // Перенаправляем на главную страницу
+      router.push("/")
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -178,6 +190,7 @@ export default function Register() {
                   required
                   className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1a1b23] rounded-md h-11 focus:border-saas-purple focus:ring-saas-purple text-gray-900 dark:text-white"
                 />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Укажите имя и фамилию на русском языке, например: Иван Иванов</p>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="password" className="text-sm text-gray-600 dark:text-gray-400">Пароль</Label>

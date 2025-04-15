@@ -46,8 +46,8 @@ export default function Login() {
         description: "Вы успешно вошли в систему",
       })
 
-      // Принудительно обновляем страницу для корректного отображения состояния аутентификации
-      window.location.href = "/"
+      // Перенаправляем на главную страницу
+      router.push("/")
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -79,8 +79,8 @@ export default function Login() {
         description: "Вы успешно вошли в систему через Google",
       })
 
-      // Принудительно обновляем страницу для корректного отображения состояния аутентификации
-      window.location.href = "/"
+      // Перенаправляем на главную страницу
+      router.push("/")
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -112,8 +112,8 @@ export default function Login() {
         description: "Вы успешно вошли в систему через GitHub",
       })
 
-      // Принудительно обновляем страницу для корректного отображения состояния аутентификации
-      window.location.href = "/"
+      // Перенаправляем на главную страницу
+      router.push("/")
     } catch (error) {
       toast({
         title: "Ошибка",

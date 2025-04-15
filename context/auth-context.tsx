@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/types/database"
 import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, updateUserProfile as firebaseUpdateUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub } from "@/lib/firebase-auth"
+import { validateUsername } from "@/lib/validation"
+import { useToast } from "@/components/ui/use-toast"
 
 // Проверка, что код выполняется в браузере
 const isBrowser = typeof window !== 'undefined';
@@ -29,7 +31,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false)
   const router = useRouter()
+  const { toast } = useToast()
+
+  // Проверка имени пользователя и перенаправление на страницу профиля при необходимости
+  useEffect(() => {
+    if (needsProfileUpdate && profile && !isLoading) {
+      toast({
+        title: "Пожалуйста, обновите ваш профиль",
+        description: "Пожалуйста, введите корректные Имя и Фамилию",
+        duration: 5000,
+      })
+      router.push('/profile')
+      setNeedsProfileUpdate(false)
+    }
+  }, [needsProfileUpdate, profile, isLoading, router, toast])
 
   useEffect(() => {
     // Выполняем только на клиенте
@@ -45,8 +62,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Получаем профиль пользователя из Firestore
         const userProfile = await getUserProfile(firebaseUser.uid)
         setProfile(userProfile)
+
+        // Проверяем имя пользователя на соответствие требованиям
+        if (userProfile && userProfile.username) {
+          const usernameError = validateUsername(userProfile.username);
+          if (usernameError) {
+            setNeedsProfileUpdate(true);
+          }
+        }
       } else {
         setProfile(null)
+        setNeedsProfileUpdate(false)
       }
 
       setIsLoading(false)

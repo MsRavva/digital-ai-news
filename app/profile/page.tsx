@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from "react"
+import { validateUsername } from "@/lib/validation"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
@@ -32,6 +33,7 @@ export default function ProfilePage() {
     github: '',
     vk: ''
   })
+  const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({})
   const [userPosts, setUserPosts] = useState<Post[]>([])
   const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,18 +44,39 @@ export default function ProfilePage() {
     likes: 0
   })
 
+
+
+  // Загрузка данных профиля при монтировании компонента
   useEffect(() => {
     if (profile) {
+      const username = profile.username || '';
       setFormData({
-        username: profile.username || '',
+        username,
         bio: profile.bio || '',
         location: profile.location || '',
         website: profile.website || '',
         github: profile.social?.github || '',
         vk: profile.social?.vk || ''
-      })
+      });
     }
   }, [profile])
+
+  // Проверка валидации имени пользователя при изменении
+  useEffect(() => {
+    // Пропускаем первый рендер с пустым значением
+    if (formData.username === '') return;
+
+    const error = validateUsername(formData.username);
+    if (error) {
+      setValidationErrors(prev => ({ ...prev, username: error }));
+    } else {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.username;
+        return newErrors;
+      });
+    }
+  }, [formData.username])
 
   useEffect(() => {
     const fetchUserPosts = async () => {
@@ -97,6 +120,8 @@ export default function ProfilePage() {
     fetchBookmarkedPosts()
   }, [user])
 
+
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -109,6 +134,18 @@ export default function ProfilePage() {
     e.preventDefault()
 
     if (!user || !profile) return
+
+    // Проверка валидации имени пользователя перед отправкой
+    const usernameError = validateUsername(formData.username);
+    if (usernameError) {
+      setValidationErrors(prev => ({ ...prev, username: usernameError }));
+      toast({
+        title: "Ошибка валидации",
+        description: usernameError,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const updatedProfile = {
@@ -206,8 +243,13 @@ export default function ProfilePage() {
                             name="username"
                             value={formData.username}
                             onChange={handleInputChange}
-                            className="mt-1"
+                            className={`mt-1 ${validationErrors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            placeholder="Иван Иванов"
                           />
+                          {validationErrors.username && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.username}</p>
+                          )}
+                          <p className="text-muted-foreground text-xs mt-1">Укажите имя и фамилию на русском языке, например: Иван Иванов</p>
                         </div>
 
                         <div>
