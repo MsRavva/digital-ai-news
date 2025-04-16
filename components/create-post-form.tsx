@@ -1,12 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, ChangeEvent } from "react"
+import { useState, useRef, ChangeEvent, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { EnhancedTextarea } from "@/components/enhanced-textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { X, LinkIcon, Loader2 } from "lucide-react"
@@ -53,6 +53,12 @@ export function CreatePostForm() {
   const { toast } = useToast()
   const router = useRouter()
 
+  // Отслеживаем изменения в showPreview и previewData
+  useEffect(() => {
+    console.log('useEffect: showPreview changed to', showPreview);
+    console.log('useEffect: previewData is', previewData ? 'available' : 'null');
+  }, [showPreview, previewData])
+
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim() !== "") {
       e.preventDefault()
@@ -73,11 +79,11 @@ export function CreatePostForm() {
     setAttachments(prev => prev.filter(a => a.name !== name));
   };
 
-  const handleLinkAdd = (url: string) => {
+  const handleLinkAdd = (url: string, name: string) => {
     if (url) {
       setAttachments(prev => [...prev, {
         type: 'link',
-        name: url,
+        name: name || url,
         url
       }]);
     }
@@ -152,7 +158,11 @@ export function CreatePostForm() {
 
   // Функция для отображения предпросмотра
   const renderPreview = () => {
-    if (!previewData) return null;
+    console.log('renderPreview called, previewData:', previewData);
+    if (!previewData) {
+      console.log('No preview data available');
+      return null;
+    }
 
     // Функция для обрезки длинных строк
     const truncateString = (str: string, maxLength: number) => {
@@ -218,12 +228,43 @@ export function CreatePostForm() {
             ))}
           </div>
         )}
-        <div className="flex justify-end mt-6">
+        <div className="flex justify-between mt-6">
           <Button
             variant="outline"
-            onClick={() => setShowPreview(false)}
+            onClick={() => {
+              console.log('Back to editing clicked');
+              setTimeout(() => {
+                setShowPreview(false);
+                console.log('showPreview set to false');
+              }, 0);
+            }}
           >
             Вернуться к редактированию
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              console.log('Publish from preview clicked');
+              // Здесь можно добавить логику публикации
+              setTimeout(() => {
+                setShowPreview(false);
+                console.log('showPreview set to false');
+
+                // Имитируем отправку формы после небольшой задержки
+                setTimeout(() => {
+                  const form = document.querySelector('form');
+                  if (form) {
+                    console.log('Submitting form');
+                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                  } else {
+                    console.log('Form not found');
+                  }
+                }, 100);
+              }, 0);
+            }}
+            className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+          >
+            Опубликовать
           </Button>
         </div>
       </Card>
@@ -232,8 +273,12 @@ export function CreatePostForm() {
 
   return (
     <>
+      {console.log('Rendering component, showPreview:', showPreview)}
       {showPreview ? (
-        renderPreview()
+        <>
+          {console.log('Showing preview')}
+          {renderPreview()}
+        </>
       ) : (
         <Card>
           <form onSubmit={handleSubmit}>
@@ -269,7 +314,7 @@ export function CreatePostForm() {
 
           <div className="space-y-2">
             <Label htmlFor="content">Содержание</Label>
-            <Textarea
+            <EnhancedTextarea
               id="content"
               placeholder="Введите содержание публикации"
               className="min-h-[200px]"
@@ -340,7 +385,13 @@ export function CreatePostForm() {
             variant="outline"
             type="button"
             onClick={() => {
+              console.log('Preview button clicked');
+              console.log('Title:', title);
+              console.log('Content:', content);
+              console.log('Category:', category);
+
               if (!title || !content || !category) {
+                console.log('Missing required fields');
                 toast({
                   title: "Ошибка",
                   description: "Пожалуйста, заполните все обязательные поля",
@@ -350,7 +401,7 @@ export function CreatePostForm() {
               }
 
               // Создаем данные для предпросмотра
-              setPreviewData({
+              const previewDataObj = {
                 title,
                 content,
                 category,
@@ -361,9 +412,19 @@ export function CreatePostForm() {
                   role: profile?.role || "student"
                 },
                 created_at: new Date().toISOString()
-              })
+              };
 
-              setShowPreview(true)
+              console.log('Setting preview data and showPreview');
+              // Сначала устанавливаем данные предпросмотра
+              setPreviewData(previewDataObj);
+
+              // Затем включаем режим предпросмотра в следующем цикле обновления
+              setTimeout(() => {
+                setShowPreview(true);
+                console.log('showPreview set to true');
+                // Прокручиваем страницу вверх, чтобы увидеть предпросмотр
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }, 0);
             }}
           >
             Предпросмотр

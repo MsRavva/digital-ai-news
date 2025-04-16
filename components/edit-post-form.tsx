@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { EnhancedTextarea } from "@/components/enhanced-textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { X, LinkIcon, Loader2, Pencil } from "lucide-react"
@@ -194,9 +194,14 @@ export function EditPostForm({ postId }: EditPostFormProps) {
 
   // Обработчик предпросмотра
   const handlePreview = () => {
-    if (!user || !profile) return;
+    console.log('Preview button clicked');
+    if (!user || !profile) {
+      console.log('No user or profile');
+      return;
+    }
 
-    setPreviewData({
+    // Создаем данные для предпросмотра
+    const previewDataObj = {
       title,
       content,
       category,
@@ -207,7 +212,10 @@ export function EditPostForm({ postId }: EditPostFormProps) {
         role: profile.role || "student"
       },
       created_at: new Date().toISOString()
-    });
+    };
+
+    console.log('Setting preview data:', previewDataObj);
+    setPreviewData(previewDataObj);
   }
 
   // Обработчик отправки формы
@@ -388,7 +396,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="content">Содержание</Label>
-                <Textarea
+                <EnhancedTextarea
                   id="content"
                   placeholder="Введите содержание публикации"
                   value={content}
@@ -470,7 +478,15 @@ export function EditPostForm({ postId }: EditPostFormProps) {
                 )}
               </div>
               <div className="flex justify-between">
-                <Button type="button" variant="outline" onClick={handlePreview}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    handlePreview();
+                    // Прокручиваем страницу вверх, чтобы увидеть предпросмотр
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                >
                   Предпросмотр
                 </Button>
                 <div className="flex gap-2">
