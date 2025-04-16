@@ -844,9 +844,185 @@ export async function unarchivePost(postId: string): Promise<boolean> {
 // Получение архивированных постов
 export async function getArchivedPosts(): Promise<Post[]> {
   try {
-    // Используем существующую функцию getPosts с параметром includeArchived=true
-    // Теперь функция getPosts сама фильтрует только архивированные посты, если includeArchived=true
-    return await getPosts(undefined, true);
+    // Шаг 1: Получаем все посты
+    let postsQuery = collection(db, "posts");
+
+    // Создаем запрос с условиями
+    let queryConditions = [];
+
+    // Добавляем фильтр по полю archived=true
+    queryConditions.push(where("archived", "==", true));
+
+    // Добавляем сортировку
+    queryConditions.push(orderBy("created_at", "desc"));
+
+    // Создаем запрос с условиями
+    postsQuery = query(postsQuery, ...queryConditions);
+
+    // Получаем все архивированные посты
+    const postsSnapshot = await getDocs(postsQuery);
+
+    if (postsSnapshot.empty) {
+      return [];
+    }
+
+    // Шаг 2: Собираем все ID авторов для пакетного запроса
+    const authorIds = [...new Set(postsSnapshot.docs.map(doc => doc.data().author_id).filter(id => id !== undefined && id !== null))];
+    const postIds = postsSnapshot.docs.map(doc => doc.id);
+
+    // Шаг 3: Получаем всех авторов одним запросом
+    const authorsMap = new Map();
+    for (const authorId of authorIds) {
+      if (authorId) { // Проверяем, что authorId не undefined и не null
+        try {
+          const authorDoc = await getDoc(doc(db, "profiles", authorId));
+          if (authorDoc.exists()) {
+            authorsMap.set(authorId, authorDoc.data());
+          }
+        } catch (error) {
+          console.error(`Ошибка при получении профиля автора ${authorId}:`, error);
+        }
+      }
+    }
+
+    // Шаг 4: Получаем все связи постов с тегами по частям (максимум 30 значений в IN)
+    // Создаем массив для хранения всех документов
+    let allPostTagsDocs = [];
+
+    // Разбиваем массив postIds на части по 30 элементов
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const postTagsQuery = query(
+          collection(db, "post_tags"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const batchSnapshot = await getDocs(postTagsQuery);
+        allPostTagsDocs = [...allPostTagsDocs, ...batchSnapshot.docs];
+      }
+    }
+
+    // Создаем объект с нужной структурой
+    const postTagsSnapshot = { docs: allPostTagsDocs };
+
+    // Группируем связи по ID поста
+    const postTagsMap = new Map();
+    postTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (!postTagsMap.has(data.post_id)) {
+        postTagsMap.set(data.post_id, []);
+      }
+      postTagsMap.get(data.post_id).push(data.tag_id);
+    });
+
+    // Шаг 5: Получаем все теги одним запросом
+    const allTagIds = [...new Set(postTagsSnapshot.docs.map(doc => doc.data().tag_id))];
+    const tagsMap = new Map();
+
+    if (allTagIds.length > 0) {
+      for (const tagId of allTagIds) {
+        const tagDoc = await getDoc(doc(db, "tags", tagId));
+        if (tagDoc.exists()) {
+          tagsMap.set(tagId, tagDoc.data().name);
+        }
+      }
+    }
+
+    // Шаг 6: Получаем статистику для всех постов по частям
+    // Лайки
+    const likesCountMap = new Map();
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const likesQuery = query(
+          collection(db, "likes"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const likesSnapshot = await getDocs(likesQuery);
+
+        likesSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          likesCountMap.set(data.post_id, (likesCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
+
+    // Комментарии
+    const commentsCountMap = new Map();
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const commentsQuery = query(
+          collection(db, "comments"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const commentsSnapshot = await getDocs(commentsQuery);
+
+        commentsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          commentsCountMap.set(data.post_id, (commentsCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
+
+    // Просмотры
+    const viewsCountMap = new Map();
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const viewsQuery = query(
+          collection(db, "views"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const viewsSnapshot = await getDocs(viewsQuery);
+
+        viewsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          viewsCountMap.set(data.post_id, (viewsCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
+
+    // Шаг 7: Формируем итоговый массив постов
+    const posts: Post[] = postsSnapshot.docs.map(postDoc => {
+      const postData = postDoc.data();
+      const postId = postDoc.id;
+
+      // Получаем автора
+      const authorData = authorsMap.get(postData.author_id);
+
+      // Получаем теги
+      const tagIds = postTagsMap.get(postId) || [];
+      const tags = tagIds.map(tagId => tagsMap.get(tagId)).filter(Boolean);
+
+      // Получаем статистику
+      const likesCount = likesCountMap.get(postId) || 0;
+      const commentsCount = commentsCountMap.get(postId) || 0;
+      const viewsCount = viewsCountMap.get(postId) || 0;
+
+      return {
+        id: postId,
+        title: postData.title,
+        content: postData.content,
+        author: {
+          username: authorData?.username || "Unknown",
+          role: authorData?.role || "student"
+        },
+        created_at: convertTimestampToISO(postData.created_at),
+        category: postData.category,
+        tags,
+        likesCount,
+        commentsCount,
+        viewsCount,
+        archived: true // Явно устанавливаем флаг archived
+      };
+    });
+
+    return posts;
   } catch (error) {
     console.error("Error fetching archived posts:", error);
     return [];
