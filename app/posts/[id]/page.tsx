@@ -48,10 +48,13 @@ const processHtmlContent = (content: string) => {
   });
 };
 
-export default function PostPage({ params }: { params: { id: string } }) {
-  // Используем React.use() для разворачивания Promise
-  const unwrappedParams = React.use(params)
-  const postId = unwrappedParams.id
+type Props = {
+  params: { id: string }
+}
+
+export default function PostPage({ params }: Props) {
+  // Используем params напрямую
+  const postId = params.id
 
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)

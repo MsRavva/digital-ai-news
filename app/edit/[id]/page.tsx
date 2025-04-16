@@ -1,8 +1,15 @@
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { EditPostForm } from "@/components/edit-post-form"
+import { Metadata } from "next"
+import { Suspense } from "react"
 
-export default function EditPost({ params }: { params: { id: string } }) {
+type Props = {
+  params: { id: string }
+}
+
+export default function EditPost({ params }: Props) {
+  const postId = params.id
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
@@ -16,7 +23,7 @@ export default function EditPost({ params }: { params: { id: string } }) {
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="mx-auto w-full">
           <h1 className="text-3xl font-bold tracking-tight mb-6">Редактировать публикацию</h1>
-          <EditPostForm postId={params.id} />
+          <EditPostForm postId={postId} />
         </div>
       </main>
     </div>

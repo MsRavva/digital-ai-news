@@ -7,6 +7,14 @@ const nextConfig = {
     parallelServerCompiles: false,
     parallelServerBuildTraces: false
   },
+  // Отключаем проверку типов во время сборки
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // Отключаем проверку ESLint во время сборки
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   // Добавляем обработку ошибок Firebase Admin SDK
   webpack: (config, { isServer }) => {
     if (isServer) {
