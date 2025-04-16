@@ -448,8 +448,7 @@ body {
 .prose a, .post-link {
   color: hsl(var(--saas-purple));
   text-decoration: none;
-  transition: color 0.2s ease, border-bottom 0.2s ease;
-  border-bottom: 1px solid hsla(var(--saas-purple) / 0.3);
+  transition: color 0.2s ease;
   max-width: 100%;
   display: inline-block;
   white-space: nowrap;
@@ -460,17 +459,14 @@ body {
 
 .prose a:hover, .post-link:hover {
   color: hsl(var(--saas-purple-dark));
-  border-bottom: 1px solid hsla(var(--saas-purple) / 0.7);
 }
 
 .dark .prose a, .dark .post-link {
   color: hsl(var(--saas-purple-light));
-  border-bottom: 1px solid hsla(var(--saas-purple) / 0.4);
 }
 
 .dark .prose a:hover, .dark .post-link:hover {
   color: hsl(var(--saas-purple));
-  border-bottom: 1px solid hsla(var(--saas-purple) / 0.8);
 }
 
 /* Filter styles */
@@ -594,8 +590,7 @@ body {
 
 .prose a {
   color: hsl(var(--saas-purple));
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  text-decoration: none;
 }
 
 .prose a:hover {
@@ -627,6 +622,7 @@ body {
 
 .dark .prose a {
   color: hsl(var(--saas-purple-light));
+  text-decoration: none;
 }
 
 .dark .prose a:hover {

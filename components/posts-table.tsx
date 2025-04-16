@@ -102,7 +102,11 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
         </thead>
         <tbody>
           {posts.map((post) => (
-            <tr key={post.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+            <tr
+              key={post.id}
+              className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
+              onClick={() => router.push(`/posts/${post.id}`)}
+            >
               <td className="py-3 px-4">
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
@@ -120,9 +124,9 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
                 </div>
               </td>
               <td className="py-3 px-4">
-                <Link href={`/posts/${post.id}`} className="font-medium hover:text-[hsl(var(--saas-purple))] transition-colors">
+                <div className="font-medium hover:text-[hsl(var(--saas-purple))] transition-colors">
                   {post.title}
-                </Link>
+                </div>
                 <div className="text-muted-foreground text-sm line-clamp-1 mt-1 prose dark:prose-invert prose-sm max-w-none">
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
                     // Отключаем заголовки и другие блочные элементы в превью
@@ -182,7 +186,10 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-[hsl(var(--saas-purple))]"
-                        onClick={() => router.push(`/edit/${post.id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Предотвращаем всплытие события
+                          router.push(`/edit/${post.id}`);
+                        }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -191,7 +198,10 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-red-500"
-                      onClick={() => handleDelete(post.id)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Предотвращаем всплытие события
+                        handleDelete(post.id);
+                      }}
                       disabled={isDeleting}
                     >
                       <Trash2 className="h-4 w-4" />
