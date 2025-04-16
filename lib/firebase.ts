@@ -19,18 +19,30 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase только на клиенте
+// Initialize Firebase на клиенте и сервере
 let app;
 let auth;
 let db;
 let storage;
 
-// Инициализируем Firebase только если код выполняется в браузере
-if (isBrowser) {
-  app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  auth = getAuth(app);
+// Инициализируем Firebase на клиенте и сервере
+try {
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApp();
+  }
+
+  // Инициализируем сервисы Firebase
   db = getFirestore(app);
-  storage = getStorage(app);
+
+  // Инициализируем сервисы, которые работают только в браузере
+  if (isBrowser) {
+    auth = getAuth(app);
+    storage = getStorage(app);
+  }
+} catch (error) {
+  console.error('Error initializing Firebase:', error);
 }
 
 export { app, auth, db, storage };
