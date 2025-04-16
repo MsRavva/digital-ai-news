@@ -241,31 +241,40 @@ export function CreatePostForm() {
           >
             Вернуться к редактированию
           </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              console.log('Publish from preview clicked');
-              // Здесь можно добавить логику публикации
-              setTimeout(() => {
-                setShowPreview(false);
-                console.log('showPreview set to false');
-
-                // Имитируем отправку формы после небольшой задержки
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push('/')}
+            >
+              Отмена
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                console.log('Publish from preview clicked');
+                // Здесь можно добавить логику публикации
                 setTimeout(() => {
-                  const form = document.querySelector('form');
-                  if (form) {
-                    console.log('Submitting form');
-                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                  } else {
-                    console.log('Form not found');
-                  }
-                }, 100);
-              }, 0);
-            }}
-            className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
-          >
-            Опубликовать
-          </Button>
+                  setShowPreview(false);
+                  console.log('showPreview set to false');
+
+                  // Имитируем отправку формы после небольшой задержки
+                  setTimeout(() => {
+                    const form = document.querySelector('form');
+                    if (form) {
+                      console.log('Submitting form');
+                      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    } else {
+                      console.log('Form not found');
+                    }
+                  }, 100);
+                }, 0);
+              }}
+              className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+            >
+              Опубликовать
+            </Button>
+          </div>
         </div>
       </Card>
     );
@@ -429,16 +438,29 @@ export function CreatePostForm() {
           >
             Предпросмотр
           </Button>
-          <Button type="submit" disabled={isLoading} className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Публикация...
-              </>
-            ) : (
-              "Опубликовать"
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push('/')}
+            >
+              Отмена
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Публикация...
+                </>
+              ) : (
+                "Опубликовать"
+              )}
+            </Button>
+          </div>
         </CardFooter>
       </form>
     </Card>

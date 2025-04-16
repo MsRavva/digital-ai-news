@@ -13,7 +13,7 @@ import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, Archiv
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useEffect, useState } from 'react'
-import React from 'react'
+import React, { use } from 'react'
 import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost, deletePost } from '@/lib/client-api'
 import { Post } from '@/types/database'
 import { useAuth } from '@/context/auth-context'
@@ -53,8 +53,9 @@ type Props = {
 }
 
 export default function PostPage({ params }: Props) {
-  // Используем params напрямую
-  const postId = params.id
+  // Используем React.use() для развертывания params
+  const unwrappedParams = use(params);
+  const postId = unwrappedParams.id
 
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
