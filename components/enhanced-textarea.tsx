@@ -22,10 +22,10 @@ export function EnhancedTextarea({
       const start = textarea.selectionStart
       const end = textarea.selectionEnd
 
-      // Вставляем перенос строки
+      // Вставляем перенос строки с двумя пробелами в конце для корректного отображения в Markdown
       const newValue =
         textarea.value.substring(0, start) +
-        '\n' +
+        '  \n' +
         textarea.value.substring(end)
 
       // Обновляем значение и позицию курсора
@@ -39,8 +39,9 @@ export function EnhancedTextarea({
 
         // Устанавливаем новую позицию курсора после вставки
         setTimeout(() => {
-          textarea.selectionStart = start + 1
-          textarea.selectionEnd = start + 1
+          // Учитываем два пробела и перенос строки (3 символа)
+          textarea.selectionStart = start + 3
+          textarea.selectionEnd = start + 3
         }, 0)
       }
     }
