@@ -11,7 +11,7 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useAuth } from "@/context/auth-context"
 import { deletePost } from "@/lib/client-api"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 
@@ -25,6 +25,11 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Обновляем локальное состояние при изменении пропсов
+  useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
 
   // Проверка, имеет ли пользователь права на удаление (учитель или админ)
   const canDelete = profile?.role === "teacher" || profile?.role === "admin";
