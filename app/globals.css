@@ -80,29 +80,29 @@ body {
     --card-foreground: 0 0% 98%;
     --popover: 220 8% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 271 80% 65%; /* #9d5cff - более яркий и насыщенный фиолетовый */
+    --primary: 270 83% 58%; /* #7C3AED - яркий фиолетовый */
     --primary-foreground: 0 0% 98%;
     --secondary: 220 8% 15%; /* #1e2229 - темно-серый для второстепенных элементов */
     --secondary-foreground: 0 0% 98%;
     --muted: 220 10% 4%;
     --muted-foreground: 220 8% 65%;
-    --accent: 271 80% 65%;
+    --accent: 270 83% 58%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%; /* #F87171 - мягкий красный */
     --destructive-foreground: 0 0% 98%;
     --border: 220 8% 12%; /* #181c22 - темно-серый для границ */
     --input: 220 8% 8%;
-    --ring: 271 80% 65%;
+    --ring: 270 83% 58%;
 
     /* Custom colors */
-    --saas-purple: 271 80% 65%; /* #9d5cff - более яркий фиолетовый */
-    --saas-purple-light: 271 80% 45%;
-    --saas-purple-dark: 271 80% 85%;
-    --saas-blue: 210 100% 50%; /* #0080ff - более яркий синий */
-    --saas-blue-light: 210 100% 30%;
-    --saas-green: 157 70% 40%; /* #1db37f - более яркий зеленый */
+    --saas-purple: 270 83% 58%; /* #7C3AED - яркий фиолетовый */
+    --saas-purple-light: 270 83% 75%;
+    --saas-purple-dark: 270 83% 45%;
+    --saas-blue: 214 100% 60%; /* #3B82F6 - яркий синий */
+    --saas-blue-light: 214 100% 75%;
+    --saas-green: 160 84% 39%; /* #34D399 - бирюзово-зеленый */
     --saas-gray: 220 8% 15%; /* #1e2229 - темно-серый */
-    --saas-red: 0 84% 60%;
+    --saas-red: 0 84% 60%; /* #F87171 - мягкий красный */
   }
 }
 
@@ -229,20 +229,20 @@ body {
 }
 
 .dark .saas-button-primary {
-  background-color: #9d5cff;
+  background-color: #7C3AED;
   color: white;
-  box-shadow: 0 2px 5px rgba(157, 92, 255, 0.2), 0 0 0 0 rgba(157, 92, 255, 0);
+  box-shadow: 0 2px 5px rgba(124, 58, 237, 0.2), 0 0 0 0 rgba(124, 58, 237, 0);
 }
 
 .dark .saas-button-primary:hover {
-  background-color: #b77dff;
-  box-shadow: 0 4px 8px rgba(157, 92, 255, 0.3), 0 0 0 2px rgba(157, 92, 255, 0.2);
+  background-color: #9259F7;
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3), 0 0 0 2px rgba(124, 58, 237, 0.2);
   transform: translateY(-1px);
 }
 
 .dark .saas-button-primary:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(157, 92, 255, 0.2), 0 0 0 2px rgba(157, 92, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2), 0 0 0 2px rgba(124, 58, 237, 0.3);
 }
 
 .saas-button-secondary {
@@ -272,8 +272,8 @@ body {
 
 .dark .saas-button-secondary:hover {
   background-color: #374151;
-  border-color: hsl(var(--saas-purple) / 0.4);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px hsla(var(--saas-purple) / 0.1);
+  border-color: #7C3AED;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 2px rgba(124, 58, 237, 0.1);
   transform: translateY(-1px);
 }
 
@@ -347,15 +347,15 @@ body {
 .dark select option:hover,
 .dark select option:focus {
   background-color: #1e2229;
-  color: #9d5cff;
+  color: #7C3AED;
 }
 
 .dark input:focus,
 .dark textarea:focus,
 .dark select:focus {
   outline: none;
-  border-color: #9d5cff;
-  box-shadow: 0 0 0 1px #9d5cff;
+  border-color: #7C3AED;
+  box-shadow: 0 0 0 1px #7C3AED;
 }
 
 /* Dark mode selected items */
@@ -363,8 +363,8 @@ body {
 .dark .active-item,
 .dark .selected-nav-item {
   background-color: #1e2229;
-  color: #9d5cff;
-  border-left: 2px solid #9d5cff;
+  color: #7C3AED;
+  border-left: 2px solid #7C3AED;
 }
 
 /* Dark mode tabs */
@@ -408,14 +408,14 @@ body {
 }
 
 .dark .post-card {
-  border: 1px solid #333;
-  background-color: #1e1e1e;
+  border: 1px solid #1e2229;
+  background-color: #111417;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .dark .post-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  border-color: #555;
+  border-color: #7C3AED;
 }
 
 /* Tag styles */
@@ -436,12 +436,12 @@ body {
 }
 
 .dark .tag {
-  background-color: hsla(var(--saas-purple) / 0.2);
-  color: hsl(var(--saas-purple-light));
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #FFFFFF;
 }
 
 .dark .tag:hover {
-  background-color: hsla(var(--saas-purple) / 0.3);
+  background-color: rgba(124, 58, 237, 0.3);
 }
 
 /* Link styles */
@@ -462,11 +462,11 @@ body {
 }
 
 .dark .prose a, .dark .post-link {
-  color: hsl(var(--saas-purple-light));
+  color: #9259F7;
 }
 
 .dark .prose a:hover, .dark .post-link:hover {
-  color: hsl(var(--saas-purple));
+  color: #7C3AED;
 }
 
 /* Filter styles */
@@ -502,22 +502,22 @@ body {
 
 /* Dark theme filter styles */
 .dark .filter-container {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
+  background-color: #111417;
+  border: 1px solid #1e2229;
 }
 
 .dark .filter-item {
-  color: #a0a0a0;
+  color: #9ca3af;
 }
 
 .dark .filter-item:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  background-color: rgba(124, 58, 237, 0.1);
 }
 
 .dark .filter-item.active {
-  background-color: #333;
-  color: #ffffff;
+  background-color: #1e2229;
+  color: #7C3AED;
 }
 
 /* Markdown styles */
@@ -621,12 +621,12 @@ body {
 }
 
 .dark .prose a {
-  color: hsl(var(--saas-purple-light));
+  color: #9259F7;
   text-decoration: none;
 }
 
 .dark .prose a:hover {
-  color: hsl(var(--saas-purple));
+  color: #7C3AED;
 }
 
 /* View mode styles */
@@ -663,22 +663,22 @@ body {
 
 /* Dark theme view mode styles */
 .dark .view-mode-container {
-  background-color: #1e1e1e;
-  border: 1px solid #333;
+  background-color: #111417;
+  border: 1px solid #1e2229;
 }
 
 .dark .view-mode-button {
-  color: #a0a0a0;
+  color: #9ca3af;
 }
 
 .dark .view-mode-button:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  background-color: rgba(124, 58, 237, 0.1);
 }
 
 .dark .view-mode-button.active {
-  background-color: #333;
-  color: #ffffff;
+  background-color: #1e2229;
+  color: #7C3AED;
 }
 
 /* Card grid styles */
@@ -704,4 +704,26 @@ body {
 .h-8 .avatar-fallback,
 .w-8 .avatar-fallback {
   font-size: 0.875rem;
+}
+
+/* Стили для активных и неактивных фильтров */
+.filter-active {
+  background-color: #34D399;
+  color: white;
+}
+
+.filter-inactive {
+  background-color: #F87171;
+  color: white;
+}
+
+/* Стили для активных и неактивных фильтров в темной теме */
+.dark .filter-active {
+  background-color: #34D399;
+  color: white;
+}
+
+.dark .filter-inactive {
+  background-color: #F87171;
+  color: white;
 }
