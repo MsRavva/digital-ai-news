@@ -8,8 +8,7 @@ import { deletePost } from "@/lib/client-api"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -228,24 +227,13 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                     <h3 className="text-xl font-semibold mt-3 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200 w-full">
                       {post.title}
                     </h3>
-                    <div className="text-muted-foreground mt-2 line-clamp-2 w-full prose dark:prose-invert prose-sm max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                        // Отключаем заголовки и другие блочные элементы в превью
-                        h1: 'span',
-                        h2: 'span',
-                        h3: 'span',
-                        h4: 'span',
-                        h5: 'span',
-                        h6: 'span',
-                        // Ограничиваем длину текста
-                        p: ({node, ...props}) => {
-                          const content = props.children?.toString() || '';
-                          const truncated = content.length > 150 ? content.substring(0, 150) + '...' : content;
-                          return <span {...props}>{truncated}</span>;
+                    <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
+                      <div className="prose dark:prose-invert prose-sm max-w-none">
+                        {post.content.length > 150
+                          ? post.content.substring(0, 150) + '...'
+                          : post.content
                         }
-                      }}>
-                        {post.content}
-                      </ReactMarkdown>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2 mt-4 w-full">
                       {post.tags?.map((tag) => (

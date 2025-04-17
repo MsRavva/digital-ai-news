@@ -17,8 +17,7 @@ import { useRouter } from "next/navigation"
 import { createPost } from "@/lib/firebase-db"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 
 interface Attachment {
   type: 'link';
@@ -215,11 +214,7 @@ export function CreatePostForm() {
             <Badge variant="outline">{categoryName}</Badge>
           </div>
           <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
-          <div className="prose dark:prose-invert max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {fullContent}
-            </ReactMarkdown>
-          </div>
+          <MarkdownRenderer content={fullContent} />
         </div>
         {previewData.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">

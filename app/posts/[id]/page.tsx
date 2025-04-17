@@ -10,8 +10,7 @@ import { UserNav } from "@/components/user-nav"
 import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
 import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { useEffect, useState } from 'react'
 import React, { use } from 'react'
 import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost, deletePost } from '@/lib/client-api'
@@ -536,11 +535,7 @@ export default function PostPage({ params }: Props) {
                 ))}
               </div>
 
-              <div className="prose dark:prose-invert max-w-none">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {post.content}
-                </ReactMarkdown>
-              </div>
+              <MarkdownRenderer content={post.content} />
 
               <div className="flex items-center space-x-6 mt-6">
                 <Button

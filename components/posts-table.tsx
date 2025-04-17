@@ -7,8 +7,7 @@ import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { useAuth } from "@/context/auth-context"
 import { deletePost } from "@/lib/client-api"
 import { useState, useEffect } from "react"
@@ -127,24 +126,13 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
                 <div className="font-medium hover:text-[hsl(var(--saas-purple))] transition-colors">
                   {post.title}
                 </div>
-                <div className="text-muted-foreground text-sm line-clamp-1 mt-1 prose dark:prose-invert prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={{
-                    // Отключаем заголовки и другие блочные элементы в превью
-                    h1: 'span',
-                    h2: 'span',
-                    h3: 'span',
-                    h4: 'span',
-                    h5: 'span',
-                    h6: 'span',
-                    // Ограничиваем длину текста
-                    p: ({node, ...props}) => {
-                      const content = props.children?.toString() || '';
-                      const truncated = content.length > 100 ? content.substring(0, 100) + '...' : content;
-                      return <span {...props}>{truncated}</span>;
+                <div className="text-muted-foreground text-sm line-clamp-1 mt-1">
+                  <div className="prose dark:prose-invert prose-sm max-w-none">
+                    {post.content.length > 100
+                      ? post.content.substring(0, 100) + '...'
+                      : post.content
                     }
-                  }}>
-                    {post.content}
-                  </ReactMarkdown>
+                  </div>
                 </div>
               </td>
               <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">

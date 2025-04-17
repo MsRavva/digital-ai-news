@@ -18,8 +18,7 @@ import { getPostById, updatePost } from "@/lib/client-api"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Post } from "@/types/database"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 
 interface Attachment {
   type: 'link';
@@ -332,11 +331,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               </div>
             </div>
             <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
-            <div className="prose dark:prose-invert max-w-none mb-4">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {fullContent}
-              </ReactMarkdown>
-            </div>
+            <MarkdownRenderer content={fullContent} className="mb-4" />
             {previewData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {previewData.tags.map(tag => (

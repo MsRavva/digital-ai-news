@@ -56,8 +56,9 @@ export function EnhancedTextarea({
         onKeyDown={handleKeyDown}
         {...props}
       />
-      <div className="mt-1 text-xs text-muted-foreground">
-        Используйте Ctrl+Enter для вставки новой строки. Поддерживается формат Markdown.
+      <div className="mt-1 text-xs text-muted-foreground space-y-1">
+        <p>Используйте Ctrl+Enter для вставки новой строки. Поддерживается формат Markdown.</p>
+        <p>Для создания блока кода с кнопкой копирования используйте три обратных кавычки ``` и укажите язык, например: ```js</p>
       </div>
     </div>
   )
