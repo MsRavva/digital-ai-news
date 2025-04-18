@@ -8,8 +8,8 @@ type Props = {
   params: { id: string }
 }
 
-export default function EditPost({ params }: Props) {
-  const postId = params.id
+export default async function EditPost({ params }: Props) {
+  const postId = await params.id
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
