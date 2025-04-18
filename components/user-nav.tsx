@@ -100,12 +100,7 @@ export function UserNav() {
                 Мои публикации
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-              <Link href="/settings" className="w-full flex items-center">
-                <Settings className="mr-2 h-4 w-4" />
-                Настройки
-              </Link>
-            </DropdownMenuItem>
+
             <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
               <Link href="/create" className="w-full flex items-center">
                 <Plus className="mr-2 h-4 w-4" />
