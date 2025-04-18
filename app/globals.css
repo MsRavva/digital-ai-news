@@ -378,6 +378,14 @@ body {
   opacity: 1;
 }
 
+/* Code blocks */
+.prose pre {
+  width: auto !important;
+  display: inline-block !important;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 /* Dark mode code blocks */
 .dark pre,
 .dark code {

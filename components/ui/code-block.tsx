@@ -20,22 +20,26 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
   }
 
   return (
-    <div className={cn('relative group rounded-md', className)}>
-      <div className="flex items-center justify-between bg-[hsl(var(--saas-purple))] text-white text-xs px-3 py-1.5 rounded-t-md">
-        <span>{language || 'code'}</span>
+    <div className={cn('relative group my-4 transition-all hover:shadow-md', className)}>
+      <div className="absolute right-2 top-0 z-10">
         <button
           onClick={handleCopy}
-          className="p-1 rounded hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
+          className="rounded-md p-1.5 bg-[hsl(var(--saas-purple))] text-white border border-[hsl(var(--saas-purple-dark))] shadow-sm transition-all hover:bg-[hsl(var(--saas-purple-dark))] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[hsl(var(--saas-purple))]/50"
           aria-label="Копировать код"
         >
           {copied ? (
-            <Check className="h-3.5 w-3.5" />
+            <Check className="h-4 w-4" />
           ) : (
-            <Copy className="h-3.5 w-3.5" />
+            <Copy className="h-4 w-4" />
           )}
         </button>
       </div>
-      <pre className="overflow-x-auto p-4 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 border-t-0 rounded-b-md text-sm text-slate-800 dark:text-slate-200">
+      {language && (
+        <div className="absolute left-2 top-0 z-10 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 ring-1 ring-slate-300 dark:ring-slate-700">
+          {language}
+        </div>
+      )}
+      <pre className="overflow-x-auto rounded-lg bg-slate-50 dark:bg-slate-900 p-6 pt-12 text-sm text-slate-800 dark:text-slate-200 shadow-sm ring-1 ring-slate-200 dark:ring-slate-800 transition-all group-hover:ring-[hsl(var(--saas-purple))]/20 dark:group-hover:ring-[hsl(var(--saas-purple))]/20">
         <code className={language ? `language-${language}` : ''}>
           {code}
         </code>

@@ -34,7 +34,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
             if (inline) {
               return (
                 <code className={cn(
-                  'px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[hsl(var(--saas-purple))] dark:text-[hsl(var(--saas-purple-light))]',
+                  'px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium border border-slate-200 dark:border-slate-700',
                   className
                 )} {...props}>
                   {children}
