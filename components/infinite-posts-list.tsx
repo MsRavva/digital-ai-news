@@ -51,26 +51,29 @@ export function InfinitePostsList({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="card-grid">
       {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
 
       {/* Индикатор загрузки или конца списка */}
       {loading ? (
-        <div className="space-y-4">
-          <PostCardSkeleton />
-          <PostCardSkeleton />
+        <div className="col-span-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <PostCardSkeleton />
+            <PostCardSkeleton />
+            <PostCardSkeleton />
+          </div>
         </div>
       ) : hasMore ? (
         // Элемент, который будет отслеживаться для загрузки следующей страницы
-        <div ref={ref} className="h-10" />
+        <div ref={ref} className="h-10 col-span-full" />
       ) : posts.length > 0 ? (
-        <div className="text-center text-muted-foreground p-4">
+        <div className="text-center text-muted-foreground p-4 col-span-full">
           Больше публикаций нет
         </div>
       ) : (
-        <div className="text-center text-muted-foreground p-4">
+        <div className="text-center text-muted-foreground p-4 col-span-full">
           Публикации не найдены
         </div>
       )}
@@ -81,22 +84,36 @@ export function InfinitePostsList({
 // Скелетон для карточки публикации
 function PostCardSkeleton() {
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex items-center space-x-2">
-        <Skeleton className="h-10 w-10 rounded-full" />
-        <div className="space-y-1">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-3 w-16" />
+    <div className="post-card p-6 rounded-lg w-full">
+      <div className="w-full">
+        <div className="flex items-center justify-between w-full mb-4">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <div className="flex items-center gap-2 ml-1">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </div>
+          <Skeleton className="h-5 w-5 rounded-full" />
         </div>
-      </div>
-      <Skeleton className="h-6 w-3/4" />
-      <Skeleton className="h-20 w-full" />
-      <div className="flex justify-between">
-        <div className="flex space-x-2">
-          <Skeleton className="h-8 w-16" />
-          <Skeleton className="h-8 w-16" />
+        <div className="w-full">
+          <Skeleton className="h-6 w-3/4 mt-3" />
+          <Skeleton className="h-4 w-full mt-2" />
+          <Skeleton className="h-4 w-full mt-1" />
+          <div className="flex flex-wrap gap-2 mt-4 w-full">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+          <div className="flex items-center gap-6 mt-4 w-full">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-16" />
+          </div>
         </div>
-        <Skeleton className="h-8 w-16" />
       </div>
     </div>
   )
