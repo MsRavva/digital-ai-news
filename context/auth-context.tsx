@@ -6,7 +6,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/types/database"
-import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, updateUserProfile as firebaseUpdateUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub } from "@/lib/firebase-auth"
+import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, updateUserProfile as firebaseUpdateUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub, getRedirectResult } from "@/lib/firebase-auth"
 import { validateUsername } from "@/lib/validation"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -54,6 +54,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Проверяем результат редиректа после аутентификации
+    const checkRedirectResult = async () => {
+      try {
+        const { user, error } = await getRedirectResult();
+
+        if (error) {
+          console.error("Redirect result error:", error);
+          return;
+        }
+
+        if (user) {
+          // Пользователь успешно аутентифицирован через редирект
+          const userProfile = await getUserProfile(user.uid);
+
+          // Проверяем имя пользователя на соответствие требованиям
+          if (userProfile && userProfile.username) {
+            const usernameError = validateUsername(userProfile.username);
+            if (usernameError) {
+              // Если имя пользователя не соответствует требованиям, перенаправляем на страницу профиля
+              toast({
+                title: "Пожалуйста, обновите ваш профиль",
+                description: "Пожалуйста, введите корректные Имя и Фамилию",
+                duration: 5000,
+              });
+              router.push('/profile?update=username');
+            } else {
+              // Если имя пользователя соответствует требованиям, перенаправляем на главную страницу
+              router.push('/');
+            }
+          } else {
+            // Если профиля нет, перенаправляем на главную страницу
+            router.push('/');
+          }
+        }
+      } catch (error) {
+        console.error("Error checking redirect result:", error);
+      }
+    };
+
+    // Проверяем результат редиректа
+    checkRedirectResult();
+
     // Подписываемся на изменения состояния аутентификации
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
       setUser(firebaseUser)
@@ -82,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       unsubscribe()
     }
-  }, [router])
+  }, [router, toast])
 
   const signIn = async (email: string, password: string) => {
     const { user, error } = await firebaseSignIn(email, password)
