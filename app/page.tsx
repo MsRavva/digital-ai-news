@@ -8,6 +8,7 @@ import { UserNav } from "@/components/user-nav"
 import { PostsList } from "@/components/posts-list"
 import { PostsTable } from "@/components/posts-table"
 import { InfinitePostsList } from "@/components/infinite-posts-list"
+import { PaginatedPostsTable } from "@/components/paginated-posts-table"
 import { TagsFilter } from "@/components/tags-filter"
 import { ViewToggle } from "@/components/view-toggle"
 import { CategoryFilter } from "@/components/category-filter"
@@ -122,10 +123,9 @@ export default function Home() {
                           initialLimit={10}
                         />
                       ) : (
-                        <PostsTable
-                          posts={[]}
-                          loading={true}
-                          loadingMessage="Табличный режим с пагинацией в разработке..."
+                        <PaginatedPostsTable
+                          category={selectedCategory !== 'all' ? selectedCategory : undefined}
+                          pageSize={10}
                         />
                       )}
                     </Card>
