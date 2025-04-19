@@ -1,9 +1,28 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('../serviceAccountKey.json');
+let serviceAccount;
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+// Пытаемся получить учетные данные из переменной окружения или из файла
+try {
+  // Сначала проверяем, есть ли переменная окружения
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    console.log('Используем учетные данные из переменной окружения FIREBASE_SERVICE_ACCOUNT_KEY');
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+  } else {
+    // Если переменной нет, пытаемся загрузить файл
+    console.log('Пытаемся загрузить учетные данные из файла serviceAccountKey.json');
+    serviceAccount = require('../serviceAccountKey.json');
+  }
+
+  // Инициализируем Firebase Admin SDK
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+} catch (error) {
+  console.error('Ошибка при инициализации Firebase Admin SDK:');
+  console.error(error.message);
+  console.error('Убедитесь, что файл serviceAccountKey.json существует или переменная окружения FIREBASE_SERVICE_ACCOUNT_KEY установлена.');
+  process.exit(1);
+}
 
 const db = admin.firestore();
 
@@ -11,61 +30,61 @@ const db = admin.firestore();
 async function fixAllPosts() {
   try {
     console.log('Начинаем проверку и исправление всех публикаций...');
-    
+
     // Получаем все публикации
     const postsSnapshot = await db.collection('posts').get();
-    
+
     if (postsSnapshot.empty) {
       console.log('Публикации не найдены');
       return;
     }
-    
+
     console.log(`Найдено ${postsSnapshot.size} публикаций`);
-    
+
     // Счетчики для статистики
     let fixedCount = 0;
     let alreadyOkCount = 0;
     const fixedPosts = [];
     const problemPosts = [];
-    
+
     // Проверяем каждую публикацию
     for (const postDoc of postsSnapshot.docs) {
       const postId = postDoc.id;
       const postData = postDoc.data();
-      
+
       // Проверяем наличие проблем
       const hasArchivedIssue = postData.archived === undefined || postData.archived === null;
-      const hasDateIssue = !postData.created_at || 
+      const hasDateIssue = !postData.created_at ||
                           (postData.created_at.toDate && postData.created_at.toDate() > new Date()) ||
                           (postData.created_at._seconds && postData.created_at._seconds > Math.floor(Date.now() / 1000));
       const hasUpdateDateIssue = !postData.updated_at;
-      
+
       // Если есть проблемы, исправляем
       if (hasArchivedIssue || hasDateIssue || hasUpdateDateIssue) {
         console.log(`\nИсправляем публикацию: "${postData.title}" (ID: ${postId})`);
-        
+
         if (hasArchivedIssue) console.log('- Проблема с полем archived');
         if (hasDateIssue) console.log('- Проблема с датой создания');
         if (hasUpdateDateIssue) console.log('- Проблема с датой обновления');
-        
+
         // Подготавливаем данные для обновления
         const updateData = {};
-        
+
         if (hasArchivedIssue) {
           updateData.archived = false;
         }
-        
+
         if (hasDateIssue) {
           updateData.created_at = admin.firestore.Timestamp.now();
         }
-        
+
         if (hasUpdateDateIssue) {
           updateData.updated_at = admin.firestore.Timestamp.now();
         }
-        
+
         // Обновляем публикацию
         await db.collection('posts').doc(postId).update(updateData);
-        
+
         console.log('Публикация исправлена');
         fixedCount++;
         fixedPosts.push({
@@ -80,7 +99,7 @@ async function fixAllPosts() {
       } else {
         alreadyOkCount++;
       }
-      
+
       // Проверяем другие потенциальные проблемы (не исправляем, только логируем)
       const missingFields = [];
       ['title', 'content', 'category', 'author_id'].forEach(field => {
@@ -88,7 +107,7 @@ async function fixAllPosts() {
           missingFields.push(field);
         }
       });
-      
+
       if (missingFields.length > 0) {
         console.log(`\nПубликация "${postData.title}" (ID: ${postId}) имеет отсутствующие поля: ${missingFields.join(', ')}`);
         problemPosts.push({
@@ -98,14 +117,14 @@ async function fixAllPosts() {
         });
       }
     }
-    
+
     // Выводим статистику
     console.log('\n=== Статистика ===');
     console.log(`Всего публикаций: ${postsSnapshot.size}`);
     console.log(`Исправлено публикаций: ${fixedCount}`);
     console.log(`Публикаций без проблем: ${alreadyOkCount}`);
     console.log(`Публикаций с другими проблемами: ${problemPosts.length}`);
-    
+
     // Выводим список исправленных публикаций
     if (fixedPosts.length > 0) {
       console.log('\n=== Исправленные публикации ===');
@@ -116,7 +135,7 @@ async function fixAllPosts() {
         if (post.issues.updated_at) console.log('   - Исправлена дата обновления');
       });
     }
-    
+
     // Выводим список публикаций с другими проблемами
     if (problemPosts.length > 0) {
       console.log('\n=== Публикации с другими проблемами ===');
@@ -125,7 +144,7 @@ async function fixAllPosts() {
         console.log(`   - Отсутствующие поля: ${post.missingFields.join(', ')}`);
       });
     }
-    
+
   } catch (error) {
     console.error('Ошибка при исправлении публикаций:', error);
   }
