@@ -237,25 +237,12 @@ export function PaginatedPostsTable({
         </table>
       </div>
 
-      {/* Пагинация и кнопка обновления */}
+      {/* Пагинация */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="text-sm text-muted-foreground">
             Страница {currentPage}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setCurrentPage(1);
-              setLastVisibleIds([null]);
-              refresh();
-            }}
-            disabled={loading}
-            className="h-8 px-3 text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] hover:bg-[hsl(var(--saas-purple)/0.1)]"
-          >
-            Обновить
-          </Button>
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -266,7 +253,7 @@ export function PaginatedPostsTable({
             className="h-8 px-3"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Назад
+            Туда
           </Button>
           <Button
             variant="outline"
@@ -275,18 +262,10 @@ export function PaginatedPostsTable({
             disabled={!hasMore || loading}
             className="h-8 px-3"
           >
-            Вперед
+            Сюда
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-      </div>
-
-      {/* Информация о фильтрации */}
-      <div className="text-xs text-muted-foreground mt-2">
-        {category ? `Категория: ${category}` : 'Все категории'}
-        {authorId ? ` | Автор: ${authorId}` : ''}
-        {tag ? ` | Тег: ${tag}` : ''}
-        {includeArchived ? ' | Включая архивные' : ''}
       </div>
 
       {/* Индикатор загрузки */}

@@ -9,7 +9,7 @@ interface ViewToggleProps {
   initialView?: 'grid' | 'table'
 }
 
-export function ViewToggle({ onViewChange, initialView = 'grid' }: ViewToggleProps) {
+export function ViewToggle({ onViewChange, initialView = 'table' }: ViewToggleProps) {
   const [view, setView] = useState<'grid' | 'table'>(initialView)
 
   // При первом рендере проверяем localStorage

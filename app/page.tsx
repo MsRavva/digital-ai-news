@@ -22,7 +22,7 @@ export default function Home() {
   const { user } = useAuth()
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [tags, setTags] = useState([])
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
   const [loading, setLoading] = useState(true)
 
   // Загрузка тегов
