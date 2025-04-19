@@ -1409,3 +1409,304 @@ export async function deletePost(postId: string): Promise<boolean> {
     return false;
   }
 }
+
+// Функция для получения публикаций с пагинацией
+export async function getPaginatedPosts(options: {
+  limit?: number;
+  startAfter?: string;
+  category?: string;
+  authorId?: string;
+  tag?: string;
+  includeArchived?: boolean;
+}) {
+  try {
+    const {
+      limit: limitCount = 10,
+      startAfter: startAfterId,
+      category,
+      authorId,
+      tag,
+      includeArchived = false
+    } = options;
+
+    // Шаг 1: Создаем базовый запрос
+    let postsQuery = collection(db, "posts");
+    let queryConditions = [];
+
+    // Добавляем фильтр по категории, если указана
+    if (category && category !== 'all') {
+      queryConditions.push(where("category", "==", category));
+    }
+
+    // Добавляем фильтр по автору, если указан
+    if (authorId) {
+      queryConditions.push(where("author_id", "==", authorId));
+    }
+
+    // Добавляем фильтр по архивации
+    if (!includeArchived) {
+      queryConditions.push(where("archived", "in", [false, null]));
+    }
+
+    // Добавляем сортировку по дате создания (от новых к старым)
+    queryConditions.push(orderBy("created_at", "desc"));
+
+    // Создаем запрос с условиями
+    postsQuery = query(postsQuery, ...queryConditions);
+
+    // Если указан startAfterId, добавляем курсор для пагинации
+    if (startAfterId) {
+      const startAfterDoc = await getDoc(doc(db, "posts", startAfterId));
+      if (startAfterDoc.exists()) {
+        postsQuery = query(postsQuery, startAfter(startAfterDoc));
+      }
+    }
+
+    // Добавляем ограничение по количеству результатов
+    postsQuery = query(postsQuery, limit(limitCount));
+
+    // Шаг 2: Получаем посты
+    const postsSnapshot = await getDocs(postsQuery);
+
+    if (postsSnapshot.empty) {
+      return { posts: [], lastVisible: null };
+    }
+
+    // Фильтруем по тегу на клиенте, если указан
+    // Примечание: фильтрация по тегу выполняется после получения данных, так как теги хранятся в отдельной коллекции
+    let filteredDocs = postsSnapshot.docs;
+
+    // Шаг 3: Собираем все ID авторов для пакетного запроса
+    const authorIds = [...new Set(filteredDocs.map(doc => doc.data().author_id).filter(id => id !== undefined && id !== null))];
+    const postIds = filteredDocs.map(doc => doc.id);
+
+    // Шаг 4: Получаем всех авторов одним запросом
+    const authorsMap = new Map();
+    for (const authorId of authorIds) {
+      if (authorId) { // Проверяем, что authorId не undefined и не null
+        try {
+          const authorDoc = await getDoc(doc(db, "profiles", authorId));
+          if (authorDoc.exists()) {
+            authorsMap.set(authorId, authorDoc.data());
+          }
+        } catch (error) {
+          console.error(`Ошибка при получении профиля автора ${authorId}:`, error);
+        }
+      }
+    }
+
+    // Шаг 5: Получаем все связи постов с тегами по частям (максимум 30 значений в IN)
+    // Создаем массив для хранения всех документов
+    let allPostTagsDocs = [];
+
+    // Разбиваем массив postIds на части по 30 элементов
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const postTagsQuery = query(
+          collection(db, "post_tags"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const batchSnapshot = await getDocs(postTagsQuery);
+        allPostTagsDocs = [...allPostTagsDocs, ...batchSnapshot.docs];
+      }
+    }
+
+    // Создаем объект с нужной структурой
+    const postTagsSnapshot = { docs: allPostTagsDocs };
+
+    // Группируем связи по ID поста
+    const postTagsMap = new Map();
+    postTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (!postTagsMap.has(data.post_id)) {
+        postTagsMap.set(data.post_id, []);
+      }
+      postTagsMap.get(data.post_id).push(data.tag_id);
+    });
+
+    // Шаг 6: Получаем все теги одним запросом
+    const allTagIds = [...new Set(postTagsSnapshot.docs.map(doc => doc.data().tag_id))];
+    const tagsMap = new Map();
+
+    if (allTagIds.length > 0) {
+      for (const tagId of allTagIds) {
+        const tagDoc = await getDoc(doc(db, "tags", tagId));
+        if (tagDoc.exists()) {
+          tagsMap.set(tagId, tagDoc.data().name);
+        }
+      }
+    }
+
+    // Если указан тег, фильтруем посты по тегу
+    if (tag) {
+      // Находим ID тега по имени
+      let tagId = null;
+      for (const [id, name] of tagsMap.entries()) {
+        if (name === tag) {
+          tagId = id;
+          break;
+        }
+      }
+
+      if (tagId) {
+        // Фильтруем посты, у которых есть этот тег
+        filteredDocs = filteredDocs.filter(doc => {
+          const postId = doc.id;
+          const postTagIds = postTagsMap.get(postId) || [];
+          return postTagIds.includes(tagId);
+        });
+      } else {
+        // Если тег не найден, возвращаем пустой список
+        return { posts: [], lastVisible: null };
+      }
+    }
+
+    // Шаг 7: Получаем статистику для всех постов по частям
+    // Лайки
+    const likesCountMap = new Map();
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const likesQuery = query(
+          collection(db, "likes"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const likesSnapshot = await getDocs(likesQuery);
+
+        likesSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          likesCountMap.set(data.post_id, (likesCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
+
+    // Комментарии
+    const commentsCountMap = new Map();
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const commentsQuery = query(
+          collection(db, "comments"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const commentsSnapshot = await getDocs(commentsQuery);
+
+        commentsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          commentsCountMap.set(data.post_id, (commentsCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
+
+    // Просмотры
+    const viewsCountMap = new Map();
+    for (let i = 0; i < postIds.length; i += 30) {
+      const postIdsBatch = postIds.slice(i, i + 30);
+
+      if (postIdsBatch.length > 0) {
+        const viewsQuery = query(
+          collection(db, "views"),
+          where("post_id", "in", postIdsBatch)
+        );
+        const viewsSnapshot = await getDocs(viewsQuery);
+
+        viewsSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          viewsCountMap.set(data.post_id, (viewsCountMap.get(data.post_id) || 0) + 1);
+        });
+      }
+    }
+
+    // Шаг 8: Формируем итоговый массив постов
+    const posts: Post[] = filteredDocs.map(postDoc => {
+      const postData = postDoc.data();
+      const postId = postDoc.id;
+
+      // Получаем автора
+      const authorData = authorsMap.get(postData.author_id);
+
+      // Получаем теги
+      const tagIds = postTagsMap.get(postId) || [];
+      const tags = tagIds.map(tagId => tagsMap.get(tagId)).filter(Boolean);
+
+      // Получаем статистику
+      const likesCount = likesCountMap.get(postId) || 0;
+      const commentsCount = commentsCountMap.get(postId) || 0;
+      const viewsCount = viewsCountMap.get(postId) || 0;
+
+      return {
+        id: postId,
+        title: postData.title,
+        content: postData.content,
+        author: {
+          username: authorData?.username || "Unknown",
+          role: authorData?.role || "student"
+        },
+        author_id: postData.author_id,
+        created_at: convertTimestampToISO(postData.created_at),
+        category: postData.category,
+        tags,
+        likesCount,
+        commentsCount,
+        viewsCount,
+        archived: postData.archived || false
+      };
+    });
+
+    // Шаг 9: Возвращаем результат
+    const lastVisible = filteredDocs.length > 0 ? filteredDocs[filteredDocs.length - 1].id : null;
+
+    return {
+      posts,
+      lastVisible
+    };
+  } catch (error) {
+    console.error("Error fetching paginated posts:", error);
+    return { posts: [], lastVisible: null };
+  }
+}
+
+// Функция для получения публикаций по категории
+export async function getPostsByCategory(category: string): Promise<Post[]> {
+  try {
+    // Создаем запрос с фильтром по категории
+    const postsQuery = query(
+      collection(db, "posts"),
+      where("category", "==", category),
+      where("archived", "in", [false, null]),
+      orderBy("created_at", "desc")
+    );
+
+    const { posts } = await getPaginatedPosts({ category, limit: 100 });
+    return posts;
+  } catch (error) {
+    console.error(`Error fetching posts by category ${category}:`, error);
+    return [];
+  }
+}
+
+// Функция для получения публикаций по автору
+export async function getPostsByAuthor(authorId: string): Promise<Post[]> {
+  try {
+    const { posts } = await getPaginatedPosts({ authorId, limit: 100 });
+    return posts;
+  } catch (error) {
+    console.error(`Error fetching posts by author ${authorId}:`, error);
+    return [];
+  }
+}
+
+// Функция для получения публикаций по тегу
+export async function getPostsByTag(tag: string): Promise<Post[]> {
+  try {
+    const { posts } = await getPaginatedPosts({ tag, limit: 100 });
+    return posts;
+  } catch (error) {
+    console.error(`Error fetching posts by tag ${tag}:`, error);
+    return [];
+  }
+}
