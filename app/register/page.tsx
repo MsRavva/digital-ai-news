@@ -49,6 +49,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("Form submitted", { email, username, password })
 
     if (password !== confirmPassword) {
       toast({
@@ -71,27 +72,35 @@ export default function Register() {
     }
 
     setIsLoading(true)
+    console.log("Starting registration process")
 
     try {
+      console.log("Calling signUp function")
       const { error } = await signUp(email, password, username, role)
+      console.log("signUp function returned", { error })
 
       if (error) {
+        console.error("Registration error:", error)
         toast({
           title: "Ошибка регистрации",
-          description: error.message,
+          description: error.message || "Неизвестная ошибка регистрации",
           variant: "destructive",
         })
+        setIsLoading(false)
         return
       }
 
+      console.log("Registration successful")
       toast({
         title: "Успешная регистрация",
         description: "Вы успешно зарегистрировались",
       })
 
       // Перенаправляем на главную страницу
+      console.log("Redirecting to home page")
       router.push("/")
     } catch (error) {
+      console.error("Unexpected error during registration:", error)
       toast({
         title: "Ошибка",
         description: "Произошла неизвестная ошибка",
