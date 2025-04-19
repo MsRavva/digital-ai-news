@@ -2,17 +2,17 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, ThumbsUp, Eye, Pencil, Trash2 } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Pencil } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { useAuth } from "@/context/auth-context"
-import { deletePost } from "@/lib/client-api"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
+import { DeletePostButton } from "@/components/delete-post-button"
 
 interface PostsTableProps {
   posts: Post[]
@@ -23,7 +23,6 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Обновляем локальное состояние при изменении пропсов
   useEffect(() => {
@@ -39,41 +38,7 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
     return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
   };
 
-  // Обработчик удаления публикации
-  const handleDelete = async (postId: string) => {
-    if (!canDelete) return;
 
-    setIsDeleting(true);
-    try {
-      const success = await deletePost(postId);
-
-      if (success) {
-        // Удаляем пост из локального состояния
-        setPosts(posts.filter(post => post.id !== postId));
-
-        toast({
-          title: "Успешно",
-          description: "Публикация была удалена",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Ошибка",
-          description: "Не удалось удалить публикацию",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error("Ошибка при удалении публикации:", error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при удалении публикации",
-        variant: "destructive"
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
   // Проверяем, что posts не undefined, не null и является массивом
   if (!posts || !Array.isArray(posts) || posts.length === 0) {
     console.log('Нет публикаций для отображения в таблице:', posts);
@@ -182,18 +147,13 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
                         <Pencil className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-red-500"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Предотвращаем всплытие события
-                        handleDelete(post.id);
+                    <DeletePostButton
+                      postId={post.id}
+                      onSuccess={() => {
+                        // Удаляем пост из локального состояния
+                        setPosts(posts.filter(p => p.id !== post.id));
                       }}
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    />
                   </div>
                 </td>
               )}

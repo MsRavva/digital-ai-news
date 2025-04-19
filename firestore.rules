@@ -1,10 +1,31 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Функция для проверки роли пользователя
+    function isAdmin() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isTeacher() {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher";
+    }
+
+    function isTeacherOrAdmin() {
+      return isAdmin() || isTeacher();
+    }
+
+    function isAuthor(authorId) {
+      return request.auth != null && request.auth.uid == authorId;
+    }
+
     // Профили пользователей
     match /profiles/{userId} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update, delete: if isAuthor(userId);
     }
 
     // Посты
@@ -12,37 +33,46 @@ service cloud.firestore {
       // Разрешаем чтение всех постов всем пользователям
       allow read: if true;
 
+      // Разрешаем создание постов всем авторизованным пользователям
       allow create: if request.auth != null;
-      // Разрешаем обновление только поля likesCount и viewsCount всем авторизованным пользователям
+
+      // Разрешаем обновление постов
       allow update: if request.auth != null &&
+                    // Все авторизованные пользователи могут обновлять счетчики
                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likesCount", "viewsCount"]) ||
                      // Автор может обновлять свои посты, но не может изменять поле archived
-                     (resource.data.author_id == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["archived"])) ||
+                     (isAuthor(resource.data.author_id) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["archived"])) ||
                      // Учитель или админ могут обновлять любые посты и менять поле archived
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
-      // Разрешаем удаление только автору, админу или учителю
+                     isTeacherOrAdmin());
+
+      // Разрешаем удаление постов
       allow delete: if request.auth != null &&
-                    (resource.data.author_id == request.auth.uid ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
+                    // Автор может удалять свои посты
+                    (isAuthor(resource.data.author_id) ||
+                     // Учитель или админ могут удалять любые посты
+                     isTeacherOrAdmin());
     }
 
     // Комментарии
     match /comments/{commentId} {
       allow read: if true;
       allow create: if request.auth != null;
-      // Разрешаем обновление только поля likesCount всем авторизованным пользователям
+
+      // Разрешаем обновление комментариев
       allow update: if request.auth != null &&
+                    // Все авторизованные пользователи могут обновлять счетчик лайков
                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likesCount"]) ||
-                     resource.data.author_id == request.auth.uid ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
-      // Разрешаем удаление только автору, админу или учителю
+                     // Автор может обновлять свои комментарии
+                     isAuthor(resource.data.author_id) ||
+                     // Учитель или админ могут обновлять любые комментарии
+                     isTeacherOrAdmin());
+
+      // Разрешаем удаление комментариев
       allow delete: if request.auth != null &&
-                    (resource.data.author_id == request.auth.uid ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "admin" ||
-                     get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == "teacher");
+                    // Автор может удалять свои комментарии
+                    (isAuthor(resource.data.author_id) ||
+                     // Учитель или админ могут удалять любые комментарии
+                     isTeacherOrAdmin());
     }
 
     // Лайки комментариев

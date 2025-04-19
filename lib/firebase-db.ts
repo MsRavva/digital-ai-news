@@ -20,6 +20,7 @@ import {
   writeBatch
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { getAuth } from "firebase/auth";
 import { Post, Comment, Tag, PostStats } from "@/types/database";
 
 // Преобразование Timestamp в строку ISO
@@ -364,7 +365,11 @@ export async function createPost(data: {
       content: data.content,
       category: data.category,
       author_id: data.author_id,
-      created_at: serverTimestamp()
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+      likesCount: 0,
+      viewsCount: 0,
+      commentsCount: 0
     });
 
     // Обрабатываем теги
@@ -1291,11 +1296,49 @@ async function getAllChildCommentIds(parentId: string): Promise<string[]> {
 // Удаление поста
 export async function deletePost(postId: string): Promise<boolean> {
   try {
+    // Проверяем, существует ли пост
+    const postRef = doc(db, "posts", postId);
+    const postDoc = await getDoc(postRef);
+
+    if (!postDoc.exists()) {
+      console.error("Post not found:", postId);
+      return false;
+    }
+
+    // Получаем текущего пользователя
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      console.error("User not authenticated");
+      return false;
+    }
+
+    // Получаем профиль пользователя для проверки роли
+    const userProfileRef = doc(db, "profiles", currentUser.uid);
+    const userProfileDoc = await getDoc(userProfileRef);
+
+    if (!userProfileDoc.exists()) {
+      console.error("User profile not found");
+      return false;
+    }
+
+    const userProfile = userProfileDoc.data();
+    const postData = postDoc.data();
+
+    // Проверяем права доступа
+    const isAuthor = postData.author_id === currentUser.uid;
+    const isTeacherOrAdmin = userProfile.role === "teacher" || userProfile.role === "admin";
+
+    if (!isAuthor && !isTeacherOrAdmin) {
+      console.error("User does not have permission to delete this post");
+      return false;
+    }
+
     // Используем транзакцию для удаления поста и связанных данных
     const batch = writeBatch(db);
 
     // Удаляем пост
-    const postRef = doc(db, "posts", postId);
     batch.delete(postRef);
 
     // Удаляем связи с тегами

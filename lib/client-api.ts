@@ -21,6 +21,8 @@ import {
   unarchivePost as unarchiveFirebasePost,
   getArchivedPosts as getFirebaseArchivedPosts
 } from './firebase-db';
+import { getAuth } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { Post, Tag } from '@/types/database';
 
 // Проверка, что код выполняется в браузере
@@ -427,10 +429,59 @@ export async function deletePost(postId: string): Promise<boolean> {
   }
 
   try {
-    // Вызываем Firebase функцию
-    return await deleteFirebasePost(postId);
+    // Проверяем, что пост существует
+    const post = await getFirebasePostById(postId);
+    if (!post) {
+      console.error('Пост не найден:', postId);
+      return false;
+    }
+
+    // Получаем текущего пользователя
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      console.error('Пользователь не авторизован');
+      return false;
+    }
+
+    // Вызываем Firebase функцию для удаления
+    try {
+      // Получаем профиль пользователя для проверки роли
+      const userProfileRef = doc(getFirestore(), "profiles", currentUser.uid);
+      const userProfileDoc = await getDoc(userProfileRef);
+
+      if (!userProfileDoc.exists()) {
+        console.error("User profile not found");
+        return false;
+      }
+
+      const userProfile = userProfileDoc.data();
+      const postData = post;
+
+      // Проверяем права доступа
+      const isAuthor = postData.author_id === currentUser.uid;
+      const isTeacherOrAdmin = userProfile.role === "teacher" || userProfile.role === "admin";
+
+      if (!isAuthor && !isTeacherOrAdmin) {
+        console.error("User does not have permission to delete this post");
+        return false;
+      }
+
+      return await deleteFirebasePost(postId);
+    } catch (innerError) {
+      console.error('Ошибка при проверке прав доступа:', innerError);
+      return false;
+    }
   } catch (error) {
     console.error('Ошибка при удалении поста:', error);
+    // Выводим более подробную информацию об ошибке
+    if (error instanceof Error) {
+      console.error('Сообщение об ошибке:', error.message);
+      if ('code' in error) {
+        console.error('Код ошибки:', (error as any).code);
+      }
+    }
     return false;
   }
 }

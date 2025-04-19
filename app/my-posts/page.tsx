@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/context/auth-context"
 import { Badge } from "@/components/ui/badge"
-import { getPosts, deletePost } from "@/lib/client-api"
+import { getPosts } from "@/lib/client-api"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { Post } from "@/types/database"
 import Link from "next/link"
-import { MessageSquare, ThumbsUp, Eye, Plus, Pencil, Trash2 } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Plus, Pencil } from "lucide-react"
+import { DeletePostButton } from "@/components/delete-post-button"
 
 export default function MyPostsPage() {
   const { user, profile } = useAuth()
@@ -79,41 +80,7 @@ export default function MyPostsPage() {
     )
   }
 
-  // Обработчик удаления публикации
-  const handleDelete = async (postId: string, category: string) => {
-    try {
-      const success = await deletePost(postId);
 
-      if (success) {
-        // Обновляем список постов во всех категориях
-        setPosts(prev => ({
-          all: prev.all.filter(post => post.id !== postId),
-          news: prev.news.filter(post => post.id !== postId),
-          materials: prev.materials.filter(post => post.id !== postId),
-          'project-ideas': prev['project-ideas'].filter(post => post.id !== postId)
-        }));
-
-        toast({
-          title: "Успешно",
-          description: "Публикация была удалена",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Ошибка",
-          description: "Не удалось удалить публикацию",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Ошибка при удалении публикации:', error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при удалении публикации",
-        variant: "destructive"
-      });
-    }
-  };
 
   const renderPosts = (categoryPosts: Post[], category: string) => {
     if (loading) {
@@ -154,17 +121,21 @@ export default function MyPostsPage() {
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
-                <Button
+                <DeletePostButton
+                  postId={post.id}
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-red-500"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleDelete(post.id, category);
+                  onSuccess={() => {
+                    // Обновляем список постов во всех категориях
+                    setPosts(prev => ({
+                      all: prev.all.filter(p => p.id !== post.id),
+                      news: prev.news.filter(p => p.id !== post.id),
+                      materials: prev.materials.filter(p => p.id !== post.id),
+                      'project-ideas': prev['project-ideas'].filter(p => p.id !== post.id)
+                    }));
                   }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                />
               </div>
             </div>
             <p className="text-muted-foreground mb-3 line-clamp-2">

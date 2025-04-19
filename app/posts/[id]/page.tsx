@@ -9,11 +9,12 @@ import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
-import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore } from "lucide-react"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { useEffect, useState } from 'react'
 import React, { use } from 'react'
-import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost, deletePost } from '@/lib/client-api'
+import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost } from '@/lib/client-api'
+import { DeletePostButton } from "@/components/delete-post-button"
 import { Post } from '@/types/database'
 import { useAuth } from '@/context/auth-context'
 import { useToast } from '@/components/ui/use-toast'
@@ -259,44 +260,7 @@ export default function PostPage({ params }: Props) {
     }
   }
 
-  // Обработчик удаления публикации
-  const handleDelete = async () => {
-    if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
-      toast({
-        title: "Ошибка",
-        description: "У вас нет прав для удаления публикаций",
-        variant: "destructive"
-      })
-      return
-    }
 
-    try {
-      const success = await deletePost(postId)
-
-      if (success) {
-        toast({
-          title: "Успешно",
-          description: "Публикация была удалена"
-        })
-
-        // Перенаправляем на главную страницу
-        router.push('/')
-      } else {
-        toast({
-          title: "Ошибка",
-          description: "Не удалось удалить публикацию",
-          variant: "destructive"
-        })
-      }
-    } catch (error) {
-      console.error('Ошибка при удалении публикации:', error)
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при удалении публикации",
-        variant: "destructive"
-      })
-    }
-  }
 
   // Обработчик восстановления поста из архива
   const handleUnarchive = async () => {
@@ -433,15 +397,14 @@ export default function PostPage({ params }: Props) {
 
                   {/* Кнопка удаления для учителей и админов */}
                   {profile && (profile.role === "teacher" || profile.role === "admin") && (
-                    <Button
+                    <DeletePostButton
+                      postId={post.id}
                       variant="outline"
                       size="sm"
+                      showIcon={true}
+                      showText={true}
                       className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={handleDelete}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Удалить
-                    </Button>
+                    />
                   )}
 
                   {/* Кнопки архивирования/восстановления для учителей и админов */}

@@ -1,30 +1,21 @@
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, ThumbsUp, Eye, MoreHorizontal, Trash2, Pencil } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, MoreHorizontal, Pencil } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { useAuth } from "@/context/auth-context"
-import { deletePost } from "@/lib/client-api"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { DeletePostButton } from "@/components/delete-post-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+
 
 interface PostsListProps {
   posts: Post[]
@@ -35,8 +26,6 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [postToDelete, setPostToDelete] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Проверка, имеет ли пользователь права на удаление (учитель или админ)
   const canDelete = profile?.role === "teacher" || profile?.role === "admin";
@@ -62,109 +51,11 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
     )
   }
 
-  const handleDeleteClick = async (e: React.MouseEvent, postId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
 
-    // Если пользователь админ или учитель, удаляем без подтверждения
-    if (profile?.role === "teacher" || profile?.role === "admin") {
-      setIsDeleting(true);
-      try {
-        const success = await deletePost(postId);
-
-        if (success) {
-          // Удаляем пост из локального состояния
-          setPosts(posts.filter(post => post.id !== postId));
-
-          toast({
-            title: "Успешно",
-            description: "Публикация была удалена",
-            variant: "default"
-          });
-        } else {
-          toast({
-            title: "Ошибка",
-            description: "Не удалось удалить публикацию",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
-        console.error("Ошибка при удалении публикации:", error);
-        toast({
-          title: "Ошибка",
-          description: "Произошла ошибка при удалении публикации",
-          variant: "destructive"
-        });
-      } finally {
-        setIsDeleting(false);
-      }
-    } else {
-      // Для обычных пользователей показываем диалог подтверждения
-      setPostToDelete(postId);
-    }
-  }
-
-  const confirmDelete = async () => {
-    if (!postToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      const success = await deletePost(postToDelete);
-
-      if (success) {
-        // Удаляем пост из локального состояния
-        setPosts(posts.filter(post => post.id !== postToDelete));
-
-        toast({
-          title: "Успешно",
-          description: "Публикация была удалена",
-          variant: "default"
-        });
-      } else {
-        toast({
-          title: "Ошибка",
-          description: "Не удалось удалить публикацию",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error("Ошибка при удалении публикации:", error);
-      toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при удалении публикации",
-        variant: "destructive"
-      });
-    } finally {
-      setIsDeleting(false);
-      setPostToDelete(null);
-    }
-  }
 
   return (
-    <>
-      <AlertDialog open={postToDelete !== null} onOpenChange={(open) => !open && setPostToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Удаление публикации</AlertDialogTitle>
-            <AlertDialogDescription>
-              Вы уверены, что хотите удалить эту публикацию? Это действие нельзя отменить.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Отмена</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              {isDeleting ? "Удаление..." : "Удалить"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <div className="card-grid">
-        {posts.map((post) => (
+    <div className="card-grid">
+      {posts.map((post) => (
           <div key={post.id} className="relative">
             <Link href={`/posts/${post.id}`}>
               <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg w-full">
@@ -213,11 +104,20 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                         )}
                         {canDelete && (
                           <DropdownMenuItem
-                            onClick={(e) => handleDeleteClick(e, post.id)}
-                            className="text-red-500 hover:text-red-700 focus:text-red-700 cursor-pointer"
+                            onSelect={(e) => e.preventDefault()}
+                            className="text-red-500 hover:text-red-700 focus:text-red-700 cursor-pointer p-0"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Удалить
+                            <DeletePostButton
+                              postId={post.id}
+                              onSuccess={() => {
+                                // Удаляем пост из локального состояния
+                                setPosts(posts.filter(p => p.id !== post.id));
+                              }}
+                              variant="ghost"
+                              showIcon={true}
+                              showText={true}
+                              className="w-full justify-start px-2 py-1.5 text-red-500 hover:text-red-700"
+                            />
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
@@ -262,7 +162,6 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
             </Link>
           </div>
         ))}
-      </div>
-    </>
+    </div>
   )
 }
