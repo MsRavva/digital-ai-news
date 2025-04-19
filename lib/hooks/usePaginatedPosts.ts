@@ -7,28 +7,30 @@ export function usePaginatedPosts(options?: {
   category?: string;
   authorId?: string;
   tag?: string;
+  includeArchived?: boolean;
 }) {
   const limit = options?.initialLimit || 10;
-  
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastVisible, setLastVisible] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  
+
   // Функция для загрузки первой страницы
   const loadInitialPosts = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await getPaginatedPosts({
         limit,
         category: options?.category,
         authorId: options?.authorId,
-        tag: options?.tag
+        tag: options?.tag,
+        includeArchived: options?.includeArchived
       });
-      
+
       setPosts(result.posts);
       setLastVisible(result.lastVisible);
       setHasMore(!!result.lastVisible && result.posts.length === limit);
@@ -38,23 +40,24 @@ export function usePaginatedPosts(options?: {
     } finally {
       setLoading(false);
     }
-  }, [limit, options?.category, options?.authorId, options?.tag]);
-  
+  }, [limit, options?.category, options?.authorId, options?.tag, options?.includeArchived]);
+
   // Функция для загрузки следующей страницы
   const loadMorePosts = useCallback(async () => {
     if (!lastVisible || loading || !hasMore) return;
-    
+
     setLoading(true);
-    
+
     try {
       const result = await getPaginatedPosts({
         limit,
         startAfter: lastVisible,
         category: options?.category,
         authorId: options?.authorId,
-        tag: options?.tag
+        tag: options?.tag,
+        includeArchived: options?.includeArchived
       });
-      
+
       setPosts(prev => [...prev, ...result.posts]);
       setLastVisible(result.lastVisible);
       setHasMore(!!result.lastVisible && result.posts.length === limit);
@@ -64,13 +67,13 @@ export function usePaginatedPosts(options?: {
     } finally {
       setLoading(false);
     }
-  }, [lastVisible, loading, hasMore, limit, options?.category, options?.authorId, options?.tag]);
-  
+  }, [lastVisible, loading, hasMore, limit, options?.category, options?.authorId, options?.tag, options?.includeArchived]);
+
   // Загружаем первую страницу при монтировании компонента
   useEffect(() => {
     loadInitialPosts();
   }, [loadInitialPosts]);
-  
+
   return {
     posts,
     loading,
