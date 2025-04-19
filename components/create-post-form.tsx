@@ -18,6 +18,7 @@ import { createPost } from "@/lib/firebase-db"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
 
 interface Attachment {
   type: 'link';
@@ -318,14 +319,7 @@ export function CreatePostForm() {
 
           <div className="space-y-2">
             <Label htmlFor="content">Содержание</Label>
-            <EnhancedTextarea
-              id="content"
-              placeholder="Введите содержание публикации"
-              className="min-h-[200px]"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-            />
+            <TailwindMarkdownEditor value={content} onChange={setContent} />
           </div>
 
           <div className="space-y-2">
@@ -347,92 +341,9 @@ export function CreatePostForm() {
             />
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label>Прикрепить</Label>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <LinkPopover onLinkAdd={handleLinkAdd} />
-              </div>
-            </div>
 
-            {/* Список прикрепленных ссылок */}
-            {attachments.length > 0 && (
-              <div className="border rounded-md p-3 space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                <h4 className="text-sm font-medium">Прикрепленные ссылки:</h4>
-                <div className="space-y-2">
-                  {attachments.map((attachment, index) => (
-                    <div key={index} className="flex items-center justify-between bg-muted/50 p-2 rounded-md">
-                      <div className="flex items-center gap-2 overflow-hidden">
-                        <LinkIcon className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm truncate">{attachment.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => handleAttachmentRemove(attachment.name)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => {
-              console.log('Preview button clicked');
-              console.log('Title:', title);
-              console.log('Content:', content);
-              console.log('Category:', category);
-
-              if (!title || !content || !category) {
-                console.log('Missing required fields');
-                toast({
-                  title: "Ошибка",
-                  description: "Пожалуйста, заполните все обязательные поля",
-                  variant: "destructive",
-                })
-                return
-              }
-
-              // Создаем данные для предпросмотра
-              const previewDataObj = {
-                title,
-                content,
-                category,
-                tags,
-                attachments,
-                author: {
-                  username: profile?.username || "Unknown",
-                  role: profile?.role || "student"
-                },
-                created_at: new Date().toISOString()
-              };
-
-              console.log('Setting preview data and showPreview');
-              // Сначала устанавливаем данные предпросмотра
-              setPreviewData(previewDataObj);
-
-              // Затем включаем режим предпросмотра в следующем цикле обновления
-              setTimeout(() => {
-                setShowPreview(true);
-                console.log('showPreview set to true');
-                // Прокручиваем страницу вверх, чтобы увидеть предпросмотр
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }, 0);
-            }}
-          >
-            Предпросмотр
-          </Button>
+        <CardFooter className="flex justify-end">
           <div className="flex gap-2">
             <Button
               type="button"

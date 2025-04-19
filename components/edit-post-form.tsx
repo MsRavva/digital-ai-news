@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Post } from "@/types/database"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
 
 interface Attachment {
   type: 'link';
@@ -391,14 +392,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="content">Содержание</Label>
-                <EnhancedTextarea
-                  id="content"
-                  placeholder="Введите содержание публикации"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  className="min-h-[200px]"
-                  required
-                />
+                <TailwindMarkdownEditor value={content} onChange={setContent} />
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="category">Категория</Label>
@@ -439,51 +433,8 @@ export function EditPostForm({ postId }: EditPostFormProps) {
                   </div>
                 )}
               </div>
-              <div className="grid gap-3">
-                <Label>Вложения</Label>
-                <div className="flex flex-wrap gap-2">
-                  <LinkPopover onLinkAdd={handleAddLink} />
-                </div>
-                {attachments.length > 0 && (
-                  <div className="space-y-2 mt-2">
-                    {attachments.map((attachment, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 border rounded-md"
-                      >
-                        <div className="flex items-center gap-2">
-                          <LinkIcon className="h-5 w-5 text-green-500" />
-                          <span className="text-sm truncate max-w-[200px]">
-                            {attachment.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveAttachment(attachment)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    handlePreview();
-                    // Прокручиваем страницу вверх, чтобы увидеть предпросмотр
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                >
-                  Предпросмотр
-                </Button>
+
+              <div className="flex justify-end">
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={() => router.push(`/posts/${postId}`)}>
                     Отмена
