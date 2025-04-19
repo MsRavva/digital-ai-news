@@ -11,6 +11,7 @@ import {
   where,
   orderBy,
   limit,
+  startAfter,
   DocumentData,
   QueryDocumentSnapshot,
   serverTimestamp,
@@ -1673,14 +1674,6 @@ export async function getPaginatedPosts(options: {
 // Функция для получения публикаций по категории
 export async function getPostsByCategory(category: string): Promise<Post[]> {
   try {
-    // Создаем запрос с фильтром по категории
-    const postsQuery = query(
-      collection(db, "posts"),
-      where("category", "==", category),
-      where("archived", "in", [false, null]),
-      orderBy("created_at", "desc")
-    );
-
     const { posts } = await getPaginatedPosts({ category, limit: 100 });
     return posts;
   } catch (error) {
