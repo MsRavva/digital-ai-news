@@ -7,27 +7,27 @@ const fetcher = async (key: string) => {
   // Проверяем, есть ли данные в localStorage и не устарели ли они
   const cachedData = localStorage.getItem(key);
   const cachedTime = localStorage.getItem(`${key}_time`);
-  
+
   const now = Date.now();
   const cacheAge = cachedTime ? now - parseInt(cachedTime) : Infinity;
-  
-  // Если данные в кэше не старше 5 минут, используем их
-  if (cachedData && cacheAge < 300000) { // 5 минут
+
+  // Если данные в кэше не старше 1 минуты, используем их
+  if (cachedData && cacheAge < 60000) { // 1 минута
     console.log(`Using cached data for ${key}`);
     return JSON.parse(cachedData);
   }
-  
+
   // Разбираем ключ для определения параметров запроса
   const [path, params] = key.split('?');
   const searchParams = new URLSearchParams(params || '');
-  
+
   const category = searchParams.get('category');
   const authorId = searchParams.get('authorId');
   const tag = searchParams.get('tag');
-  
+
   // Получаем свежие данные в зависимости от параметров
   let data: Post[] = [];
-  
+
   try {
     if (category) {
       data = await getPostsByCategory(category);
@@ -38,11 +38,11 @@ const fetcher = async (key: string) => {
     } else {
       data = await getPosts();
     }
-    
+
     // Сохраняем данные в localStorage
     localStorage.setItem(key, JSON.stringify(data));
     localStorage.setItem(`${key}_time`, now.toString());
-    
+
     return data;
   } catch (error) {
     console.error(`Error fetching data for ${key}:`, error);
@@ -64,28 +64,28 @@ export function usePosts(options?: {
   // Создаем ключ для SWR, который включает параметры запроса
   let key = 'posts';
   const params = new URLSearchParams();
-  
+
   if (options?.category) {
     params.set('category', options.category);
   }
-  
+
   if (options?.authorId) {
     params.set('authorId', options.authorId);
   }
-  
+
   if (options?.tag) {
     params.set('tag', options.tag);
   }
-  
+
   const paramsString = params.toString();
   if (paramsString) {
     key += `?${paramsString}`;
   }
-  
+
   // Используем SWR для кэширования данных
   const { data, error, mutate, isValidating } = useSWR<Post[]>(key, fetcher, {
-    // Данные в кэше считаются актуальными в течение 5 минут
-    dedupingInterval: 300000, // 5 минут
+    // Данные в кэше считаются актуальными в течение 1 минуты
+    dedupingInterval: 60000, // 1 минута
     // Автоматически обновлять данные при фокусе на странице
     revalidateOnFocus: true,
     // Автоматически обновлять данные при восстановлении соединения
@@ -93,7 +93,7 @@ export function usePosts(options?: {
     // Сохранять данные в кэше при переключении между страницами
     revalidateOnMount: true,
   });
-  
+
   return {
     posts: data || [],
     isLoading: !error && !data,
