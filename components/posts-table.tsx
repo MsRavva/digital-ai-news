@@ -16,9 +16,11 @@ import { DeletePostButton } from "@/components/delete-post-button"
 
 interface PostsTableProps {
   posts: Post[]
+  loading?: boolean
+  loadingMessage?: string
 }
 
-export function PostsTable({ posts: initialPosts }: PostsTableProps) {
+export function PostsTable({ posts: initialPosts, loading = false, loadingMessage = 'Загрузка публикаций...' }: PostsTableProps) {
   const { profile } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -38,6 +40,15 @@ export function PostsTable({ posts: initialPosts }: PostsTableProps) {
     return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
   };
 
+
+  // Проверяем состояние загрузки
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">{loadingMessage}</p>
+      </div>
+    )
+  }
 
   // Проверяем, что posts не undefined, не null и является массивом
   if (!posts || !Array.isArray(posts) || posts.length === 0) {

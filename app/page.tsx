@@ -7,10 +7,11 @@ import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { PostsList } from "@/components/posts-list"
 import { PostsTable } from "@/components/posts-table"
+import { InfinitePostsList } from "@/components/infinite-posts-list"
 import { TagsFilter } from "@/components/tags-filter"
 import { ViewToggle } from "@/components/view-toggle"
 import { CategoryFilter } from "@/components/category-filter"
-import { getPosts, getAllTags } from "@/lib/client-api"
+import { getAllTags } from "@/lib/client-api"
 import Link from "next/link"
 import { Search, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -18,51 +19,29 @@ import { useAuth } from "@/context/auth-context"
 
 export default function Home() {
   const { user } = useAuth()
-  const [allPosts, setAllPosts] = useState([])
-  const [filteredPosts, setFilteredPosts] = useState([])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [tags, setTags] = useState([])
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
   const [loading, setLoading] = useState(true)
 
-  // Загрузка постов и тегов
+  // Загрузка тегов
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTags = async () => {
       try {
-        console.log('Загрузка данных...')
-        // Делаем только один запрос для всех постов
-        // Явно указываем includeArchived=false, чтобы получить только неархивированные посты
-        const posts = await getPosts(undefined, false)
-        console.log('Все посты:', posts)
-
+        console.log('Загрузка тегов...')
         // Загружаем теги
         const allTags = await getAllTags()
         console.log('Теги:', allTags)
-
-        setAllPosts(posts)
-        setFilteredPosts(posts) // По умолчанию показываем все посты
         setTags(allTags)
       } catch (error) {
-        console.error("Ошибка при загрузке данных:", error)
+        console.error("Ошибка при загрузке тегов:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchData()
+    fetchTags()
   }, [])
-
-  // Фильтрация постов при изменении категории
-  useEffect(() => {
-    if (allPosts.length === 0) return;
-
-    if (selectedCategory === 'all') {
-      setFilteredPosts(allPosts);
-    } else {
-      const filtered = allPosts.filter(post => post.category === selectedCategory);
-      setFilteredPosts(filtered);
-    }
-  }, [selectedCategory, allPosts])
 
   const handleViewChange = (view: 'grid' | 'table') => {
     setViewMode(view)
@@ -137,14 +116,17 @@ export default function Home() {
                       </div>
                     </div>
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                      {loading ? (
-                        <div className="p-8 text-center">
-                          <p className="text-muted-foreground">Загрузка публикаций...</p>
-                        </div>
-                      ) : viewMode === 'grid' ? (
-                        <PostsList posts={filteredPosts} />
+                      {viewMode === 'grid' ? (
+                        <InfinitePostsList
+                          category={selectedCategory !== 'all' ? selectedCategory : undefined}
+                          initialLimit={10}
+                        />
                       ) : (
-                        <PostsTable posts={filteredPosts} />
+                        <PostsTable
+                          posts={[]}
+                          loading={true}
+                          loadingMessage="Табличный режим с пагинацией в разработке..."
+                        />
                       )}
                     </Card>
                   </div>

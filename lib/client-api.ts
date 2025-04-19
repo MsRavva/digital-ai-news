@@ -19,7 +19,11 @@ import {
   getBookmarkedPosts as getFirebaseBookmarkedPosts,
   archivePost as archiveFirebasePost,
   unarchivePost as unarchiveFirebasePost,
-  getArchivedPosts as getFirebaseArchivedPosts
+  getArchivedPosts as getFirebaseArchivedPosts,
+  getPaginatedPosts as getFirebasePaginatedPosts,
+  getPostsByCategory as getFirebasePostsByCategory,
+  getPostsByAuthor as getFirebasePostsByAuthor,
+  getPostsByTag as getFirebasePostsByTag
 } from './firebase-db';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
@@ -102,6 +106,129 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
     return posts;
   } catch (error) {
     console.error('Ошибка при получении постов:', error);
+    return [];
+  }
+}
+
+// Функция для получения публикаций с пагинацией
+export async function getPaginatedPosts(options: {
+  limit?: number;
+  startAfter?: string;
+  category?: string;
+  authorId?: string;
+  tag?: string;
+  includeArchived?: boolean;
+}) {
+  const {
+    limit = 10,
+    startAfter,
+    category,
+    authorId,
+    tag,
+    includeArchived = false
+  } = options;
+
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    let filteredPosts = mockPosts;
+
+    // Фильтруем по категории, если указана
+    if (category) {
+      filteredPosts = filteredPosts.filter(post => post.category === category);
+    }
+
+    // Фильтруем по автору, если указан
+    if (authorId) {
+      filteredPosts = filteredPosts.filter(post => post.author_id === authorId);
+    }
+
+    // Фильтруем по тегу, если указан
+    if (tag) {
+      filteredPosts = filteredPosts.filter(post => post.tags?.includes(tag));
+    }
+
+    // Исключаем архивированные посты, если не указано обратное
+    if (!includeArchived) {
+      filteredPosts = filteredPosts.filter(post => !post.archived);
+    }
+
+    // Сортируем по дате создания (от новых к старым)
+    filteredPosts.sort((a, b) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+
+    // Применяем пагинацию
+    const startIndex = startAfter ? filteredPosts.findIndex(post => post.id === startAfter) + 1 : 0;
+    const paginatedPosts = filteredPosts.slice(startIndex, startIndex + limit);
+
+    return {
+      posts: paginatedPosts,
+      lastVisible: paginatedPosts.length > 0 ? paginatedPosts[paginatedPosts.length - 1].id : null
+    };
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    const result = await getFirebasePaginatedPosts({
+      limit,
+      startAfter,
+      category,
+      authorId,
+      tag,
+      includeArchived
+    });
+
+    return result;
+  } catch (error) {
+    console.error('Ошибка при получении постов с пагинацией:', error);
+    return { posts: [], lastVisible: null };
+  }
+}
+
+// Функция для получения публикаций по категории
+export async function getPostsByCategory(category: string): Promise<Post[]> {
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    return mockPosts.filter(post => post.category === category && !post.archived);
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await getFirebasePostsByCategory(category);
+  } catch (error) {
+    console.error(`Ошибка при получении постов по категории ${category}:`, error);
+    return [];
+  }
+}
+
+// Функция для получения публикаций по автору
+export async function getPostsByAuthor(authorId: string): Promise<Post[]> {
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    return mockPosts.filter(post => post.author_id === authorId && !post.archived);
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await getFirebasePostsByAuthor(authorId);
+  } catch (error) {
+    console.error(`Ошибка при получении постов автора ${authorId}:`, error);
+    return [];
+  }
+}
+
+// Функция для получения публикаций по тегу
+export async function getPostsByTag(tag: string): Promise<Post[]> {
+  // Если код выполняется на сервере, возвращаем моковые данные
+  if (!isBrowser) {
+    return mockPosts.filter(post => post.tags?.includes(tag) && !post.archived);
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await getFirebasePostsByTag(tag);
+  } catch (error) {
+    console.error(`Ошибка при получении постов по тегу ${tag}:`, error);
     return [];
   }
 }
