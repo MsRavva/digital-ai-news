@@ -305,6 +305,7 @@ export async function createPost(data: {
   category: string;
   author_id: string;
   tags: string[];
+  source_url?: string; // Добавляем опциональное поле для URL источника
 }) {
   // Если код выполняется на сервере, возвращаем фиктивный ID
   if (!isBrowser) {

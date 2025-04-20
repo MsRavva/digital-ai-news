@@ -1,12 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { Newspaper, Archive } from "lucide-react"
+import { Newspaper, Archive, FileDown } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 
 export function MainNav() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const isTeacherOrAdmin = profile && (profile.role === "teacher" || profile.role === "admin");
+  const canScrape = isTeacherOrAdmin || (user && user.uid === '4J9Vf4tqKOU7vDcz99h6nBu0gHx2');
 
   return (
     <div className="flex-1 flex items-center justify-between">
@@ -36,6 +37,17 @@ export function MainNav() {
             >
               <Archive className="h-4 w-4" />
               Архив
+            </Link>
+          )}
+
+          {/* Ссылка на импорт новостей для учителей, админов и Василия Смирнова */}
+          {canScrape && (
+            <Link
+              href="/scrape-news"
+              className="text-base font-medium transition-all duration-200 hover:text-[hsl(var(--saas-purple))] relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-[hsl(var(--saas-purple))] after:transition-all after:duration-200 flex items-center gap-1"
+            >
+              <FileDown className="h-4 w-4" />
+              Импорт новостей
             </Link>
           )}
         </nav>

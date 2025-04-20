@@ -323,6 +323,7 @@ export async function createPost(data: {
   category: string;
   author_id: string;
   tags: string[];
+  source_url?: string; // Добавляем опциональное поле для URL источника
 }): Promise<string | null> {
   try {
     // Используем транзакцию для создания поста и связанных тегов
@@ -346,7 +347,9 @@ export async function createPost(data: {
       // Инициализируем счетчики
       likesCount: 0,
       commentsCount: 0,
-      viewsCount: 0
+      viewsCount: 0,
+      // Добавляем URL источника, если он есть
+      source_url: data.source_url || null
     });
 
     // Создаем теги и связи с постом

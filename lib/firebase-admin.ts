@@ -70,3 +70,6 @@ export default firebaseAdmin;
 export const db = firebaseAdmin.firestore();
 export const auth = firebaseAdmin.auth();
 export const storage = firebaseAdmin.storage();
+
+// Экспортируем функцию инициализации для использования в API роутах
+export const initAdmin = initializeFirebaseAdmin;
