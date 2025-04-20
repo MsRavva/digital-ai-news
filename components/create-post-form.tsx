@@ -18,6 +18,7 @@ import { createPost } from "@/lib/firebase-db"
 import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
 import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
 
 interface Attachment {
@@ -215,7 +216,30 @@ export function CreatePostForm() {
             <Badge variant="outline">{categoryName}</Badge>
           </div>
           <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
-          <MarkdownRenderer content={fullContent} />
+          <div className="markdown-content">
+            <MarkdownItRenderer
+              content={fullContent}
+              className="preview-markdown-content"
+            />
+          </div>
+
+          {/* Добавляем стили для обработки изображений */}
+          <style jsx global>{`
+            .preview-markdown-content img {
+              display: block;
+              max-width: 100%;
+              height: auto;
+              margin: 1rem 0;
+              border-radius: 0.375rem;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+
+            .preview-markdown-content .base64-image {
+              display: block !important;
+              max-width: 100% !important;
+              height: auto !important;
+            }
+          `}</style>
         </div>
         {previewData.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">

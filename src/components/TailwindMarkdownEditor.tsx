@@ -16,6 +16,34 @@ const mdParser = new MarkdownIt({
   typographer: true,   // Включить типографские замены
 })
 
+// Настраиваем обработку изображений
+mdParser.renderer.rules.image = (tokens, idx, options, env, self) => {
+  const token = tokens[idx];
+  const srcIndex = token.attrIndex('src');
+  const altIndex = token.attrIndex('alt');
+
+  if (srcIndex < 0) return self.renderToken(tokens, idx, options);
+
+  const srcAttr = token.attrs[srcIndex];
+  const src = srcAttr[1];
+
+  // Проверяем, что src не пустой
+  if (!src) return '';
+
+  const alt = altIndex >= 0 ? token.attrs[altIndex][1] : 'Изображение';
+
+  // Проверяем, является ли это base64-изображение
+  const isBase64 = src.startsWith('data:image/');
+
+  // Добавляем специальный класс для base64-изображений
+  const className = isBase64
+    ? "max-w-full h-auto my-4 rounded-md shadow-md base64-image"
+    : "max-w-full h-auto my-4 rounded-md shadow-md";
+
+  // Добавляем обработку ошибок загрузки изображения
+  return `<img src="${src}" alt="${alt}" class="${className}" loading="lazy" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300?text=Изображение+недоступно'; this.alt='Изображение недоступно';" />`;
+};
+
 // Локализация для русского языка
 const locale = {
   btnHeader: 'Заголовок',
@@ -72,6 +100,7 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
             'block-code-block',
             'table',
             'link',
+            'image',
             'divider',
             'clear',
             'logger',
@@ -87,17 +116,52 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
           }}
           onImageUpload={(file) => {
             return new Promise((resolve) => {
-              const reader = new FileReader()
-              reader.onload = (data) => {
-                if (data.target?.result) {
-                  resolve(data.target.result as string)
-                } else {
-                  // Если не удалось прочитать файл, возвращаем пустую строку
-                  console.error('Не удалось прочитать файл')
-                  resolve('')
-                }
+              // Проверяем размер файла (максимум 5 МБ)
+              const maxSize = 5 * 1024 * 1024; // 5MB
+              if (file.size > maxSize) {
+                console.error('Файл слишком большой. Максимальный размер: 5MB');
+                alert('Файл слишком большой. Максимальный размер: 5MB');
+                resolve('');
+                return;
               }
-              reader.readAsDataURL(file)
+
+              // Проверяем тип файла
+              const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+              if (!allowedTypes.includes(file.type)) {
+                console.error('Неподдерживаемый тип файла. Разрешены только: JPEG, PNG, GIF, WebP');
+                alert('Неподдерживаемый тип файла. Разрешены только: JPEG, PNG, GIF, WebP');
+                resolve('');
+                return;
+              }
+
+              try {
+                const reader = new FileReader()
+                reader.onload = (data) => {
+                  if (data.target?.result) {
+                    // Проверяем, что результат является строкой и начинается с 'data:image/'
+                    const result = data.target.result as string;
+                    if (typeof result === 'string' && result.startsWith('data:image/')) {
+                      console.log('Image loaded successfully:', file.name);
+                      resolve(result);
+                    } else {
+                      console.error('Неверный формат изображения');
+                      resolve('');
+                    }
+                  } else {
+                    // Если не удалось прочитать файл, возвращаем пустую строку
+                    console.error('Не удалось прочитать файл');
+                    resolve('');
+                  }
+                }
+                reader.onerror = () => {
+                  console.error('Ошибка при чтении файла');
+                  resolve('');
+                }
+                reader.readAsDataURL(file);
+              } catch (error) {
+                console.error('Ошибка при обработке изображения:', error);
+                resolve('');
+              }
             })
           }}
         />
@@ -235,6 +299,31 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
 
         .rc-md-editor .section .sec-html {
           background-color: hsl(var(--background)) !important;
+        }
+
+        /* Стили для изображений */
+        .rc-md-editor .section-container .rc-md-editor-preview img,
+        .rc-md-editor .section-container .rc-md-editor-content img {
+          max-width: 100%;
+          height: auto;
+          margin: 1rem 0;
+          border-radius: 0.375rem;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          display: block;
+        }
+
+        /* Специальные стили для base64-изображений */
+        .rc-md-editor .section-container .rc-md-editor-preview .base64-image,
+        .rc-md-editor .section-container .rc-md-editor-content .base64-image {
+          display: block;
+          max-width: 100%;
+          height: auto;
+        }
+
+        /* Исправление для темной темы */
+        .dark .rc-md-editor .section-container .rc-md-editor-preview img,
+        .dark .rc-md-editor .section-container .rc-md-editor-content img {
+          filter: brightness(0.95);
         }
       `}</style>
     </div>

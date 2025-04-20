@@ -2,14 +2,16 @@ import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
 import { EditPostForm } from "@/components/edit-post-form"
 import { Metadata } from "next"
-import { Suspense } from "react"
+import React, { Suspense, use } from "react"
 
 type Props = {
   params: { id: string }
 }
 
-export default async function EditPost({ params }: Props) {
-  const postId = await params.id
+export default function EditPost({ params }: Props) {
+  // Используем React.use() для разворачивания params
+  const unwrappedParams = use(params);
+  const postId = unwrappedParams.id
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">

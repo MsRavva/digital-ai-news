@@ -11,6 +11,7 @@ import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
 import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore } from "lucide-react"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
 import { useEffect, useState } from 'react'
 import React, { use } from 'react'
 import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost } from '@/lib/client-api'
@@ -48,6 +49,15 @@ const processHtmlContent = (content: string) => {
   });
 };
 
+// Функция для обработки base64-изображений в контенте
+const processBase64Images = (content: string) => {
+  // Проверяем, есть ли в контенте base64-изображения
+  if (content.includes('data:image/')) {
+    console.log('Post content contains base64 images');
+  }
+  return content;
+};
+
 type Props = {
   params: { id: string }
 }
@@ -79,6 +89,12 @@ export default function PostPage({ params }: Props) {
     const fetchPost = async () => {
       try {
         const postData = await getPostById(postId)
+
+        // Проверяем наличие base64-изображений в контенте
+        if (postData && postData.content) {
+          processBase64Images(postData.content);
+        }
+
         setPost(postData)
 
         // Устанавливаем состояние архивации
@@ -498,7 +514,31 @@ export default function PostPage({ params }: Props) {
                 ))}
               </div>
 
-              <MarkdownRenderer content={post.content} />
+              {/* Используем MarkdownIt для рендеринга контента */}
+              <div className="markdown-content">
+                <MarkdownItRenderer
+                  content={post.content}
+                  className="post-markdown-content"
+                />
+              </div>
+
+              {/* Добавляем стили для обработки изображений */}
+              <style jsx global>{`
+                .post-markdown-content img {
+                  display: block;
+                  max-width: 100%;
+                  height: auto;
+                  margin: 1rem 0;
+                  border-radius: 0.375rem;
+                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                }
+
+                .post-markdown-content .base64-image {
+                  display: block !important;
+                  max-width: 100% !important;
+                  height: auto !important;
+                }
+              `}</style>
 
               <div className="flex items-center space-x-6 mt-6">
                 <Button

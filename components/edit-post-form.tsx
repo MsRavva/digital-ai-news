@@ -19,6 +19,7 @@ import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Post } from "@/types/database"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
 import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
 
 interface Attachment {
@@ -94,53 +95,8 @@ export function EditPostForm({ postId }: EditPostFormProps) {
         setCategory(postData.category);
         setTags(postData.tags || []);
 
-        // Извлекаем вложения из контента
-        const linkRegex = /\[Ссылка: (.*?)\]\((.*?)\)/g;
-        const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
-        const fileRegex = /\[(.*?)\]\((.*?)\)/g;
-
-        const extractedAttachments: Attachment[] = [];
-        let cleanContent = postData.content;
-
-        // Извлекаем ссылки
-        let linkMatch;
-        while ((linkMatch = linkRegex.exec(postData.content)) !== null) {
-          extractedAttachments.push({
-            type: 'link',
-            name: linkMatch[1],
-            url: linkMatch[2]
-          });
-          cleanContent = cleanContent.replace(linkMatch[0], '');
-        }
-
-        // Извлекаем изображения
-        let imageMatch;
-        while ((imageMatch = imageRegex.exec(postData.content)) !== null) {
-          extractedAttachments.push({
-            type: 'image',
-            name: imageMatch[1],
-            url: imageMatch[2]
-          });
-          cleanContent = cleanContent.replace(imageMatch[0], '');
-        }
-
-        // Извлекаем файлы (не изображения и не ссылки)
-        let fileMatch;
-        while ((fileMatch = fileRegex.exec(cleanContent)) !== null) {
-          // Проверяем, что это не ссылка и не изображение
-          if (!extractedAttachments.some(a => a.url === fileMatch[2])) {
-            extractedAttachments.push({
-              type: 'file',
-              name: fileMatch[1],
-              url: fileMatch[2]
-            });
-            cleanContent = cleanContent.replace(fileMatch[0], '');
-          }
-        }
-
-        // Очищаем контент от вложений
-        setContent(cleanContent.trim());
-        setAttachments(extractedAttachments);
+        // Инициализируем пустой массив вложений
+        setAttachments([]);
 
       } catch (error) {
         console.error("Ошибка при загрузке публикации:", error);
@@ -254,14 +210,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
         tags,
       };
 
-      // Если есть прикрепленные ссылки, добавляем их в содержимое
-      if (attachments.length > 0) {
-        const attachmentsContent = attachments.map(a => {
-          return `[Ссылка: ${a.name}](${a.url})`;
-        }).filter(Boolean).join('\n\n');
-
-        postData.content = `${content}\n\n${attachmentsContent}`;
-      }
+      // Используем контент как есть, без извлечения или добавления ссылок
 
       // Обновляем пост в Firebase
       const success = await updatePost(postData);
@@ -298,18 +247,8 @@ export function EditPostForm({ postId }: EditPostFormProps) {
       return str.substring(0, maxLength) + '...';
     };
 
-    // Преобразуем содержимое с прикрепленными файлами
+    // Используем контент как есть
     let fullContent = previewData.content;
-
-    if (previewData.attachments.length > 0) {
-      const attachmentsContent = previewData.attachments.map(a => {
-        // Обрезаем длинные ссылки
-        const displayName = truncateString(a.name, 60);
-        return `[Ссылка: ${displayName}](${a.url})`;
-      }).filter(Boolean).join('\n\n');
-
-      fullContent = `${fullContent}\n\n${attachmentsContent}`;
-    }
 
     return (
       <Card className="mt-6">
@@ -332,7 +271,30 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               </div>
             </div>
             <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
-            <MarkdownRenderer content={fullContent} className="mb-4" />
+            <div className="markdown-content">
+              <MarkdownItRenderer
+                content={fullContent}
+                className="edit-preview-markdown-content mb-4"
+              />
+            </div>
+
+            {/* Добавляем стили для обработки изображений */}
+            <style jsx global>{`
+              .edit-preview-markdown-content img {
+                display: block;
+                max-width: 100%;
+                height: auto;
+                margin: 1rem 0;
+                border-radius: 0.375rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+              }
+
+              .edit-preview-markdown-content .base64-image {
+                display: block !important;
+                max-width: 100% !important;
+                height: auto !important;
+              }
+            `}</style>
             {previewData.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {previewData.tags.map(tag => (
