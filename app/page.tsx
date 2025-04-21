@@ -24,6 +24,7 @@ export default function Home() {
   const [tags, setTags] = useState([])
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
   const [loading, setLoading] = useState(true)
+  const [categoryKey, setCategoryKey] = useState(0) // Ключ для принудительного обновления компонентов
 
   // Загрузка тегов
   useEffect(() => {
@@ -49,7 +50,10 @@ export default function Home() {
   }
 
   const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category)
+    console.log('Home: Изменение категории на', category);
+    setSelectedCategory(category);
+    // Увеличиваем ключ для принудительного обновления компонентов списка публикаций
+    setCategoryKey(prevKey => prevKey + 1);
   }
 
   return (
@@ -97,7 +101,10 @@ export default function Home() {
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-4">
-                        <CategoryFilter onCategoryChange={handleCategoryChange} />
+                        <CategoryFilter
+                          onCategoryChange={handleCategoryChange}
+                          initialCategory={selectedCategory}
+                        />
                         <div className="relative">
                           <Input
                             type="search"
@@ -119,11 +126,13 @@ export default function Home() {
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
                       {viewMode === 'grid' ? (
                         <InfinitePostsList
+                          key={`infinite-${categoryKey}`}
                           category={selectedCategory !== 'all' ? selectedCategory : undefined}
                           initialLimit={10}
                         />
                       ) : (
                         <PaginatedPostsTable
+                          key={`paginated-${categoryKey}`}
                           category={selectedCategory !== 'all' ? selectedCategory : undefined}
                           pageSize={10}
                         />

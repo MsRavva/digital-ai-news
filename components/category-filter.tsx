@@ -24,12 +24,18 @@ const categories = [
 
 interface CategoryFilterProps {
   onCategoryChange: (category: string) => void;
+  initialCategory?: string;
 }
 
-export function CategoryFilter({ onCategoryChange }: CategoryFilterProps) {
+export function CategoryFilter({ onCategoryChange, initialCategory }: CategoryFilterProps) {
   const [open, setOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(() => {
-    // Пытаемся получить сохраненную категорию из localStorage
+    // Если передана начальная категория, используем её
+    if (initialCategory) {
+      return initialCategory;
+    }
+
+    // Иначе пытаемся получить сохраненную категорию из localStorage
     if (typeof window !== "undefined") {
       const savedCategory = localStorage.getItem("selectedCategory")
       return savedCategory || "all"
@@ -46,13 +52,23 @@ export function CategoryFilter({ onCategoryChange }: CategoryFilterProps) {
 
   // Эффект для инициализации выбранной категории при монтировании
   useEffect(() => {
-    onCategoryChange(selectedCategory)
-  }, [])
+    console.log('CategoryFilter: Инициализация с категорией', selectedCategory);
+    onCategoryChange(selectedCategory);
+  }, []);
+
+  // Эффект для обновления выбранной категории при изменении initialCategory
+  useEffect(() => {
+    if (initialCategory && initialCategory !== selectedCategory) {
+      console.log('CategoryFilter: Обновление категории с', selectedCategory, 'на', initialCategory);
+      setSelectedCategory(initialCategory);
+    }
+  }, [initialCategory]);
 
   const handleCategorySelect = (currentValue: string) => {
-    setSelectedCategory(currentValue)
-    setOpen(false)
-    onCategoryChange(currentValue)
+    console.log('CategoryFilter: Выбрана категория', currentValue);
+    setSelectedCategory(currentValue);
+    setOpen(false);
+    onCategoryChange(currentValue);
   }
 
   const selectedCategoryLabel = categories.find(
