@@ -389,15 +389,53 @@ body {
 /* Dark mode code blocks */
 .dark pre,
 .dark code {
-  background-color: #0c0e10;
-  border: 1px solid #1e2229;
-  color: #e5e7eb;
+  background-color: #1e1e2d !important;
+  border: 1px solid #2d2d3d !important;
+  color: #e0e0e0 !important;
+}
+
+.dark pre code {
+  background-color: transparent !important;
+  border: none !important;
+  color: white !important;
+  padding: 0 !important;
 }
 
 .dark .code-block {
-  background-color: #0c0e10;
-  border: 1px solid #1e2229;
+  background-color: #1e1e2d !important;
+  border: 1px solid #2d2d3d !important;
   border-radius: 4px;
+}
+
+/* Стили для блоков кода в редакторе Markdown в темной теме */
+.dark .rc-md-editor .section-container .rc-md-editor-preview pre,
+.dark .rc-md-editor .custom-html-style pre {
+  background-color: #1e1e2d !important;
+  color: #e0e0e0 !important;
+  border: 1px solid #2d2d3d !important;
+  border-radius: 0.375rem !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+  overflow-x: auto !important;
+}
+
+.dark .rc-md-editor .section-container .rc-md-editor-preview pre code,
+.dark .rc-md-editor .custom-html-style pre code {
+  background-color: transparent !important;
+  color: white !important;
+  border: none !important;
+  padding: 0 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+.dark .rc-md-editor .section-container .rc-md-editor-preview code:not(pre code),
+.dark .rc-md-editor .custom-html-style code:not(pre code) {
+  background-color: #2d2d3d !important;
+  color: white !important;
+  border: 1px solid #3d3d4d !important;
+  border-radius: 0.25rem !important;
+  padding: 0.1rem 0.3rem !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 /* Post card styles */

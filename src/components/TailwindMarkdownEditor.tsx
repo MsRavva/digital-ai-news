@@ -301,6 +301,25 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
           background-color: hsl(var(--background)) !important;
         }
 
+        /* Стили для блоков кода в светлой теме */
+        .rc-md-editor .section-container .rc-md-editor-preview pre,
+        .rc-md-editor .section-container .rc-md-editor-preview pre code {
+          background-color: #f5f5f5 !important;
+          color: #333333 !important;
+          border: 1px solid #e0e0e0 !important;
+          border-radius: 0.375rem;
+          padding: 1rem;
+          margin: 1rem 0;
+        }
+
+        .rc-md-editor .section-container .rc-md-editor-preview code {
+          background-color: #f0f0f0 !important;
+          color: #333333 !important;
+          border: 1px solid #e0e0e0 !important;
+          border-radius: 0.25rem;
+          padding: 0.1rem 0.3rem;
+        }
+
         /* Стили для изображений */
         .rc-md-editor .section-container .rc-md-editor-preview img,
         .rc-md-editor .section-container .rc-md-editor-content img {
@@ -324,6 +343,46 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
         .dark .rc-md-editor .section-container .rc-md-editor-preview img,
         .dark .rc-md-editor .section-container .rc-md-editor-content img {
           filter: brightness(0.95);
+        }
+
+        /* Стили для блоков кода в темной теме */
+        .dark .rc-md-editor .section-container .rc-md-editor-preview pre,
+        .dark .rc-md-editor .section-container .rc-md-editor-preview .custom-html-style pre,
+        .dark .rc-md-editor .custom-html-style pre,
+        .dark .rc-md-editor pre,
+        .dark pre {
+          background-color: #1e1e2d !important;
+          color: #e0e0e0 !important;
+          border: 1px solid #2d2d3d !important;
+          border-radius: 0.375rem !important;
+          padding: 1rem !important;
+          margin: 1rem 0 !important;
+          overflow-x: auto !important;
+        }
+
+        .dark .rc-md-editor .section-container .rc-md-editor-preview pre code,
+        .dark .rc-md-editor .section-container .rc-md-editor-preview .custom-html-style pre code,
+        .dark .rc-md-editor .custom-html-style pre code,
+        .dark .rc-md-editor pre code,
+        .dark pre code {
+          background-color: transparent !important;
+          color: white !important;
+          border: none !important;
+          padding: 0 !important;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+        }
+
+        .dark .rc-md-editor .section-container .rc-md-editor-preview code,
+        .dark .rc-md-editor .section-container .rc-md-editor-preview .custom-html-style code,
+        .dark .rc-md-editor .custom-html-style code,
+        .dark .rc-md-editor code:not(pre code),
+        .dark code:not(pre code) {
+          background-color: #2d2d3d !important;
+          color: white !important;
+          border: 1px solid #3d3d4d !important;
+          border-radius: 0.25rem !important;
+          padding: 0.1rem 0.3rem !important;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
         }
       `}</style>
     </div>
