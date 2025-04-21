@@ -112,14 +112,14 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
           <pre class="relative overflow-x-auto rounded-md bg-slate-50 dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 my-4">
             ${lang ? `<span class="absolute left-2 top-2 z-10 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">${lang}</span>` : ''}
             <button
-              class="copy-button absolute right-2 top-2 z-10 rounded-md p-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-all hover:bg-slate-300 dark:hover:bg-slate-600"
+              class="copy-button absolute right-2 top-2 z-10 rounded-md p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 transition-all hover:bg-slate-300 dark:hover:bg-slate-600"
               data-code="${code.replace(/"/g, '&quot;')}"
               data-block-id="${blockId}"
               aria-label="Копировать код"
               onclick="window.copyCodeBlock(this.dataset.code, this.dataset.blockId)"
             >
-              <svg class="copy-icon h-4 w-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-              <svg class="check-icon h-4 w-4 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="copy-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+              <svg class="check-icon h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
             <code class="block p-4 pt-10 ${lang ? `language-${lang}` : ''}">${escapeHtml(code)}</code>
           </pre>
