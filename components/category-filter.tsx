@@ -44,11 +44,12 @@ export function CategoryFilter({ onCategoryChange, initialCategory }: CategoryFi
   })
 
   // Эффект для сохранения выбранной категории в localStorage
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("selectedCategory", selectedCategory)
-    }
-  }, [selectedCategory])
+  // Не используем этот эффект, так как сохранение происходит в родительском компоненте
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     localStorage.setItem("selectedCategory", selectedCategory)
+  //   }
+  // }, [selectedCategory])
 
   // Эффект для инициализации выбранной категории при монтировании
   useEffect(() => {

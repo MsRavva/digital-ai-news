@@ -20,9 +20,23 @@ import { useAuth } from "@/context/auth-context"
 
 export default function Home() {
   const { user } = useAuth()
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    // Инициализируем состояние из localStorage, если доступно
+    if (typeof window !== 'undefined') {
+      const savedCategory = localStorage.getItem('selectedCategory')
+      return savedCategory || 'all'
+    }
+    return 'all'
+  })
   const [tags, setTags] = useState([])
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>(() => {
+    // Инициализируем режим просмотра из localStorage, если доступно
+    if (typeof window !== 'undefined') {
+      const savedView = localStorage.getItem('viewMode') as 'grid' | 'table' | null
+      return savedView || 'table'
+    }
+    return 'table'
+  })
   const [loading, setLoading] = useState(true)
   const [categoryKey, setCategoryKey] = useState(0) // Ключ для принудительного обновления компонентов
 
@@ -46,11 +60,21 @@ export default function Home() {
   }, [])
 
   const handleViewChange = (view: 'grid' | 'table') => {
+    // Сохраняем режим просмотра в localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('viewMode', view)
+    }
     setViewMode(view)
   }
 
   const handleCategoryChange = (category: string) => {
     console.log('Home: Изменение категории на', category);
+
+    // Сохраняем выбранную категорию в localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedCategory', category);
+    }
+
     setSelectedCategory(category);
     // Увеличиваем ключ для принудительного обновления компонентов списка публикаций
     setCategoryKey(prevKey => prevKey + 1);
