@@ -2,13 +2,14 @@
 
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, ThumbsUp, Eye, MoreHorizontal, Pencil } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, MoreHorizontal, Pencil, Paperclip } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { DeletePostButton } from "@/components/delete-post-button"
+import { togglePinPost } from "@/lib/client-api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,13 +25,40 @@ export function PostCard({ post }: PostCardProps) {
   const { profile } = useAuth();
   const router = useRouter();
 
-  // Проверка, имеет ли пользователь права на удаление (учитель или админ)
-  const canDelete = profile?.role === "teacher" || profile?.role === "admin";
+  // Проверка, имеет ли пользователь права учителя или админа
+  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
+  const canDelete = isTeacherOrAdmin;
+  const { toast } = useToast();
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = () => {
     if (!profile) return false;
     return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
+  };
+
+  // Функция для закрепления/открепления поста
+  const handleTogglePin = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const success = await togglePinPost(post.id);
+      if (success) {
+        toast({
+          title: post.pinned ? 'Публикация откреплена' : 'Публикация закреплена',
+          description: 'Статус публикации успешно изменен',
+        });
+        // Перезагрузка страницы для обновления списка публикаций
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Ошибка при изменении статуса закрепления:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить статус закрепления публикации',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -78,6 +106,15 @@ export function PostCard({ post }: PostCardProps) {
                     >
                       <Pencil className="mr-2 h-4 w-4" />
                       Редактировать
+                    </DropdownMenuItem>
+                  )}
+                  {isTeacherOrAdmin && (
+                    <DropdownMenuItem
+                      onClick={handleTogglePin}
+                      className={`cursor-pointer ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
+                    >
+                      <Paperclip className={`mr-2 h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
+                      {post.pinned ? 'Открепить' : 'Закрепить'}
                     </DropdownMenuItem>
                   )}
                   {canDelete && (

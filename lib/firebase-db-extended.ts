@@ -62,8 +62,9 @@ export async function getPaginatedPosts(options: {
       queryConditions.push(where("archived", "in", [false, null]));
     }
 
-    // Добавляем сортировку по дате создания (от новых к старым)
-    queryConditions.push(orderBy("created_at", "desc"));
+    // Добавляем сортировку по закреплению и дате создания
+    queryConditions.push(orderBy("pinned", "desc")); // Сначала закрепленные
+    queryConditions.push(orderBy("created_at", "desc")); // Затем по дате (от новых к старым)
 
     // Применяем фильтры
     postsQuery = query(postsQuery, ...queryConditions);
@@ -262,7 +263,8 @@ export async function getPaginatedPosts(options: {
         likesCount,
         commentsCount,
         viewsCount,
-        archived: postData.archived || false
+        archived: postData.archived || false,
+        pinned: postData.pinned || false
       };
     });
 
@@ -288,8 +290,9 @@ export async function getArchivedPosts(): Promise<Post[]> {
     // Добавляем фильтр по полю archived=true
     queryConditions.push(where("archived", "==", true));
 
-    // Добавляем сортировку
-    queryConditions.push(orderBy("created_at", "desc"));
+    // Добавляем сортировку по закреплению и дате создания
+    queryConditions.push(orderBy("pinned", "desc")); // Сначала закрепленные
+    queryConditions.push(orderBy("created_at", "desc")); // Затем по дате (от новых к старым)
 
     // Создаем запрос с условиями
     postsQuery = query(postsQuery, ...queryConditions);
@@ -453,7 +456,8 @@ export async function getArchivedPosts(): Promise<Post[]> {
         likesCount,
         commentsCount,
         viewsCount,
-        archived: true // Явно устанавливаем флаг archived
+        archived: true, // Явно устанавливаем флаг archived
+        pinned: postData.pinned || false
       };
     });
 
@@ -1216,7 +1220,8 @@ export async function getBookmarkedPosts(userId: string): Promise<Post[]> {
           likesCount: stats.likesCount,
           commentsCount: stats.commentsCount,
           viewsCount: stats.viewsCount,
-          archived: postData.archived || false
+          archived: postData.archived || false,
+        pinned: postData.pinned || false
         });
       }
     }
@@ -1272,6 +1277,63 @@ export async function unarchivePost(postId: string): Promise<boolean> {
     return true;
   } catch (error) {
     console.error("Error unarchiving post:", error);
+    return false;
+  }
+}
+
+// Закрепление/открепление поста
+export async function togglePinPost(postId: string): Promise<boolean> {
+  try {
+    // Проверяем, существует ли пост
+    const postRef = doc(db, "posts", postId);
+    const postDoc = await getDoc(postRef);
+
+    if (!postDoc.exists()) {
+      console.error("Post not found:", postId);
+      return false;
+    }
+
+    // Получаем текущего пользователя
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      console.error("User not authenticated");
+      return false;
+    }
+
+    // Получаем профиль пользователя для проверки роли
+    const userProfileRef = doc(db, "profiles", currentUser.uid);
+    const userProfileDoc = await getDoc(userProfileRef);
+
+    if (!userProfileDoc.exists()) {
+      console.error("User profile not found");
+      return false;
+    }
+
+    const userProfile = userProfileDoc.data();
+
+    // Проверяем права доступа (только учителя и администраторы могут закреплять публикации)
+    const isTeacherOrAdmin = userProfile.role === "teacher" || userProfile.role === "admin";
+
+    if (!isTeacherOrAdmin) {
+      console.error("User does not have permission to pin posts");
+      return false;
+    }
+
+    // Получаем текущее состояние закрепления
+    const postData = postDoc.data();
+    const isPinned = postData.pinned || false;
+
+    // Обновляем пост, меняя состояние закрепления на противоположное
+    await updateDoc(postRef, {
+      pinned: !isPinned,
+      updated_at: serverTimestamp()
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error toggling pin status:", error);
     return false;
   }
 }

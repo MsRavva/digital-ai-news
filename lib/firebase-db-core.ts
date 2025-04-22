@@ -80,8 +80,9 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
       queryConditions.push(where("archived", "in", [false, null]));
     }
 
-    // Добавляем сортировку по дате создания (от новых к старым)
-    queryConditions.push(orderBy("created_at", "desc"));
+    // Добавляем сортировку по закреплению и дате создания
+    queryConditions.push(orderBy("pinned", "desc")); // Сначала закрепленные
+    queryConditions.push(orderBy("created_at", "desc")); // Затем по дате (от новых к старым)
 
     // Применяем фильтры
     postsQuery = query(postsQuery, ...queryConditions);
@@ -241,7 +242,8 @@ export async function getPosts(category?: string, includeArchived: boolean = fal
         likesCount,
         commentsCount,
         viewsCount,
-        archived: postData.archived || false
+        archived: postData.archived || false,
+        pinned: postData.pinned || false
       };
     });
 
@@ -308,7 +310,8 @@ export async function getPostById(postId: string): Promise<Post | null> {
       likesCount: stats.likesCount,
       commentsCount: stats.commentsCount,
       viewsCount: stats.viewsCount,
-      archived: postData.archived || false
+      archived: postData.archived || false,
+      pinned: postData.pinned || false
     };
   } catch (error) {
     console.error("Error fetching post:", error);
@@ -342,8 +345,9 @@ export async function createPost(data: {
       // Используем явный Timestamp вместо serverTimestamp() для гарантии корректной даты
       created_at: now,
       updated_at: now,
-      // Явно устанавливаем archived в false
+      // Явно устанавливаем archived и pinned в false
       archived: false,
+      pinned: false,
       // Инициализируем счетчики
       likesCount: 0,
       commentsCount: 0,

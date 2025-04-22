@@ -29,6 +29,7 @@ export interface Post {
   commentsCount?: number
   viewsCount?: number
   archived?: boolean
+  pinned?: boolean
 }
 
 export interface Tag {

@@ -19,6 +19,7 @@ import {
   getBookmarkedPosts as getFirebaseBookmarkedPosts,
   archivePost as archiveFirebasePost,
   unarchivePost as unarchiveFirebasePost,
+  togglePinPost as toggleFirebasePinPost,
   getArchivedPosts as getFirebaseArchivedPosts,
   getPaginatedPosts as getFirebasePaginatedPosts,
   getPostsByCategory as getFirebasePostsByCategory,
@@ -491,6 +492,22 @@ export async function unarchivePost(postId: string): Promise<boolean> {
     return await unarchiveFirebasePost(postId);
   } catch (error) {
     console.error('Ошибка при восстановлении поста из архива:', error);
+    return false;
+  }
+}
+
+// Закрепление/открепление поста
+export async function togglePinPost(postId: string): Promise<boolean> {
+  // Если код выполняется на сервере, возвращаем false
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    // Вызываем Firebase функцию
+    return await toggleFirebasePinPost(postId);
+  } catch (error) {
+    console.error('Ошибка при закреплении/откреплении поста:', error);
     return false;
   }
 }

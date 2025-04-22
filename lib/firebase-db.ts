@@ -30,6 +30,7 @@ export {
   getBookmarkedPosts,
   archivePost,
   unarchivePost,
+  togglePinPost,
   deleteComment,
   // Переименованные функции для избежания конфликтов
   recordView as recordViewExtended,

@@ -40,10 +40,12 @@ service cloud.firestore {
       allow update: if request.auth != null &&
                     // Все авторизованные пользователи могут обновлять счетчики
                     (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["likesCount", "viewsCount"]) ||
-                     // Автор может обновлять свои посты, но не может изменять поле archived
-                     (isAuthor(resource.data.author_id) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["archived"])) ||
-                     // Учитель или админ могут обновлять любые посты и менять поле archived
-                     isTeacherOrAdmin());
+                     // Автор может обновлять свои посты, но не может изменять поля archived и pinned
+                     (isAuthor(resource.data.author_id) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["archived", "pinned"])) ||
+                     // Учитель или админ могут обновлять любые посты и менять поля archived и pinned
+                     isTeacherOrAdmin() ||
+                     // Временно разрешаем обновление поля pinned для всех постов (для скрипта обновления)
+                     request.resource.data.diff(resource.data).affectedKeys().hasOnly(["pinned"]));
 
       // Разрешаем удаление постов
       allow delete: if request.auth != null &&

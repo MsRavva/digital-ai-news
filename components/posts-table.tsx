@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, ThumbsUp, Eye, Pencil } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Pencil, Paperclip } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
@@ -13,6 +13,7 @@ import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { DeletePostButton } from "@/components/delete-post-button"
+import { togglePinPost } from "@/lib/client-api"
 
 interface PostsTableProps {
   posts: Post[]
@@ -31,8 +32,9 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
     setPosts(initialPosts);
   }, [initialPosts]);
 
-  // Проверка, имеет ли пользователь права на удаление (учитель или админ)
-  const canDelete = profile?.role === "teacher" || profile?.role === "admin";
+  // Проверка, имеет ли пользователь права учителя или админа
+  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
+  const canDelete = isTeacherOrAdmin;
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = (post: Post) => {
@@ -40,6 +42,33 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
     return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
   };
 
+  // Функция для закрепления/открепления поста
+  const handleTogglePin = async (postId: string) => {
+    try {
+      const success = await togglePinPost(postId);
+      if (success) {
+        // Обновляем локальное состояние
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return { ...post, pinned: !post.pinned };
+          }
+          return post;
+        }));
+
+        toast({
+          title: post => post.pinned ? 'Публикация откреплена' : 'Публикация закреплена',
+          description: 'Статус публикации успешно изменен',
+        });
+      }
+    } catch (error) {
+      console.error('Ошибка при изменении статуса закрепления:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить статус закрепления публикации',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Проверяем состояние загрузки
   if (loading) {
@@ -156,6 +185,20 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                         }}
                       >
                         <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {isTeacherOrAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Предотвращаем всплытие события
+                          handleTogglePin(post.id);
+                        }}
+                        title={post.pinned ? 'Открепить' : 'Закрепить'}
+                      >
+                        <Paperclip className={`h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
                       </Button>
                     )}
                     <DeletePostButton
