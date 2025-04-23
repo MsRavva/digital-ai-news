@@ -308,7 +308,9 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
           color: #333333 !important;
           border: 1px solid #e0e0e0 !important;
           border-radius: 0.375rem;
-          padding: 1rem;
+          padding: 0.5rem;
+          padding-left: 0.5rem !important;
+          padding-right: 0.5rem !important;
           margin: 1rem 0;
         }
 
@@ -355,7 +357,9 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
           color: #e0e0e0 !important;
           border: 1px solid #2d2d3d !important;
           border-radius: 0.375rem !important;
-          padding: 1rem !important;
+          padding: 0.5rem !important;
+          padding-left: 0.5rem !important;
+          padding-right: 0.5rem !important;
           margin: 1rem 0 !important;
           overflow-x: auto !important;
         }
@@ -369,6 +373,8 @@ export default function TailwindMarkdownEditor({ value, onChange }: TailwindMark
           color: white !important;
           border: none !important;
           padding: 0 !important;
+          padding-left: 0.5rem !important;
+          padding-right: 0.5rem !important;
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
         }
 

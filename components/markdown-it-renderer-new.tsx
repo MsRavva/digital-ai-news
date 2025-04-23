@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react'
 import MarkdownIt from 'markdown-it'
-import { cn } from '@/lib/utils'
 
 interface MarkdownItRendererProps {
   content: string
@@ -21,14 +20,12 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
   };
 
   useEffect(() => {
-
     // Инициализация парсера markdown
     const mdParser = new MarkdownIt({
       breaks: true,        // Конвертировать '\n' в <br>
       html: true,          // Разрешить HTML-теги
       linkify: true,       // Автоматически определять ссылки
       typographer: true,   // Включить типографские замены
-
     })
 
     // Функция для экранирования HTML
@@ -61,8 +58,6 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
       }
 
       const alt = (token.attrs && altIndex >= 0 && token.attrs[altIndex]) ? token.attrs[altIndex][1] : 'Изображение';
-
-      // Проверяем, является ли это base64-изображение
       const isBase64 = src.startsWith('data:image/');
       const className = isBase64 ? "base64-image" : "";
 
@@ -140,17 +135,6 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
   }, []);
 
   return (
-    <>
-      <div
-        className={cn('markdown-content', className)}
-        dangerouslySetInnerHTML={{ __html: renderedContent }}
-      />
-
-      <style jsx global>{`
-        .hidden {
-          display: none;
-        }
-      `}</style>
-    </>
+    <div className={`markdown-content ${className || ''}`} dangerouslySetInnerHTML={{ __html: renderedContent }} />
   )
 }

@@ -1,0 +1,309 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Импорт новой системы стилей */
+@import '../styles/variables.css';
+@import '../styles/code-blocks.css';
+@import '../styles/markdown.css';
+
+body {
+  background-image: radial-gradient(circle at center, rgba(124, 58, 237, 0.35) 0%, rgba(79, 70, 229, 0.15) 40%, transparent 70%);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--saas-purple) / 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--saas-purple) / 0.5);
+}
+
+.dark body {
+  background-image: radial-gradient(circle at center, rgba(157, 92, 255, 0.35) 0%, rgba(0, 128, 255, 0.15) 40%, transparent 70%);
+  background-color: #090b0d;
+}
+
+@layer base {
+  /* Применяем Mulish ко всем элементам */
+  html {
+    font-family: 'Mulish', sans-serif;
+  }
+
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 262 83% 96%;
+    --accent-foreground: 262 83% 40%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
+    --radius: 0.5rem;
+
+    /* Custom colors */
+    --saas-purple: 262 83% 58%;
+    --saas-purple-light: 262 83% 96%;
+    --saas-purple-dark: 262 83% 40%;
+    --saas-blue: 214 100% 60%;
+    --saas-blue-light: 214 100% 96%;
+    --saas-green: 142 76% 45%;
+    --saas-red: 0 84% 60%;
+    --saas-yellow: 38 92% 50%;
+  }
+
+  .dark {
+    --background: 220 10% 4%; /* #090b0d - темнее, почти черный */
+    --foreground: 0 0% 98%;
+    --card: 220 8% 8%; /* #111417 - темно-серый для карточек */
+    --card-foreground: 0 0% 98%;
+    --popover: 220 8% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 270 83% 58%; /* #7C3AED - яркий фиолетовый */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 220 8% 15%; /* #1e2229 - темно-серый для второстепенных элементов */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 220 10% 4%;
+    --muted-foreground: 220 8% 65%;
+    --accent: 270 83% 58%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%; /* #F87171 - мягкий красный */
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 8% 12%; /* #181c22 - темно-серый для границ */
+    --input: 220 8% 8%;
+    --ring: 270 83% 58%;
+
+    /* Custom colors */
+    --saas-purple: 270 83% 58%; /* #7C3AED - яркий фиолетовый */
+    --saas-purple-light: 270 83% 75%;
+    --saas-purple-dark: 270 83% 45%;
+    --saas-blue: 214 100% 60%; /* #3B82F6 - яркий синий */
+    --saas-blue-light: 214 100% 75%;
+    --saas-green: 160 84% 39%; /* #34D399 - бирюзово-зеленый */
+    --saas-gray: 220 8% 15%; /* #1e2229 - темно-серый */
+    --saas-red: 0 84% 60%; /* #F87171 - мягкий красный */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Enhanced gradient for light mode */
+.saas-gradient {
+  background: radial-gradient(circle at center, hsl(var(--saas-purple)) 0%, hsl(var(--saas-blue)) 50%, hsl(var(--saas-purple)) 100%);
+  opacity: 1;
+}
+
+.dark .saas-gradient {
+  background: radial-gradient(circle at center, hsl(var(--saas-purple)) 0%, hsl(var(--saas-blue)) 100%);
+  opacity: 0.95;
+}
+
+/* Enhanced card with better shadow */
+.saas-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(243, 244, 246, 0.7);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 16px 32px -5px rgba(0, 0, 0, 0.2), 0 32px 64px -8px
+    rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.saas-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2), 0 24px 48px -7px rgba(0, 0, 0, 0.25), 0 48px 64px -10px
+    rgba(0, 0, 0, 0.2);
+}
+
+.dark .saas-card {
+  background-color: #111417;
+  border: 1px solid #181c22;
+  box-shadow: 0 16px 42px -5px rgba(0, 0, 0, 0.5), 0 32px 64px -10px rgba(0, 0, 0, 0.4);
+}
+
+.dark .saas-card:hover {
+  box-shadow: 0 20px 48px -5px rgba(0, 0, 0, 0.55), 0 40px 72px -10px rgba(0, 0, 0, 0.45);
+}
+
+/* Post card styles */
+.post-card {
+  border-radius: 0.375rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid rgba(243, 244, 246, 0.7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), 0 8px 24px -4px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), 0 16px 32px -6px rgba(0, 0, 0, 0.15);
+}
+
+.dark .post-card {
+  border: 1px solid #1e2229;
+  background-color: #111417;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark .post-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: #7C3AED;
+}
+
+/* Tag styles */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: hsla(var(--saas-purple) / 0.1);
+  color: hsl(var(--saas-purple));
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background-color: hsla(var(--saas-purple) / 0.2);
+}
+
+.dark .tag {
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #FFFFFF;
+}
+
+.dark .tag:hover {
+  background-color: rgba(124, 58, 237, 0.3);
+}
+
+/* View mode styles */
+.view-mode-container {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #f5f5f5;
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  border: 1px solid #e0e0e0;
+}
+
+.view-mode-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  color: #666666;
+}
+
+.view-mode-button:hover {
+  color: #333333;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.view-mode-button.active {
+  background-color: #e0e0e0;
+  color: #333333;
+}
+
+/* Dark theme view mode styles */
+.dark .view-mode-container {
+  background-color: #111417;
+  border: 1px solid #1e2229;
+}
+
+.dark .view-mode-button {
+  color: #9ca3af;
+}
+
+.dark .view-mode-button:hover {
+  color: #FFFFFF;
+  background-color: rgba(124, 58, 237, 0.1);
+}
+
+.dark .view-mode-button.active {
+  background-color: #1e2229;
+  color: #7C3AED;
+}
+
+/* Card grid styles */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Smaller avatar text */
+.h-8 .avatar-fallback,
+.w-8 .avatar-fallback {
+  font-size: 0.875rem;
+}
+
+/* Стили для активных и неактивных фильтров */
+.filter-active {
+  background-color: #34D399;
+  color: white;
+}
+
+.filter-inactive {
+  background-color: #F87171;
+  color: white;
+}
+
+/* Стили для активных и неактивных фильтров в темной теме */
+.dark .filter-active {
+  background-color: #34D399;
+  color: white;
+}
+
+.dark .filter-inactive {
+  background-color: #F87171;
+  color: white;
+}
