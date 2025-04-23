@@ -1,5 +1,5 @@
 /*
- * Стили для блоков кода
+ * Стили для блоков кода и заголовков
  * Используются в компонентах:
  * - markdown-it-renderer.tsx
  * - markdown-renderer.tsx
@@ -98,4 +98,69 @@
   background-color: var(--copy-button-bg-dark);
   color: var(--copy-button-text-dark);
   border-color: var(--copy-button-border-dark);
+}
+
+/* Стили для заголовков */
+.markdown-content h1, .markdown-content .heading-1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--heading-color, #111827);
+  line-height: 1.2;
+}
+
+.markdown-content h2, .markdown-content .heading-2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  color: var(--heading-color, #111827);
+  line-height: 1.3;
+}
+
+.markdown-content h3, .markdown-content .heading-3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--heading-color, #111827);
+  line-height: 1.4;
+}
+
+.markdown-content h4, .markdown-content .heading-4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--heading-color, #111827);
+  line-height: 1.5;
+}
+
+.markdown-content h5, .markdown-content .heading-5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--heading-color, #111827);
+  line-height: 1.5;
+}
+
+.markdown-content h6, .markdown-content .heading-6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--heading-color, #111827);
+  line-height: 1.5;
+}
+
+/* Стили для заголовков в темной теме */
+.dark .markdown-content h1, .dark .markdown-content .heading-1,
+.dark .markdown-content h2, .dark .markdown-content .heading-2,
+.dark .markdown-content h3, .dark .markdown-content .heading-3,
+.dark .markdown-content h4, .dark .markdown-content .heading-4,
+.dark .markdown-content h5, .dark .markdown-content .heading-5,
+.dark .markdown-content h6, .dark .markdown-content .heading-6 {
+  color: var(--heading-color-dark, #f9fafb);
 }

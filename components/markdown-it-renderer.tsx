@@ -11,13 +11,10 @@ interface MarkdownItRendererProps {
 
 export function MarkdownItRenderer({ content, className }: MarkdownItRendererProps) {
   const [renderedContent, setRenderedContent] = useState<string>('')
-  const [copiedCodeBlockId, setCopiedCodeBlockId] = useState<string | null>(null)
 
   // Функция для копирования кода
-  const copyCodeToClipboard = (code: string, blockId: string) => {
+  const copyCodeToClipboard = (code: string, _blockId: string) => {
     navigator.clipboard.writeText(code);
-    setCopiedCodeBlockId(blockId);
-    setTimeout(() => setCopiedCodeBlockId(null), 2000);
   };
 
   useEffect(() => {
@@ -75,6 +72,35 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
       const code = token.content;
 
       return `<code>${escapeHtml(code)}</code>`;
+    };
+
+    // Настраиваем обработку заголовков
+    mdParser.renderer.rules.heading_open = (tokens, idx) => {
+      const token = tokens[idx];
+      const level = token.tag.slice(1); // Получаем уровень заголовка (1-6)
+      return `<h${level} class="heading-${level}">`;
+    };
+
+    // Настраиваем обработку закрывающего тега заголовка
+    mdParser.renderer.rules.heading_close = (tokens, idx) => {
+      const token = tokens[idx];
+      const level = token.tag.slice(1);
+      return `</h${level}>`;
+    };
+
+    // Настраиваем обработку текста заголовка
+    const originalTextRule = mdParser.renderer.rules.text || ((tokens, idx, _options, _env, _self) => {
+      return escapeHtml(tokens[idx].content);
+    });
+
+    mdParser.renderer.rules.text = (tokens, idx, options, env, self) => {
+      const token = tokens[idx];
+      // Проверяем, является ли текст частью заголовка
+      const isHeading = idx > 0 && tokens[idx-1].type === 'heading_open';
+      if (isHeading) {
+        return `<span class="heading-text">${escapeHtml(token.content)}</span>`;
+      }
+      return originalTextRule(tokens, idx, options, env, self);
     };
 
     // Настраиваем обработку блоков кода
@@ -142,7 +168,7 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
   return (
     <>
       <div
-        className={cn('markdown-content', className)}
+        className={cn('markdown-content prose dark:prose-invert max-w-none', className)}
         dangerouslySetInnerHTML={{ __html: renderedContent }}
       />
 

@@ -76,6 +76,9 @@ body {
     --saas-green: 142 76% 45%;
     --saas-red: 0 84% 60%;
     --saas-yellow: 38 92% 50%;
+
+    /* Heading colors */
+    --heading-color: #111827;
   }
 
   .dark {
@@ -108,6 +111,9 @@ body {
     --saas-green: 160 84% 39%; /* #34D399 - бирюзово-зеленый */
     --saas-gray: 220 8% 15%; /* #1e2229 - темно-серый */
     --saas-red: 0 84% 60%; /* #F87171 - мягкий красный */
+
+    /* Heading colors */
+    --heading-color-dark: #f9fafb;
   }
 }
 
