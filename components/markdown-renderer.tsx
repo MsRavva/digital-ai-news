@@ -15,14 +15,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   return (
     <>
       <div className={cn(
-        'prose dark:prose-invert max-w-none',
-        'prose-headings:text-slate-900 dark:prose-headings:text-slate-100',
-        'prose-p:text-slate-800 dark:prose-p:text-slate-200',
-        'prose-strong:text-slate-900 dark:prose-strong:text-white',
-        'prose-em:text-slate-800 dark:prose-em:text-slate-200',
-        'prose-li:text-slate-800 dark:prose-li:text-slate-200',
-        'prose-blockquote:text-slate-800 dark:prose-blockquote:text-slate-200 prose-blockquote:border-[hsl(var(--saas-purple))]',
-        'prose-a:text-[hsl(var(--saas-purple))] dark:prose-a:text-[hsl(var(--saas-purple-light))] prose-a:no-underline hover:prose-a:underline',
+        'markdown-content prose dark:prose-invert max-w-none',
         className
       )}>
       <ReactMarkdown
@@ -34,10 +27,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
 
             if (inline) {
               return (
-                <code className={cn(
-                  'px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium border border-slate-200 dark:border-slate-700',
-                  className
-                )} {...props}>
+                <code className={className} {...props}>
                   {children}
                 </code>
               )
@@ -72,7 +62,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
                     <img
                       {...props}
                       src={src}
-                      className="max-w-full h-auto my-4 rounded-md shadow-md base64-image"
+                      className="base64-image"
                       loading="lazy"
                       alt={props.alt || 'Изображение'}
                       onError={(e) => {
@@ -105,7 +95,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               <img
                 {...props}
                 src={src}
-                className="max-w-full h-auto my-4 rounded-md shadow-md"
+                className="markdown-image"
                 loading="lazy"
                 alt={props.alt || 'Изображение'}
                 onError={(e) => {
@@ -123,31 +113,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
       </ReactMarkdown>
       </div>
 
-      {/* Глобальные стили для обработки base64-изображений */}
-      <style jsx global>{`
-        /* Стили для base64-изображений */
-        .base64-image {
-          display: block;
-          max-width: 100%;
-          height: auto;
-          margin: 1rem 0;
-          border-radius: 0.375rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
 
-        /* Исправление для отображения изображений в темной теме */
-        .dark .markdown-content img {
-          filter: brightness(0.95);
-        }
-
-        /* Обеспечиваем, чтобы все изображения были видимы */
-        .markdown-content img {
-          display: block;
-          max-width: 100%;
-          height: auto;
-          margin: 1rem 0;
-        }
-      `}</style>
     </>
   )
 }

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { CategoryTabs } from '@/components/category-tabs'
 import { Badge } from '@/components/ui/badge'
 import { Loader2 } from 'lucide-react'
 import { MarkdownItRenderer } from '@/components/markdown-it-renderer'
@@ -23,7 +24,7 @@ export function NewsScraper() {
   const [activeTab, setActiveTab] = useState('url')
   const { toast } = useToast()
   const { user } = useAuth()
-  
+
   // Функция для скрапинга URL
   const handleScrape = async () => {
     if (!url) {
@@ -34,34 +35,34 @@ export function NewsScraper() {
       })
       return
     }
-    
+
     setLoading(true)
-    
+
     try {
       // Получаем токен пользователя
       const token = await user?.getIdToken();
-      
+
       const response = await fetch('/api/scrape-news', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ url })
       })
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to scrape content');
       }
-      
+
       const data = await response.json()
       setScrapedData(data)
       setTitle(data.title)
       setContent(data.content)
       setTags(data.tags || [])
       setActiveTab('preview')
-      
+
       toast({
         title: 'Успех',
         description: 'Контент успешно извлечен',
@@ -77,19 +78,19 @@ export function NewsScraper() {
       setLoading(false)
     }
   }
-  
+
   // Функция для добавления тега
   const handleAddTag = (tag: string) => {
     if (tag && !tags.includes(tag)) {
       setTags([...tags, tag]);
     }
   }
-  
+
   // Функция для удаления тега
   const handleRemoveTag = (tag: string) => {
     setTags(tags.filter(t => t !== tag));
   }
-  
+
   // Функция для публикации контента
   const handlePublish = async () => {
     if (!title || !content) {
@@ -100,9 +101,9 @@ export function NewsScraper() {
       })
       return
     }
-    
+
     setLoading(true)
-    
+
     try {
       // Создаем публикацию
       const postData = {
@@ -113,14 +114,14 @@ export function NewsScraper() {
         tags,
         source_url: url // Сохраняем исходный URL
       }
-      
+
       const postId = await createPost(postData)
-      
+
       toast({
         title: 'Успех',
         description: 'Публикация успешно создана',
       })
-      
+
       // Сбрасываем форму
       setUrl('')
       setScrapedData(null)
@@ -139,7 +140,7 @@ export function NewsScraper() {
       setLoading(false)
     }
   }
-  
+
   return (
     <Card>
       <CardHeader>
@@ -153,7 +154,7 @@ export function NewsScraper() {
             <TabsTrigger value="preview" disabled={!scrapedData}>Предпросмотр</TabsTrigger>
             <TabsTrigger value="edit" disabled={!scrapedData}>Редактирование</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="url">
             <div className="space-y-4">
               <div className="grid gap-2">
@@ -175,13 +176,13 @@ export function NewsScraper() {
               </Button>
             </div>
           </TabsContent>
-          
+
           <TabsContent value="preview">
             {scrapedData && (
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">{title}</h2>
                 <div className="border rounded-md p-4 bg-background">
-                  <MarkdownItRenderer content={content} />
+                  <MarkdownItRenderer content={content} className="prose-code:bg-transparent" />
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -191,14 +192,14 @@ export function NewsScraper() {
                   </div>
                 )}
                 <div className="flex gap-2 mt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setActiveTab('edit')}
                   >
                     Редактировать
                   </Button>
-                  <Button 
-                    onClick={handlePublish} 
+                  <Button
+                    onClick={handlePublish}
                     disabled={loading}
                     className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
                   >
@@ -213,7 +214,7 @@ export function NewsScraper() {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="edit">
             {scrapedData && (
               <div className="space-y-4">
@@ -238,7 +239,7 @@ export function NewsScraper() {
                     {tags.map((tag, index) => (
                       <Badge key={index} variant="secondary" className="flex items-center gap-1">
                         {tag}
-                        <button 
+                        <button
                           onClick={() => handleRemoveTag(tag)}
                           className="ml-1 text-xs rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 h-4 w-4 inline-flex items-center justify-center"
                         >
@@ -258,8 +259,8 @@ export function NewsScraper() {
                         }
                       }}
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={(e) => {
                         const input = e.currentTarget.previousSibling as HTMLInputElement;
                         handleAddTag(input.value);
@@ -271,14 +272,14 @@ export function NewsScraper() {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setActiveTab('preview')}
                   >
                     Предпросмотр
                   </Button>
-                  <Button 
-                    onClick={handlePublish} 
+                  <Button
+                    onClick={handlePublish}
                     disabled={loading}
                     className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
                   >

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EnhancedTextarea } from "@/components/enhanced-textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PublicationCategoryTabs } from "@/components/publication-category-tabs"
 import { Badge } from "@/components/ui/badge"
 import { X, LinkIcon, Loader2, Pencil } from "lucide-react"
 import { LinkPopover } from "./link-popover"
@@ -358,16 +358,10 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="category">Категория</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Выберите категорию" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="news">Новости</SelectItem>
-                    <SelectItem value="materials">Учебные материалы</SelectItem>
-                    <SelectItem value="project-ideas">Идеи для проектов</SelectItem>
-                  </SelectContent>
-                </Select>
+                <PublicationCategoryTabs
+                  onCategoryChange={setCategory}
+                  initialCategory={category || 'news'}
+                />
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="tags">Теги</Label>
