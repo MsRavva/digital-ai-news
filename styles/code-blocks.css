@@ -1,0 +1,101 @@
+/*
+ * Стили для блоков кода
+ * Используются в компонентах:
+ * - markdown-it-renderer.tsx
+ * - markdown-renderer.tsx
+ * - TailwindMarkdownEditor.tsx
+ */
+
+/* Базовые стили для блоков кода */
+.code-block {
+  position: relative;
+  margin: 1rem 0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* Контейнер для блока кода */
+.code-block pre {
+  margin: 0;
+  padding: 0.5rem 1rem 1rem 1rem;
+  overflow-x: auto;
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 0.375rem;
+  color: var(--code-text);
+  display: inline-block;
+}
+
+/* Сам код внутри блока */
+.code-block code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre;
+  padding: 0;
+  background-color: transparent;
+  border: none;
+}
+
+/* Метка языка */
+.code-block .language-label {
+  position: absolute;
+  left: 0.5rem;
+  top: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  background-color: var(--code-label-bg);
+  color: var(--code-label-text);
+  border: 1px solid var(--code-label-border);
+  z-index: 10;
+}
+
+/* Кнопка копирования */
+.code-block .copy-button {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  background-color: var(--copy-button-bg);
+  color: var(--copy-button-text);
+  border: 1px solid var(--copy-button-border);
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.code-block .copy-button:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.code-block .copy-button:active {
+  transform: scale(0.95);
+}
+
+/* Темная тема */
+.dark .code-block pre {
+  background-color: var(--code-bg-dark);
+  border-color: var(--code-border-dark);
+  color: var(--code-text-dark);
+}
+
+.dark .code-block .language-label {
+  background-color: var(--code-label-bg-dark);
+  color: var(--code-label-text-dark);
+  border-color: var(--code-label-border-dark);
+}
+
+.dark .code-block .copy-button {
+  background-color: var(--copy-button-bg-dark);
+  color: var(--copy-button-text-dark);
+  border-color: var(--copy-button-border-dark);
+}
