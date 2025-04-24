@@ -22,12 +22,15 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [isGithubLoading, setIsGithubLoading] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null) // Состояние для отображения ошибки формы
   const { signIn, signInWithGoogle, signInWithGithub } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Сбрасываем предыдущую ошибку
+    setFormError(null)
     setIsLoading(true)
 
     try {
@@ -40,19 +43,11 @@ export default function Login() {
         const errorMessage = getFirebaseErrorMessage(error)
         console.log("Translated login error message:", errorMessage)
 
-        // Сначала устанавливаем isLoading в false
+        // Устанавливаем сообщение об ошибке в состояние формы
+        setFormError(errorMessage)
+
+        // Устанавливаем isLoading в false
         setIsLoading(false)
-
-        // Затем показываем toast с задержкой
-        setTimeout(() => {
-          toast({
-            title: "Ошибка входа",
-            description: errorMessage,
-            variant: "destructive",
-            duration: 5000,
-          })
-        }, 100)
-
         return
       }
 
@@ -70,18 +65,11 @@ export default function Login() {
       const errorMessage = getFirebaseErrorMessage(error)
       console.log("Translated unexpected login error:", errorMessage)
 
-      // Сначала устанавливаем isLoading в false
-      setIsLoading(false)
+      // Устанавливаем сообщение об ошибке в состояние формы
+      setFormError(errorMessage)
 
-      // Затем показываем toast с задержкой
-      setTimeout(() => {
-        toast({
-          title: "Ошибка",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 5000,
-        })
-      }, 100)
+      // Устанавливаем isLoading в false
+      setIsLoading(false)
     } finally {
       // Убедимся, что isLoading установлен в false
       setIsLoading(false)
@@ -89,6 +77,8 @@ export default function Login() {
   }
 
   const handleGoogleSignIn = async () => {
+    // Сбрасываем предыдущую ошибку
+    setFormError(null)
     setIsGoogleLoading(true)
 
     try {
@@ -101,19 +91,11 @@ export default function Login() {
         const errorMessage = getFirebaseErrorMessage(error)
         console.log("Translated Google error message:", errorMessage)
 
-        // Сначала устанавливаем isGoogleLoading в false
+        // Устанавливаем сообщение об ошибке в состояние формы
+        setFormError(errorMessage)
+
+        // Устанавливаем isGoogleLoading в false
         setIsGoogleLoading(false)
-
-        // Затем показываем toast с задержкой
-        setTimeout(() => {
-          toast({
-            title: "Ошибка входа через Google",
-            description: errorMessage,
-            variant: "destructive",
-            duration: 5000,
-          })
-        }, 100)
-
         return
       }
 
@@ -147,18 +129,11 @@ export default function Login() {
       const errorMessage = getFirebaseErrorMessage(error)
       console.log("Translated unexpected Google error:", errorMessage)
 
-      // Сначала устанавливаем isGoogleLoading в false
-      setIsGoogleLoading(false)
+      // Устанавливаем сообщение об ошибке в состояние формы
+      setFormError(errorMessage)
 
-      // Затем показываем toast с задержкой
-      setTimeout(() => {
-        toast({
-          title: "Ошибка",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 5000,
-        })
-      }, 100)
+      // Устанавливаем isGoogleLoading в false
+      setIsGoogleLoading(false)
     } finally {
       // Убедимся, что isGoogleLoading установлен в false
       setIsGoogleLoading(false)
@@ -166,6 +141,8 @@ export default function Login() {
   }
 
   const handleGithubSignIn = async () => {
+    // Сбрасываем предыдущую ошибку
+    setFormError(null)
     setIsGithubLoading(true)
 
     try {
@@ -178,19 +155,11 @@ export default function Login() {
         const errorMessage = getFirebaseErrorMessage(error)
         console.log("Translated GitHub error message:", errorMessage)
 
-        // Сначала устанавливаем isGithubLoading в false
+        // Устанавливаем сообщение об ошибке в состояние формы
+        setFormError(errorMessage)
+
+        // Устанавливаем isGithubLoading в false
         setIsGithubLoading(false)
-
-        // Затем показываем toast с задержкой
-        setTimeout(() => {
-          toast({
-            title: "Ошибка входа через GitHub",
-            description: errorMessage,
-            variant: "destructive",
-            duration: 5000,
-          })
-        }, 100)
-
         return
       }
 
@@ -224,18 +193,11 @@ export default function Login() {
       const errorMessage = getFirebaseErrorMessage(error)
       console.log("Translated unexpected GitHub error:", errorMessage)
 
-      // Сначала устанавливаем isGithubLoading в false
-      setIsGithubLoading(false)
+      // Устанавливаем сообщение об ошибке в состояние формы
+      setFormError(errorMessage)
 
-      // Затем показываем toast с задержкой
-      setTimeout(() => {
-        toast({
-          title: "Ошибка",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 5000,
-        })
-      }, 100)
+      // Устанавливаем isGithubLoading в false
+      setIsGithubLoading(false)
     } finally {
       // Убедимся, что isGithubLoading установлен в false
       setIsGithubLoading(false)
@@ -259,6 +221,13 @@ export default function Login() {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              {/* Отображение ошибки формы */}
+              {formError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  {formError}
+                </div>
+              )}
+
               <div className="space-y-1">
                 <Label htmlFor="email" className="text-sm text-gray-600 dark:text-gray-400">Email</Label>
                 <Input
