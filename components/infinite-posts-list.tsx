@@ -12,6 +12,7 @@ interface InfinitePostsListProps {
   tag?: string
   initialLimit?: number
   includeArchived?: boolean
+  searchQuery?: string
 }
 
 export function InfinitePostsList({
@@ -19,7 +20,8 @@ export function InfinitePostsList({
   authorId,
   tag,
   initialLimit = 10,
-  includeArchived = false
+  includeArchived = false,
+  searchQuery = ''
 }: InfinitePostsListProps) {
   const { posts, loading, error, hasMore, loadMorePosts } = usePaginatedPosts({
     initialLimit,
@@ -28,6 +30,16 @@ export function InfinitePostsList({
     tag,
     includeArchived
   })
+
+  // Фильтрация постов по поисковому запросу
+  const filteredPosts = searchQuery
+    ? posts.filter(post =>
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : posts
 
   // Используем react-intersection-observer для определения, когда пользователь прокрутил до конца списка
   const { ref, inView } = useInView({
@@ -52,7 +64,7 @@ export function InfinitePostsList({
 
   return (
     <div className="card-grid">
-      {posts.map((post) => (
+      {filteredPosts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
 
@@ -65,16 +77,17 @@ export function InfinitePostsList({
             <PostCardSkeleton />
           </div>
         </div>
-      ) : hasMore ? (
+      ) : hasMore && !searchQuery ? (
         // Элемент, который будет отслеживаться для загрузки следующей страницы
+        // Не показываем при активном поиске
         <div ref={ref} className="h-10 col-span-full" />
-      ) : posts.length > 0 ? (
+      ) : filteredPosts.length > 0 ? (
         <div className="text-center text-muted-foreground p-4 col-span-full">
-          Больше публикаций нет
+          {searchQuery ? 'Конец результатов поиска' : 'Больше публикаций нет'}
         </div>
       ) : (
         <div className="text-center text-muted-foreground p-4 col-span-full">
-          Публикации не найдены
+          {searchQuery ? 'По вашему запросу ничего не найдено' : 'Публикации не найдены'}
         </div>
       )}
     </div>

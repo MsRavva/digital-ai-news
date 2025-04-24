@@ -14,7 +14,7 @@ import { ViewToggle } from "@/components/view-toggle"
 import { PublicationCategoryTabs } from "@/components/publication-category-tabs"
 import { getAllTags } from "@/lib/client-api"
 import Link from "next/link"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/context/auth-context"
 
@@ -39,6 +39,7 @@ export default function Home() {
   })
   const [loading, setLoading] = useState(true)
   const [categoryKey, setCategoryKey] = useState(0) // Ключ для принудительного обновления компонентов
+  const [searchQuery, setSearchQuery] = useState('') // Состояние для хранения поискового запроса
 
   // Загрузка тегов
   useEffect(() => {
@@ -76,6 +77,15 @@ export default function Home() {
     }
 
     setSelectedCategory(category);
+    // Увеличиваем ключ для принудительного обновления компонентов списка публикаций
+    setCategoryKey(prevKey => prevKey + 1);
+  }
+
+  // Обработчик изменения поискового запроса
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    console.log('Поисковый запрос:', query);
+    setSearchQuery(query);
     // Увеличиваем ключ для принудительного обновления компонентов списка публикаций
     setCategoryKey(prevKey => prevKey + 1);
   }
@@ -135,8 +145,19 @@ export default function Home() {
                               type="search"
                               placeholder="Поиск..."
                               className="w-full max-w-[200px] pl-9 h-9"
+                              value={searchQuery}
+                              onChange={handleSearchChange}
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            {searchQuery && (
+                              <button
+                                className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                                onClick={() => setSearchQuery('')}
+                                aria-label="Очистить поиск"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -149,18 +170,36 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
+                    {searchQuery && (
+                      <div className="mb-4 p-2 bg-[hsl(var(--saas-purple)/0.1)] rounded-md text-sm flex items-center justify-between">
+                        <div className="flex items-center">
+                          <Search className="h-4 w-4 mr-2 text-[hsl(var(--saas-purple))]" />
+                          <span>Поиск: <span className="font-medium">{searchQuery}</span></span>
+                        </div>
+                        <button
+                          className="text-muted-foreground hover:text-foreground flex items-center"
+                          onClick={() => setSearchQuery('')}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          <span>Очистить</span>
+                        </button>
+                      </div>
+                    )}
+
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
                       {viewMode === 'grid' ? (
                         <InfinitePostsList
                           key={`infinite-${categoryKey}`}
                           category={selectedCategory !== 'all' ? selectedCategory : undefined}
                           initialLimit={10}
+                          searchQuery={searchQuery}
                         />
                       ) : (
                         <PaginatedPostsTable
                           key={`paginated-${categoryKey}`}
                           category={selectedCategory !== 'all' ? selectedCategory : undefined}
                           pageSize={10}
+                          searchQuery={searchQuery}
                         />
                       )}
                     </Card>

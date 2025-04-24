@@ -22,6 +22,7 @@ interface PaginatedPostsTableProps {
   tag?: string
   pageSize?: number
   includeArchived?: boolean
+  searchQuery?: string
 }
 
 export function PaginatedPostsTable({
@@ -29,7 +30,8 @@ export function PaginatedPostsTable({
   authorId,
   tag,
   pageSize = 10,
-  includeArchived = false
+  includeArchived = false,
+  searchQuery = ''
 }: PaginatedPostsTableProps) {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -54,6 +56,16 @@ export function PaginatedPostsTable({
     tag,
     includeArchived
   });
+
+  // Фильтрация постов по поисковому запросу
+  const filteredPosts = searchQuery
+    ? posts.filter(post =>
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : posts;
 
   // Сбрасываем состояние пагинации при изменении категории, автора или тега
   useEffect(() => {
@@ -142,6 +154,15 @@ export function PaginatedPostsTable({
     );
   }
 
+  // Если есть поисковый запрос, но нет результатов
+  if (!loading && searchQuery && filteredPosts.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">По вашему запросу ничего не найдено</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="overflow-x-auto">
@@ -159,7 +180,7 @@ export function PaginatedPostsTable({
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <tr
                 key={post.id}
                 className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
@@ -275,36 +296,45 @@ export function PaginatedPostsTable({
         </table>
       </div>
 
-      {/* Пагинация */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-muted-foreground">
-            Страница {currentPage}
+      {/* Пагинация - скрываем при активном поиске */}
+      {!searchQuery && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-muted-foreground">
+              Страница {currentPage}
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={currentPage === 1 || loading}
+              className="h-8 px-3"
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Туда
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={!hasMore || loading}
+              className="h-8 px-3"
+            >
+              Сюда
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrevPage}
-            disabled={currentPage === 1 || loading}
-            className="h-8 px-3"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Туда
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleNextPage}
-            disabled={!hasMore || loading}
-            className="h-8 px-3"
-          >
-            Сюда
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+      )}
+
+      {/* Информация о результатах поиска */}
+      {searchQuery && (
+        <div className="text-center text-sm text-muted-foreground py-2">
+          Найдено результатов: {filteredPosts.length}
         </div>
-      </div>
+      )}
 
       {/* Индикатор загрузки */}
       {loading && (
