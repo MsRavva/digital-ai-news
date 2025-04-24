@@ -82,9 +82,13 @@ export default function Register() {
 
       if (error) {
         console.error("Registration error:", error)
+        console.error("Error type:", typeof error)
+        console.error("Error code:", error.code)
+        console.error("Error message:", error.message)
 
         // Получаем понятное сообщение об ошибке
         const errorMessage = getFirebaseErrorMessage(error)
+        console.log("Translated error message:", errorMessage)
 
         toast({
           title: "Ошибка регистрации",

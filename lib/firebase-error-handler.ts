@@ -2,8 +2,24 @@
 export function getFirebaseErrorMessage(error: any): string {
   if (!error) return 'Произошла неизвестная ошибка';
 
+  console.log('Обработка ошибки Firebase:', error);
+
   // Получаем код ошибки из объекта ошибки Firebase
-  const errorCode = error.code || '';
+  // Проверяем разные форматы ошибок Firebase
+  let errorCode = '';
+
+  if (error.code) {
+    // Стандартный формат ошибки Firebase
+    errorCode = error.code;
+  } else if (error.message && error.message.includes('auth/')) {
+    // Извлекаем код ошибки из сообщения
+    const match = error.message.match(/\(([^)]+)\)/);
+    if (match && match[1]) {
+      errorCode = match[1];
+    }
+  }
+
+  console.log('Извлеченный код ошибки:', errorCode);
 
   // Карта соответствия кодов ошибок Firebase и понятных сообщений
   const errorMessages: Record<string, string> = {
@@ -33,7 +49,7 @@ export function getFirebaseErrorMessage(error: any): string {
     'auth/unauthorized-continue-uri': 'Домен URL для продолжения не авторизован',
     'auth/missing-email': 'Не указан email',
     'auth/missing-password': 'Не указан пароль',
-    
+
     // Ошибки Firestore
     'firestore/cancelled': 'Операция была отменена',
     'firestore/unknown': 'Неизвестная ошибка',
@@ -51,12 +67,28 @@ export function getFirebaseErrorMessage(error: any): string {
     'firestore/unavailable': 'Сервис недоступен',
     'firestore/data-loss': 'Потеря данных',
     'firestore/unauthenticated': 'Требуется аутентификация',
-    
+
     // Общие ошибки
     'permission-denied': 'Недостаточно прав для выполнения операции',
     'not-found': 'Запрашиваемый ресурс не найден',
   };
 
+  // Проверяем наличие сообщения в нашем словаре
+  const translatedMessage = errorMessages[errorCode];
+
+  // Логируем результат для отладки
+  console.log('Переведенное сообщение:', translatedMessage);
+
   // Возвращаем понятное сообщение или исходное сообщение ошибки
-  return errorMessages[errorCode] || error.message || 'Произошла неизвестная ошибка';
+  if (translatedMessage) {
+    return translatedMessage;
+  }
+
+  // Если код ошибки не найден в словаре, но содержит "auth/", пытаемся дать общее сообщение
+  if (errorCode.includes('auth/')) {
+    return 'Ошибка аутентификации. Пожалуйста, проверьте введенные данные.';
+  }
+
+  // В крайнем случае возвращаем исходное сообщение или общую ошибку
+  return error.message || 'Произошла неизвестная ошибка';
 }
