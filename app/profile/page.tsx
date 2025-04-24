@@ -10,16 +10,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { getPosts, getBookmarkedPosts } from "@/lib/client-api"
 import { Post } from "@/types/database"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { MessageSquare, ThumbsUp, Eye, Github, Globe, MapPin, Pencil, Save, Bookmark } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Pencil, Bookmark } from "lucide-react"
 
 export default function ProfilePage() {
   const { user, profile, updateProfile } = useAuth()
@@ -29,12 +27,7 @@ export default function ProfilePage() {
   // Режим редактирования всегда активен
   const [isEditing] = useState(true)
   const [formData, setFormData] = useState({
-    username: '',
-    bio: '',
-    location: '',
-    website: '',
-    github: '',
-    vk: ''
+    username: ''
   })
   const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({})
   const [userPosts, setUserPosts] = useState<Post[]>([])
@@ -54,12 +47,7 @@ export default function ProfilePage() {
     if (profile) {
       const username = profile.username || '';
       setFormData({
-        username,
-        bio: profile.bio || '',
-        location: profile.location || '',
-        website: profile.website || '',
-        github: profile.social?.github || '',
-        vk: profile.social?.vk || ''
+        username
       });
     }
   }, [profile])
@@ -168,14 +156,7 @@ export default function ProfilePage() {
 
     try {
       const updatedProfile = {
-        username: formData.username,
-        bio: formData.bio,
-        location: formData.location,
-        website: formData.website,
-        social: {
-          github: formData.github,
-          vk: formData.vk
-        }
+        username: formData.username
       }
 
       const { success, error } = await updateProfile(updatedProfile)
@@ -277,67 +258,6 @@ export default function ProfilePage() {
                             <p className="text-amber-500 text-sm mt-1">Пожалуйста, введите корректные Имя и Фамилию на русском языке</p>
                           )}
                           <p className="text-muted-foreground text-xs mt-1">Укажите имя и фамилию на русском языке, например: Иван Иванов</p>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="bio">О себе</Label>
-                          <Textarea
-                            id="bio"
-                            name="bio"
-                            value={formData.bio}
-                            onChange={handleInputChange}
-                            className="mt-1"
-                            rows={3}
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="location">Местоположение</Label>
-                          <Input
-                            id="location"
-                            name="location"
-                            value={formData.location}
-                            onChange={handleInputChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="website">Веб-сайт</Label>
-                          <Input
-                            id="website"
-                            name="website"
-                            value={formData.website}
-                            onChange={handleInputChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label>Социальные сети</Label>
-                          <div className="space-y-2 mt-1">
-                            <div className="flex items-center">
-                              <Github className="h-6 w-6 mr-2 text-muted-foreground" />
-                              <Input
-                                id="github"
-                                name="github"
-                                value={formData.github}
-                                onChange={handleInputChange}
-                                placeholder="username"
-                              />
-                            </div>
-
-                            <div className="flex items-center">
-                              <img src="/vk.svg" alt="VK" className="h-6 w-6 mr-2 text-muted-foreground" />
-                              <Input
-                                id="vk"
-                                name="vk"
-                                value={formData.vk}
-                                onChange={handleInputChange}
-                                placeholder="username"
-                              />
-                            </div>
-                          </div>
                         </div>
 
                         <div className="flex justify-end">
