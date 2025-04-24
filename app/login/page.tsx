@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
+import { getFirebaseErrorMessage } from "@/lib/firebase-error-handler"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Github } from "lucide-react"
@@ -33,9 +34,12 @@ export default function Login() {
       const { error } = await signIn(email, password)
 
       if (error) {
+        // Получаем понятное сообщение об ошибке
+        const errorMessage = getFirebaseErrorMessage(error)
+
         toast({
           title: "Ошибка входа",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         })
         return
@@ -49,9 +53,12 @@ export default function Login() {
       // Перенаправляем на главную страницу
       router.push("/")
     } catch (error) {
+      // Получаем понятное сообщение об ошибке
+      const errorMessage = getFirebaseErrorMessage(error)
+
       toast({
         title: "Ошибка",
-        description: "Произошла неизвестная ошибка",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -66,9 +73,12 @@ export default function Login() {
       const { error, user, profile } = await signInWithGoogle()
 
       if (error) {
+        // Получаем понятное сообщение об ошибке
+        const errorMessage = getFirebaseErrorMessage(error)
+
         toast({
           title: "Ошибка входа через Google",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         })
         return
@@ -98,9 +108,12 @@ export default function Login() {
       // Перенаправляем на главную страницу
       router.push("/")
     } catch (error) {
+      // Получаем понятное сообщение об ошибке
+      const errorMessage = getFirebaseErrorMessage(error)
+
       toast({
         title: "Ошибка",
-        description: "Произошла неизвестная ошибка",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -115,9 +128,12 @@ export default function Login() {
       const { error, user, profile } = await signInWithGithub()
 
       if (error) {
+        // Получаем понятное сообщение об ошибке
+        const errorMessage = getFirebaseErrorMessage(error)
+
         toast({
           title: "Ошибка входа через GitHub",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         })
         return
@@ -147,9 +163,12 @@ export default function Login() {
       // Перенаправляем на главную страницу
       router.push("/")
     } catch (error) {
+      // Получаем понятное сообщение об ошибке
+      const errorMessage = getFirebaseErrorMessage(error)
+
       toast({
         title: "Ошибка",
-        description: "Произошла неизвестная ошибка",
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
