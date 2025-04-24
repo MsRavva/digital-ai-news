@@ -90,12 +90,19 @@ export default function Register() {
         const errorMessage = getFirebaseErrorMessage(error)
         console.log("Translated error message:", errorMessage)
 
-        toast({
-          title: "Ошибка регистрации",
-          description: errorMessage,
-          variant: "destructive",
-        })
+        // Сначала устанавливаем isLoading в false
         setIsLoading(false)
+
+        // Затем показываем toast с задержкой, чтобы убедиться, что он отображается
+        setTimeout(() => {
+          toast({
+            title: "Ошибка регистрации",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000, // Увеличиваем длительность отображения
+          })
+        }, 100)
+
         return
       }
 
@@ -131,14 +138,25 @@ export default function Register() {
       const { error, user, profile } = await signInWithGoogle()
 
       if (error) {
+        console.error("Google sign in error:", error)
+
         // Получаем понятное сообщение об ошибке
         const errorMessage = getFirebaseErrorMessage(error)
+        console.log("Translated Google error message:", errorMessage)
 
-        toast({
-          title: "Ошибка входа через Google",
-          description: errorMessage,
-          variant: "destructive",
-        })
+        // Сначала устанавливаем isGoogleLoading в false
+        setIsGoogleLoading(false)
+
+        // Затем показываем toast с задержкой
+        setTimeout(() => {
+          toast({
+            title: "Ошибка входа через Google",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          })
+        }, 100)
+
         return
       }
 
@@ -166,15 +184,26 @@ export default function Register() {
       // Перенаправляем на главную страницу
       router.push("/")
     } catch (error) {
+      console.error("Unexpected Google sign in error:", error)
+
       // Получаем понятное сообщение об ошибке
       const errorMessage = getFirebaseErrorMessage(error)
+      console.log("Translated unexpected Google error:", errorMessage)
 
-      toast({
-        title: "Ошибка",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      // Сначала устанавливаем isGoogleLoading в false
+      setIsGoogleLoading(false)
+
+      // Затем показываем toast с задержкой
+      setTimeout(() => {
+        toast({
+          title: "Ошибка",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        })
+      }, 100)
     } finally {
+      // Убедимся, что isGoogleLoading установлен в false
       setIsGoogleLoading(false)
     }
   }
@@ -186,14 +215,25 @@ export default function Register() {
       const { error, user, profile } = await signInWithGithub()
 
       if (error) {
+        console.error("GitHub sign in error:", error)
+
         // Получаем понятное сообщение об ошибке
         const errorMessage = getFirebaseErrorMessage(error)
+        console.log("Translated GitHub error message:", errorMessage)
 
-        toast({
-          title: "Ошибка входа через GitHub",
-          description: errorMessage,
-          variant: "destructive",
-        })
+        // Сначала устанавливаем isGithubLoading в false
+        setIsGithubLoading(false)
+
+        // Затем показываем toast с задержкой
+        setTimeout(() => {
+          toast({
+            title: "Ошибка входа через GitHub",
+            description: errorMessage,
+            variant: "destructive",
+            duration: 5000,
+          })
+        }, 100)
+
         return
       }
 
@@ -221,15 +261,26 @@ export default function Register() {
       // Перенаправляем на главную страницу
       router.push("/")
     } catch (error) {
+      console.error("Unexpected GitHub sign in error:", error)
+
       // Получаем понятное сообщение об ошибке
       const errorMessage = getFirebaseErrorMessage(error)
+      console.log("Translated unexpected GitHub error:", errorMessage)
 
-      toast({
-        title: "Ошибка",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      // Сначала устанавливаем isGithubLoading в false
+      setIsGithubLoading(false)
+
+      // Затем показываем toast с задержкой
+      setTimeout(() => {
+        toast({
+          title: "Ошибка",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        })
+      }, 100)
     } finally {
+      // Убедимся, что isGithubLoading установлен в false
       setIsGithubLoading(false)
     }
   }
