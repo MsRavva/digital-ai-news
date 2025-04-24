@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const categories = [
+  { value: 'all', label: 'Все категории' },
   { value: 'news', label: 'Новости' },
   { value: 'materials', label: 'Учебные материалы' },
   { value: 'project-ideas', label: 'Идеи проектов' }
@@ -38,13 +39,13 @@ export function PublicationCategoryTabs({
   }
 
   return (
-    <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="w-full">
-      <TabsList className="bg-black dark:bg-black rounded-md p-1 h-10 flex items-center">
+    <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="w-auto">
+      <TabsList className="bg-muted dark:bg-muted rounded-md p-1 h-10 flex items-center w-auto">
         {categories.map((category) => (
           <TabsTrigger
             key={category.value}
             value={category.value}
-            className="px-4 py-1.5 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-transparent rounded-sm"
+            className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-[hsl(var(--saas-purple))] data-[state=active]:bg-background dark:data-[state=active]:text-[hsl(var(--saas-purple-light))] rounded-sm"
           >
             {category.label}
           </TabsTrigger>

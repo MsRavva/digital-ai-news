@@ -11,7 +11,7 @@ import { InfinitePostsList } from "@/components/infinite-posts-list"
 import { PaginatedPostsTable } from "@/components/paginated-posts-table"
 import { TagsFilter } from "@/components/tags-filter"
 import { ViewToggle } from "@/components/view-toggle"
-import { CategoryFilter } from "@/components/category-filter"
+import { PublicationCategoryTabs } from "@/components/publication-category-tabs"
 import { getAllTags } from "@/lib/client-api"
 import Link from "next/link"
 import { Search, Plus } from "lucide-react"
@@ -123,28 +123,30 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="mb-6">
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center gap-4">
-                        <CategoryFilter
-                          onCategoryChange={handleCategoryChange}
-                          initialCategory={selectedCategory}
-                        />
-                        <div className="relative">
-                          <Input
-                            type="search"
-                            placeholder="Поиск..."
-                            className="w-full max-w-[200px] pl-9 h-9"
+                    <div className="flex flex-col gap-4 mb-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                          <PublicationCategoryTabs
+                            onCategoryChange={handleCategoryChange}
+                            initialCategory={selectedCategory}
                           />
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <div className="relative">
+                            <Input
+                              type="search"
+                              placeholder="Поиск..."
+                              className="w-full max-w-[200px] pl-9 h-9"
+                            />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
-                        <Link href="/create">
-                          <Button variant="saas" size="sm">
-                            <Plus className="mr-2 h-4 w-4" /> Создать публикацию
-                          </Button>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
+                          <Link href="/create">
+                            <Button variant="saas" size="sm">
+                              <Plus className="mr-2 h-4 w-4" /> Создать публикацию
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                     <Card className="p-0 border-0 shadow-none dark:bg-transparent">
