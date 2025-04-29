@@ -13,6 +13,7 @@ interface InfinitePostsListProps {
   initialLimit?: number
   includeArchived?: boolean
   searchQuery?: string
+  archivedOnly?: boolean
 }
 
 export function InfinitePostsList({
@@ -21,25 +22,35 @@ export function InfinitePostsList({
   tag,
   initialLimit = 10,
   includeArchived = false,
-  searchQuery = ''
+  searchQuery = '',
+  archivedOnly = false
 }: InfinitePostsListProps) {
   const { posts, loading, error, hasMore, loadMorePosts } = usePaginatedPosts({
     initialLimit,
     category,
     authorId,
     tag,
-    includeArchived
+    includeArchived,
+    archivedOnly
   })
 
-  // Фильтрация постов по поисковому запросу
-  const filteredPosts = searchQuery
-    ? posts.filter(post =>
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : posts
+  // Фильтрация постов по поисковому запросу и флагу archived
+  let filteredPosts = posts;
+  if (archivedOnly) {
+    filteredPosts = filteredPosts.filter(post => post.archived === true);
+  } else if (includeArchived) {
+    // показываем все (архивные и неархивные)
+  } else {
+    filteredPosts = filteredPosts.filter(post => !post.archived);
+  }
+  if (searchQuery) {
+    filteredPosts = filteredPosts.filter(post =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
 
   // Используем react-intersection-observer для определения, когда пользователь прокрутил до конца списка
   const { ref, inView } = useInView({

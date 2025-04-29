@@ -119,6 +119,7 @@ export async function getPaginatedPosts(options: {
   authorId?: string;
   tag?: string;
   includeArchived?: boolean;
+  archivedOnly?: boolean;
 }) {
   const {
     limit = 10,
@@ -126,7 +127,8 @@ export async function getPaginatedPosts(options: {
     category,
     authorId,
     tag,
-    includeArchived = false
+    includeArchived = false,
+    archivedOnly = false
   } = options;
 
   // Если код выполняется на сервере, возвращаем моковые данные
@@ -148,8 +150,9 @@ export async function getPaginatedPosts(options: {
       filteredPosts = filteredPosts.filter(post => post.tags?.includes(tag));
     }
 
-    // Исключаем архивированные посты, если не указано обратное
-    if (!includeArchived) {
+    if (archivedOnly) {
+      filteredPosts = filteredPosts.filter(post => post.archived === true);
+    } else if (!includeArchived) {
       filteredPosts = filteredPosts.filter(post => !post.archived);
     }
 
@@ -176,7 +179,8 @@ export async function getPaginatedPosts(options: {
       category,
       authorId,
       tag,
-      includeArchived
+      includeArchived,
+      archivedOnly
     });
 
     return result;

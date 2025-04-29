@@ -19,7 +19,10 @@ import {
   Timestamp,
   increment,
   runTransaction,
-  writeBatch
+  writeBatch,
+  Query,
+  QueryConstraint,
+  CollectionReference
 } from "firebase/firestore";
 import { Post, Comment, Tag, PostStats } from "@/types/database";
 import { db, convertTimestampToISO } from "./firebase-db-core";
@@ -32,6 +35,7 @@ export async function getPaginatedPosts(options: {
   authorId?: string;
   tag?: string;
   includeArchived?: boolean;
+  archivedOnly?: boolean;
 }): Promise<{ posts: Post[]; lastVisible: string | null }> {
   try {
     const {
@@ -40,12 +44,13 @@ export async function getPaginatedPosts(options: {
       category,
       authorId,
       tag,
-      includeArchived = false
+      includeArchived = false,
+      archivedOnly = false
     } = options;
 
     // Шаг 1: Создаем базовый запрос
-    let postsQuery = collection(db, "posts");
-    let queryConditions = [];
+    let postsQuery: Query<DocumentData> = collection(db, "posts");
+    let queryConditions: QueryConstraint[] = [];
 
     // Добавляем фильтр по категории, если указана
     if (category && category !== 'all') {
@@ -58,8 +63,10 @@ export async function getPaginatedPosts(options: {
     }
 
     // Добавляем фильтр по архивации
-    if (!includeArchived) {
-      queryConditions.push(where("archived", "in", [false, null]));
+    if (archivedOnly) {
+      queryConditions.push(where("archived", "==", true));
+    } else if (!includeArchived) {
+      queryConditions.push(where("archived", "==", false));
     }
 
     // Добавляем сортировку по закреплению и дате создания
@@ -73,7 +80,13 @@ export async function getPaginatedPosts(options: {
     if (startAfterId) {
       const startAfterDoc = await getDoc(doc(db, "posts", startAfterId));
       if (startAfterDoc.exists()) {
-        postsQuery = query(postsQuery, startAfter(startAfterDoc));
+        postsQuery = query(
+          postsQuery,
+          startAfter(
+            startAfterDoc.get("pinned") ?? false,
+            startAfterDoc.get("created_at")
+          )
+        );
       }
     }
 
@@ -92,7 +105,7 @@ export async function getPaginatedPosts(options: {
     const authorIds = [...new Set(postsSnapshot.docs.map(doc => doc.data().author_id).filter(id => id !== undefined && id !== null))];
 
     // Шаг 3: Получаем всех авторов одним запросом
-    const authorsMap = new Map();
+    const authorsMap = new Map<string, DocumentData>();
     for (const authorId of authorIds) {
       if (authorId) { // Проверяем, что authorId не undefined и не null
         try {
@@ -107,7 +120,7 @@ export async function getPaginatedPosts(options: {
     }
 
     // Шаг 4: Получаем все связи постов с тегами по частям (максимум 30 значений в IN)
-    let allPostTagsDocs = [];
+    let allPostTagsDocs: QueryDocumentSnapshot<DocumentData>[] = [];
 
     // Разбиваем массив postIds на части по 30 элементов
     for (let i = 0; i < postIds.length; i += 30) {
@@ -127,18 +140,18 @@ export async function getPaginatedPosts(options: {
     const postTagsSnapshot = { docs: allPostTagsDocs };
 
     // Группируем связи по ID поста
-    const postTagsMap = new Map();
+    const postTagsMap = new Map<string, string[]>();
     postTagsSnapshot.docs.forEach(doc => {
       const data = doc.data();
       if (!postTagsMap.has(data.post_id)) {
         postTagsMap.set(data.post_id, []);
       }
-      postTagsMap.get(data.post_id).push(data.tag_id);
+      postTagsMap.get(data.post_id)?.push(data.tag_id);
     });
 
     // Шаг 5: Получаем все теги одним запросом
     const allTagIds = [...new Set(postTagsSnapshot.docs.map(doc => doc.data().tag_id))];
-    const tagsMap = new Map();
+    const tagsMap = new Map<string, string>();
 
     if (allTagIds.length > 0) {
       for (const tagId of allTagIds) {
@@ -175,7 +188,7 @@ export async function getPaginatedPosts(options: {
 
     // Шаг 6: Получаем статистику для всех постов по частям
     // Лайки
-    const likesCountMap = new Map();
+    const likesCountMap = new Map<string, number>();
     for (let i = 0; i < filteredPostIds.length; i += 30) {
       const postIdsBatch = filteredPostIds.slice(i, i + 30);
 
@@ -194,7 +207,7 @@ export async function getPaginatedPosts(options: {
     }
 
     // Комментарии
-    const commentsCountMap = new Map();
+    const commentsCountMap = new Map<string, number>();
     for (let i = 0; i < filteredPostIds.length; i += 30) {
       const postIdsBatch = filteredPostIds.slice(i, i + 30);
 
@@ -213,7 +226,7 @@ export async function getPaginatedPosts(options: {
     }
 
     // Просмотры
-    const viewsCountMap = new Map();
+    const viewsCountMap = new Map<string, number>();
     for (let i = 0; i < filteredPostIds.length; i += 30) {
       const postIdsBatch = filteredPostIds.slice(i, i + 30);
 
@@ -242,7 +255,7 @@ export async function getPaginatedPosts(options: {
 
       // Получаем теги
       const tagIds = postTagsMap.get(postId) || [];
-      const tags = tagIds.map(tagId => tagsMap.get(tagId)).filter(Boolean);
+      const tags = tagIds.map((tagId: string) => tagsMap.get(tagId) || "").filter(Boolean);
 
       // Получаем статистику
       const likesCount = likesCountMap.get(postId) || 0;
@@ -281,11 +294,9 @@ export async function getPaginatedPosts(options: {
 // Получение архивированных постов
 export async function getArchivedPosts(): Promise<Post[]> {
   try {
-    // Шаг 1: Получаем все посты
-    let postsQuery = collection(db, "posts");
-
-    // Создаем запрос с условиями
-    let queryConditions = [];
+    // Создаем базовый запрос
+    let postsQuery: Query<DocumentData> = collection(db, "posts");
+    let queryConditions: QueryConstraint[] = [];
 
     // Добавляем фильтр по полю archived=true
     queryConditions.push(where("archived", "==", true));
@@ -324,8 +335,7 @@ export async function getArchivedPosts(): Promise<Post[]> {
     }
 
     // Шаг 4: Получаем все связи постов с тегами по частям (максимум 30 значений в IN)
-    // Создаем массив для хранения всех документов
-    let allPostTagsDocs = [];
+    let allPostTagsDocs: QueryDocumentSnapshot<DocumentData>[] = [];
 
     // Разбиваем массив postIds на части по 30 элементов
     for (let i = 0; i < postIds.length; i += 30) {
@@ -435,7 +445,7 @@ export async function getArchivedPosts(): Promise<Post[]> {
 
       // Получаем теги
       const tagIds = postTagsMap.get(postId) || [];
-      const tags = tagIds.map(tagId => tagsMap.get(tagId)).filter(Boolean);
+      const tags = tagIds.map((tagId: string) => tagsMap.get(tagId) || "").filter(Boolean);
 
       // Получаем статистику
       const likesCount = likesCountMap.get(postId) || 0;
@@ -797,7 +807,6 @@ async function getAllChildCommentIds(parentId: string): Promise<string[]> {
   return childIds;
 }
 
-// Удаление поста
 // Получение комментариев к посту
 export async function getCommentsByPostId(postId: string): Promise<Comment[]> {
   try {
@@ -1408,7 +1417,7 @@ export async function deletePost(postId: string): Promise<boolean> {
     // Удаляем просмотры поста
     const viewsQuery = query(
       collection(db, "views"),
-      where("post_id", "==", postId)
+      where("post_id", "in", postId)
     );
     const viewsSnapshot = await getDocs(viewsQuery);
     viewsSnapshot.docs.forEach(doc => {

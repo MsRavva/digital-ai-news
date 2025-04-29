@@ -8,6 +8,7 @@ export function usePaginatedPosts(options?: {
   authorId?: string;
   tag?: string;
   includeArchived?: boolean;
+  archivedOnly?: boolean;
 }) {
   const limit = options?.initialLimit || 10;
 
@@ -21,7 +22,8 @@ export function usePaginatedPosts(options?: {
   const prevOptionsRef = useRef({
     category: options?.category,
     authorId: options?.authorId,
-    tag: options?.tag
+    tag: options?.tag,
+    archivedOnly: options?.archivedOnly
   });
 
   // Функция для загрузки первой страницы
@@ -36,7 +38,8 @@ export function usePaginatedPosts(options?: {
         category: options?.category,
         authorId: options?.authorId,
         tag: options?.tag,
-        includeArchived: options?.includeArchived
+        includeArchived: options?.includeArchived,
+        archivedOnly: options?.archivedOnly
       });
 
       setPosts(result.posts);
@@ -48,7 +51,7 @@ export function usePaginatedPosts(options?: {
     } finally {
       setLoading(false);
     }
-  }, [limit, options?.category, options?.authorId, options?.tag, options?.includeArchived]);
+  }, [limit, options?.category, options?.authorId, options?.tag, options?.includeArchived, options?.archivedOnly]);
 
   // Функция для загрузки следующей страницы
   const loadMorePosts = useCallback(async () => {
@@ -63,7 +66,8 @@ export function usePaginatedPosts(options?: {
         category: options?.category,
         authorId: options?.authorId,
         tag: options?.tag,
-        includeArchived: options?.includeArchived
+        includeArchived: options?.includeArchived,
+        archivedOnly: options?.archivedOnly
       });
 
       setPosts(prev => [...prev, ...result.posts]);
@@ -75,7 +79,7 @@ export function usePaginatedPosts(options?: {
     } finally {
       setLoading(false);
     }
-  }, [lastVisible, loading, hasMore, limit, options?.category, options?.authorId, options?.tag, options?.includeArchived]);
+  }, [lastVisible, loading, hasMore, limit, options?.category, options?.authorId, options?.tag, options?.includeArchived, options?.archivedOnly]);
 
   // Функция для полного сброса состояния и загрузки данных заново
   const resetAndRefresh = useCallback(() => {
@@ -97,7 +101,8 @@ export function usePaginatedPosts(options?: {
     // Проверяем, изменились ли параметры фильтрации
     if (prevOptions.category !== options?.category ||
         prevOptions.authorId !== options?.authorId ||
-        prevOptions.tag !== options?.tag) {
+        prevOptions.tag !== options?.tag ||
+        prevOptions.archivedOnly !== options?.archivedOnly) {
 
       console.log('Параметры фильтрации изменились:', {
         prevCategory: prevOptions.category,
@@ -105,20 +110,23 @@ export function usePaginatedPosts(options?: {
         prevAuthorId: prevOptions.authorId,
         newAuthorId: options?.authorId,
         prevTag: prevOptions.tag,
-        newTag: options?.tag
+        newTag: options?.tag,
+        prevArchivedOnly: prevOptions.archivedOnly,
+        newArchivedOnly: options?.archivedOnly
       });
 
       // Обновляем ref с текущими значениями
       prevOptionsRef.current = {
         category: options?.category,
         authorId: options?.authorId,
-        tag: options?.tag
+        tag: options?.tag,
+        archivedOnly: options?.archivedOnly
       };
 
       // Сбрасываем состояние и загружаем данные заново
       resetAndRefresh();
     }
-  }, [options?.category, options?.authorId, options?.tag, resetAndRefresh]);
+  }, [options?.category, options?.authorId, options?.tag, options?.archivedOnly, resetAndRefresh]);
 
   return {
     posts,

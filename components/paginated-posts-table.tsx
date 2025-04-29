@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, ThumbsUp, Eye, Pencil, ChevronLeft, ChevronRight, Paperclip } from "lucide-react"
+import { MessageSquare, ThumbsUp, Eye, Pencil, ChevronLeft, ChevronRight, Paperclip, Archive, ArchiveRestore } from "lucide-react"
 import Link from "next/link"
 import type { Post } from "@/types/database"
 import { formatDate } from "@/lib/utils"
@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation"
 import { DeletePostButton } from "@/components/delete-post-button"
 import { usePaginatedPosts } from "@/lib/hooks/usePaginatedPosts"
 import { Skeleton } from "@/components/ui/skeleton"
-import { togglePinPost } from "@/lib/client-api"
+import { togglePinPost, archivePost, unarchivePost } from "@/lib/client-api"
 
 interface PaginatedPostsTableProps {
   category?: string
@@ -23,6 +23,7 @@ interface PaginatedPostsTableProps {
   pageSize?: number
   includeArchived?: boolean
   searchQuery?: string
+  archivedOnly?: boolean
 }
 
 export function PaginatedPostsTable({
@@ -31,7 +32,8 @@ export function PaginatedPostsTable({
   tag,
   pageSize = 10,
   includeArchived = false,
-  searchQuery = ''
+  searchQuery = '',
+  archivedOnly = false
 }: PaginatedPostsTableProps) {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -54,18 +56,27 @@ export function PaginatedPostsTable({
     category,
     authorId,
     tag,
-    includeArchived
+    includeArchived,
+    archivedOnly
   });
 
-  // Фильтрация постов по поисковому запросу
-  const filteredPosts = searchQuery
-    ? posts.filter(post =>
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : posts;
+  // Фильтрация постов по поисковому запросу и флагу archived
+  let filteredPosts = posts;
+  if (archivedOnly) {
+    filteredPosts = filteredPosts.filter(post => post.archived === true);
+  } else if (includeArchived) {
+    // показываем все (архивные и неархивные)
+  } else {
+    filteredPosts = filteredPosts.filter(post => !post.archived);
+  }
+  if (searchQuery) {
+    filteredPosts = filteredPosts.filter(post =>
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
 
   // Сбрасываем состояние пагинации при изменении категории, автора или тега
   useEffect(() => {
@@ -126,6 +137,32 @@ export function PaginatedPostsTable({
       toast({
         title: 'Ошибка',
         description: 'Не удалось изменить статус закрепления публикации',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Функция для архивации/разархивации поста
+  const handleToggleArchive = async (postId: string, archived: boolean) => {
+    try {
+      let success = false;
+      if (archived) {
+        success = await unarchivePost(postId);
+      } else {
+        success = await archivePost(postId);
+      }
+      if (success) {
+        refresh();
+        toast({
+          title: archived ? 'Публикация восстановлена' : 'Публикация архивирована',
+          description: archived ? 'Публикация успешно восстановлена из архива' : 'Публикация успешно перемещена в архив',
+        });
+      }
+    } catch (error) {
+      console.error('Ошибка при изменении статуса архивации:', error);
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось изменить статус архивации публикации',
         variant: 'destructive',
       });
     }
@@ -255,7 +292,7 @@ export function PaginatedPostsTable({
                           size="icon"
                           className="h-8 w-8 text-[hsl(var(--saas-purple))]"
                           onClick={(e) => {
-                            e.stopPropagation(); // Предотвращаем всплытие события
+                            e.stopPropagation();
                             router.push(`/edit/${post.id}`);
                           }}
                         >
@@ -268,7 +305,7 @@ export function PaginatedPostsTable({
                           size="icon"
                           className={`h-8 w-8 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
                           onClick={(e) => {
-                            e.stopPropagation(); // Предотвращаем всплытие события
+                            e.stopPropagation();
                             handleTogglePin(post.id);
                           }}
                           title={post.pinned ? 'Открепить' : 'Закрепить'}
@@ -276,10 +313,28 @@ export function PaginatedPostsTable({
                           <Paperclip className={`h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
                         </Button>
                       )}
+                      {/* Кнопка архивации/разархивации */}
+                      {isTeacherOrAdmin && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${post.archived ? 'text-green-600 dark:text-green-400' : 'text-orange-500 dark:text-orange-400'} hover:text-green-700 dark:hover:text-green-300`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleArchive(post.id, !!post.archived);
+                          }}
+                          title={post.archived ? 'Восстановить из архива' : 'Архивировать'}
+                        >
+                          {post.archived ? (
+                            <ArchiveRestore className="h-4 w-4" />
+                          ) : (
+                            <Archive className="h-4 w-4" fill="none" />
+                          )}
+                        </Button>
+                      )}
                       <DeletePostButton
                         postId={post.id}
                         onSuccess={() => {
-                          // Обновляем список после удаления
                           refresh();
                           toast({
                             title: "Публикация удалена",
