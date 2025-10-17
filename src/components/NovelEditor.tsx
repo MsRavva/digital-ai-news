@@ -14,7 +14,7 @@ interface NovelEditorProps {
 
 export default function NovelEditor({ value, onChange, className }: NovelEditorProps) {
   const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+ const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -30,6 +30,11 @@ export default function NovelEditor({ value, onChange, className }: NovelEditorP
     )
   }
 
+  // Гарантируем, что всегда есть базовая структура документа
+  const initialContent = value ? 
+    { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: value }] }] } : 
+    { type: 'doc', content: [] }
+
   return (
     <motion.div
       className={`w-full border rounded-md overflow-hidden bg-background ${className}`}
@@ -39,7 +44,7 @@ export default function NovelEditor({ value, onChange, className }: NovelEditorP
     >
       <EditorRoot>
         <EditorContent
-          initialContent={value ? { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: value }] }] } : undefined}
+          initialContent={initialContent}
           onUpdate={({ editor }: any) => {
             if (editor) {
               const markdownContent = editor.storage.markdown.getMarkdown();
@@ -49,7 +54,7 @@ export default function NovelEditor({ value, onChange, className }: NovelEditorP
           className="w-full"
           editorProps={{
             attributes: {
-              class: 'prose prose-stone dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full p-4 min-h-[400px] prose-code:bg-transparent prose-pre:text-foreground prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-transparent prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-600 prose-th:bg-muted dark:prose-th:bg-gray-800 prose-td:border prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-img:rounded-md prose-img:border-0 prose-hr:border-t prose-hr:border-gray-200 dark:prose-hr:border-gray-700',
+              class: 'prose prose-stone dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full p-4 min-h-[400px] prose-code:bg-transparent prose-pre:text-foreground prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-transparent prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-600 prose-th:bg-muted dark:prose-th:bg-gray-800 prose-td:border-gray-300 dark:prose-td:border-gray-600 prose-img:rounded-md prose-img:border-0 prose-hr:border-t prose-hr:border-gray-200 dark:prose-hr:border-gray-700',
             },
           }}
         />
