@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface CodeBlockProps {
   code: string
@@ -15,6 +16,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
     setCopied(true)
+    toast.success('Код скопирован в буфер обмена')
     setTimeout(() => setCopied(false), 2000)
   }
 

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "ask": [
+      "Read(!C:\\Users\\Ravva\\digital-ai-news/**)",
+      "Edit(!C:\\Users\\Ravva\\digital-ai-news/**)"
+    ],
+    "allow": [
+      "Read(C:\\Users\\Ravva\\digital-ai-news/**)",
+      "Edit(C:\\Users\\Ravva\\digital-ai-news/**)"
+    ]
+  },
+  "memoryImport": {},
+  "monitoring": {}
+}

@@ -19,7 +19,7 @@ import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
-import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
+import NovelEditor from "@/src/components/NovelEditor";
 
 interface Attachment {
   type: 'link';
@@ -280,7 +280,7 @@ export function CreatePostForm() {
 
                   // Имитируем отправку формы после небольшой задержки
                   setTimeout(() => {
-                    const form = document.querySelector('form');
+                    const form = document.getElementById('create-post-form');
                     if (form) {
                       console.log('Submitting form');
                       form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
@@ -310,10 +310,37 @@ export function CreatePostForm() {
         </>
       ) : (
         <Card>
-          <form onSubmit={handleSubmit}>
+          <form id="create-post-form" onSubmit={handleSubmit}>
         <CardHeader>
-          <CardTitle>Новая публикация</CardTitle>
-          <CardDescription>Создайте новую публикацию для обмена новостями, ссылками или файлами.</CardDescription>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>Новая публикация</CardTitle>
+              <CardDescription>Создайте новую публикацию для обмена новостями, ссылками или файлами.</CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push('/')}
+              >
+                Отмена
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Публикация...
+                  </>
+                ) : (
+                  "Опубликовать"
+                )}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -337,7 +364,7 @@ export function CreatePostForm() {
 
           <div className="space-y-2">
             <Label htmlFor="content">Содержание</Label>
-            <TailwindMarkdownEditor value={content} onChange={setContent} />
+            <NovelEditor value={content} onChange={setContent} />
           </div>
 
           <div className="space-y-2">

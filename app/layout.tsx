@@ -1,6 +1,6 @@
 import type React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import { Mulish } from "next/font/google"
 import { AuthProvider } from "@/context/auth-context"
 import "./globals.css"
@@ -35,9 +35,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <AuthProvider>
             {children}
-            <Toaster />
           </AuthProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   )

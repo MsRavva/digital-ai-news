@@ -82,7 +82,8 @@
 .markdown-content code:not(pre code) {
   background-color: var(--code-inline-bg);
   color: var(--code-inline-text);
-  padding: 0.2em 0.4em;
+  padding: 0.1em 0.2em;
+  margin-right: 0.2em;
   border-radius: var(--radius-sm);
   font-size: 0.9em;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -117,4 +118,29 @@
 .dark .markdown-content code:not(pre code) {
   background-color: var(--code-inline-bg-dark);
   color: var(--code-inline-text-dark);
+  padding: 0.1em 0.2em;
+  margin-right: 0.2em;
+}
+
+/* Убираем backticks у встроенного кода в темной теме */
+.dark .markdown-content code:not(pre code)::before,
+.dark .markdown-content code:not(pre code)::after {
+  content: "" !important;
+}
+
+/* Убираем backticks у встроенного кода */
+.markdown-content code:not(pre code)::before,
+.markdown-content code:not(pre code)::after {
+  content: "" !important;
+}
+
+/* Еще более специфичные правила для удаления backticks */
+code:not(pre code)::before,
+code:not(pre code)::after {
+  content: "" !important;
+}
+
+.prose code:not(pre code)::before,
+.prose code:not(pre code)::after {
+  content: "" !important;
 }

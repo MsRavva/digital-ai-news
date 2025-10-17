@@ -1,9 +1,8 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import MarkdownIt from 'markdown-it'
 import { cn } from '@/lib/utils'
-import { useToast } from "@/components/ui/use-toast"
 
 interface MarkdownItRendererProps {
   content: string
@@ -12,13 +11,6 @@ interface MarkdownItRendererProps {
 
 export function MarkdownItRenderer({ content, className }: MarkdownItRendererProps) {
   const [renderedContent, setRenderedContent] = useState<string>('')
-  const { toast } = useToast()
-  const toastRef = useRef(toast)
-
-  // Обновляем ref при изменении toast
-  useEffect(() => {
-    toastRef.current = toast
-  }, [toast])
 
   // Функция для копирования кода
   const copyCodeToClipboard = (code: string, _blockId: string) => {
@@ -78,9 +70,8 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
     mdParser.renderer.rules.code_inline = (tokens, idx) => {
       const token = tokens[idx];
       const code = token.content;
-      const inlineId = `inline-code-${Date.now()}-${idx}`;
 
-      return `<code class="inline-code cursor-pointer hover:bg-opacity-80 transition-all duration-200 relative" data-code="${escapeHtml(code)}" data-inline-id="${inlineId}" onclick="window.copyInlineCode(this.dataset.code, this.dataset.inlineId)" title="Нажмите, чтобы скопировать">${escapeHtml(code)}</code>`;
+      return `<code>${escapeHtml(code)}</code>`;
     };
 
     // Настраиваем обработку заголовков
@@ -125,7 +116,7 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
           <pre>
             <button
               class="copy-button"
-              data-code="${code.replace(/"/g, '&quot;')}"
+              data-code="${code.replace(/"/g, '"')}"
               data-block-id="${blockId}"
               aria-label="Копировать код"
               onclick="window.copyCodeBlock(this.dataset.code, this.dataset.blockId)"
@@ -168,26 +159,9 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
       }
     };
 
-    // @ts-ignore
-    window.copyInlineCode = (code: string, _inlineId: string) => {
-      navigator.clipboard.writeText(code);
-      
-      // Показываем уведомление через toast
-      if (toastRef.current) {
-        toastRef.current({
-          title: "Код скопирован",
-          description: "Текст команды успешно скопирован в буфер обмена",
-        });
-      } else {
-        console.log('toastRef.current is not available');
-      }
-    };
-
     return () => {
       // @ts-ignore
       delete window.copyCodeBlock;
-      // @ts-ignore
-      delete window.copyInlineCode;
     };
   }, []);
 
@@ -197,6 +171,12 @@ export function MarkdownItRenderer({ content, className }: MarkdownItRendererPro
         className={cn('markdown-content prose dark:prose-invert max-w-none', className)}
         dangerouslySetInnerHTML={{ __html: renderedContent }}
       />
+
+      <style jsx global>{`
+        .hidden {
+          display: none;
+        }
+      `}</style>
     </>
   )
 }

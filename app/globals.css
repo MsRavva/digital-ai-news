@@ -833,3 +833,81 @@ body {
   background-color: #F87171;
   color: white;
 }
+
+/* Стили для Novel Editor */
+.novel-editor .ProseMirror {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+.novel-editor .ProseMirror:focus {
+  outline: none;
+}
+
+.novel-editor .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.novel-editor .ProseMirror h1,
+.novel-editor .ProseMirror h2,
+.novel-editor .ProseMirror h3 {
+  margin: 1em 0 0.5em 0;
+  font-weight: 600;
+}
+
+.dark .novel-editor .ProseMirror {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+/* Стили для режима предпросмотра Novel */
+.novel-preview-container,
+.novel-editor .preview-container,
+.novel-editor .ai-selector-panel,
+.novel-editor .slash-menu {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.novel-preview-container a,
+.novel-editor .preview-container a,
+.novel-editor .ai-selector-panel a,
+.novel-editor .slash-menu a {
+  color: hsl(var(--primary)) !important;
+}
+
+.novel-preview-container a:hover,
+.novel-editor .preview-container a:hover,
+.novel-editor .ai-selector-panel a:hover,
+.novel-editor .slash-menu a:hover {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.novel-preview-container code,
+.novel-preview-container pre,
+.novel-editor .preview-container code,
+.novel-editor .preview-container pre {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .novel-preview-container code,
+.dark .novel-preview-container pre,
+.dark .novel-editor .preview-container code,
+.dark .novel-editor .preview-container pre {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Дополнительные стили для контейнера предварительного просмотра Novel Editor */
+.novel-editor .preview-container {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  border: 1px solid hsl(var(--border));
+}
+
+.dark .novel-editor .preview-container {
+  border: 1px solid hsl(var(--border));
+}

@@ -9,7 +9,7 @@ import { CategoryTabs } from '@/components/category-tabs'
 import { Badge } from '@/components/ui/badge'
 import { Loader2 } from 'lucide-react'
 import { MarkdownItRenderer } from '@/components/markdown-it-renderer'
-import TailwindMarkdownEditor from '@/src/components/TailwindMarkdownEditor'
+import NovelEditor from '@/src/components/NovelEditor'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/context/auth-context'
 import { createPost } from '@/lib/client-api'
@@ -110,7 +110,7 @@ export function NewsScraper() {
         title,
         content,
         category: 'news', // Категория по умолчанию
-        author_id: user?.uid,
+        author_id: user?.uid || '',
         tags,
         source_url: url // Сохраняем исходный URL
       }
@@ -228,7 +228,7 @@ export function NewsScraper() {
                 </div>
                 <div className="grid gap-2">
                   <label htmlFor="content" className="text-sm font-medium">Содержание</label>
-                  <TailwindMarkdownEditor
+                  <NovelEditor
                     value={content}
                     onChange={setContent}
                   />

@@ -20,7 +20,7 @@ import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Post } from "@/types/database"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
-import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
+import NovelEditor from "@/src/components/NovelEditor";
 
 interface Attachment {
   type: 'link';
@@ -336,84 +336,105 @@ export function EditPostForm({ postId }: EditPostFormProps) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Редактирование публикации</CardTitle>
-          <CardDescription>Обновите информацию о вашей публикации</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="title">Заголовок</Label>
-                <Input
-                  id="title"
-                  placeholder="Введите заголовок"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="content">Содержание</Label>
-                <TailwindMarkdownEditor value={content} onChange={setContent} />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="category">Категория</Label>
-                <PublicationCategoryTabs
-                  onCategoryChange={setCategory}
-                  initialCategory={category || 'news'}
-                />
-              </div>
-              <div className="grid gap-3">
-                <Label htmlFor="tags">Теги</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="tags"
-                    placeholder="Добавьте тег"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                  />
-                  <Button type="button" onClick={handleAddTag} variant="outline">Добавить</Button>
-                </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                        {tag}
-                        <X
-                          className="h-3 w-3 cursor-pointer"
-                          onClick={() => handleRemoveTag(tag)}
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => router.push(`/posts/${postId}`)}>
-                    Отмена
-                  </Button>
-                  <Button type="submit" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Сохранение...
-                      </>
-                    ) : (
-                      <>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Сохранить изменения
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle>Редактирование публикации</CardTitle>
+              <CardDescription>Обновите информацию о вашей публикации</CardDescription>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => router.push(`/posts/${postId}`)}>
+                Отмена
+              </Button>
+              <Button type="submit" disabled={isLoading} form="edit-post-form">
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Сохранение...
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Сохранить изменения
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+       <CardContent>
+         <form id="edit-post-form" onSubmit={handleSubmit}>
+           <div className="grid gap-6">
+             <div className="grid gap-3">
+               <Label htmlFor="title">Заголовок</Label>
+               <Input
+                 id="title"
+                 placeholder="Введите заголовок"
+                 value={title}
+                 onChange={(e) => setTitle(e.target.value)}
+                 required
+               />
+             </div>
+             <div className="grid gap-3">
+               <Label htmlFor="content">Содержание</Label>
+               <NovelEditor value={content} onChange={setContent} />
+             </div>
+             <div className="grid gap-3">
+               <Label htmlFor="category">Категория</Label>
+               <PublicationCategoryTabs
+                 onCategoryChange={setCategory}
+                 initialCategory={category || 'news'}
+               />
+             </div>
+             <div className="grid gap-3">
+               <Label htmlFor="tags">Теги</Label>
+               <div className="flex gap-2">
+                 <Input
+                   id="tags"
+                   placeholder="Добавьте тег"
+                   value={tagInput}
+                   onChange={(e) => setTagInput(e.target.value)}
+                   onKeyDown={handleTagKeyDown}
+                 />
+                 <Button type="button" onClick={handleAddTag} variant="outline">Добавить</Button>
+               </div>
+               {tags.length > 0 && (
+                 <div className="flex flex-wrap gap-2 mt-2">
+                   {tags.map(tag => (
+                     <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                       {tag}
+                       <X
+                         className="h-3 w-3 cursor-pointer"
+                         onClick={() => handleRemoveTag(tag)}
+                       />
+                     </Badge>
+                   ))}
+                 </div>
+               )}
+             </div>
+           </div>
+         </form>
+       </CardContent>
+       <CardFooter className="flex justify-end">
+         <div className="flex gap-2">
+           <Button type="button" variant="outline" onClick={() => router.push(`/posts/${postId}`)}>
+             Отмена
+           </Button>
+           <Button type="submit" disabled={isLoading} form="edit-post-form">
+             {isLoading ? (
+               <>
+                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                 Сохранение...
+               </>
+             ) : (
+               <>
+                 <Pencil className="mr-2 h-4 w-4" />
+                 Сохранить изменения
+               </>
+             )}
+           </Button>
+         </div>
+       </CardFooter>
+     </Card>
       {previewData && renderPreview()}
     </>
   )
