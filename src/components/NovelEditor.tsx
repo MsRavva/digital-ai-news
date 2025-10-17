@@ -7,7 +7,7 @@ import { motion } from 'framer-motion'
 import { EditorContent, EditorRoot } from 'novel'
 
 interface NovelEditorProps {
-  value: string
+  value: any
   onChange: (value: string) => void
  className?: string
 }
@@ -31,9 +31,25 @@ export default function NovelEditor({ value, onChange, className }: NovelEditorP
   }
 
   // Гарантируем, что всегда есть базовая структура документа
-  const initialContent = value ? 
-    { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: value }] }] } : 
-    { type: 'doc', content: [] }
+  let initialContent;
+  if (value && typeof value === 'string') {
+    // Если значение - строка, проверяем, является ли она JSON-представлением документа
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed.type === 'doc') {
+        initialContent = parsed;
+      } else {
+        // Если строка не является JSON-документом, создаем документ с параграфом
+        initialContent = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: value }] }] };
+      }
+    } catch (e) {
+      // Если строка не является JSON, создаем документ с параграфом
+      initialContent = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: value }] }] };
+    }
+  } else {
+    // Если значение отсутствует или не является строкой, используем пустой документ
+    initialContent = { type: 'doc', content: [] };
+  }
 
   return (
     <motion.div
