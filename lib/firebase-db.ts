@@ -7,8 +7,8 @@ export {
   getPosts,
   getPostById,
   createPost,
-  getPostStats
-} from './firebase-db-core';
+  getPostStats,
+} from "./firebase-db-core"
 
 // Реэкспорт функций из firebase-db-extended.ts
 export {
@@ -35,5 +35,5 @@ export {
   // Переименованные функции для избежания конфликтов
   recordView as recordViewExtended,
   updatePost as updatePostExtended,
-  deletePost as deletePostExtended
-} from './firebase-db-extended';
+  deletePost as deletePostExtended,
+} from "./firebase-db-extended"

@@ -1,19 +1,19 @@
-'use client'
+"use client"
 
+import { DeletePostButton } from "@/components/delete-post-button"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, ThumbsUp, Eye, Pencil, Paperclip } from "lucide-react"
-import Link from "next/link"
-import type { Post } from "@/types/database"
-import { formatDate } from "@/lib/utils"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
-import { useAuth } from "@/context/auth-context"
-import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import { DeletePostButton } from "@/components/delete-post-button"
+import { useAuth } from "@/context/auth-context"
 import { togglePinPost } from "@/lib/client-api"
+import { formatDate } from "@/lib/utils"
+import type { Post } from "@/types/database"
+import { Eye, MessageSquare, Paperclip, Pencil, ThumbsUp } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface PostsTableProps {
   posts: Post[]
@@ -21,54 +21,66 @@ interface PostsTableProps {
   loadingMessage?: string
 }
 
-export function PostsTable({ posts: initialPosts, loading = false, loadingMessage = 'Загрузка публикаций...' }: PostsTableProps) {
-  const { profile } = useAuth();
-  const { toast } = useToast();
-  const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+export function PostsTable({
+  posts: initialPosts,
+  loading = false,
+  loadingMessage = "Загрузка публикаций...",
+}: PostsTableProps) {
+  const { profile } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [posts, setPosts] = useState<Post[]>(initialPosts)
 
   // Обновляем локальное состояние при изменении пропсов
   useEffect(() => {
-    setPosts(initialPosts);
-  }, [initialPosts]);
+    setPosts(initialPosts)
+  }, [initialPosts])
 
   // Проверка, имеет ли пользователь права учителя или админа
-  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
-  const canDelete = isTeacherOrAdmin;
+  const isTeacherOrAdmin =
+    profile?.role === "teacher" || profile?.role === "admin"
+  const canDelete = isTeacherOrAdmin
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = (post: Post) => {
-    if (!profile) return false;
-    return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
-  };
+    if (!profile) return false
+    return (
+      profile.role === "teacher" ||
+      profile.role === "admin" ||
+      post.author?.username === profile.username
+    )
+  }
 
   // Функция для закрепления/открепления поста
   const handleTogglePin = async (postId: string) => {
     try {
-      const success = await togglePinPost(postId);
+      const success = await togglePinPost(postId)
       if (success) {
         // Обновляем локальное состояние
-        setPosts(posts.map(post => {
-          if (post.id === postId) {
-            return { ...post, pinned: !post.pinned };
-          }
-          return post;
-        }));
+        setPosts(
+          posts.map((post) => {
+            if (post.id === postId) {
+              return { ...post, pinned: !post.pinned }
+            }
+            return post
+          }),
+        )
 
         toast({
-          title: post => post.pinned ? 'Публикация откреплена' : 'Публикация закреплена',
-          description: 'Статус публикации успешно изменен',
-        });
+          title: (post) =>
+            post.pinned ? "Публикация откреплена" : "Публикация закреплена",
+          description: "Статус публикации успешно изменен",
+        })
       }
     } catch (error) {
-      console.error('Ошибка при изменении статуса закрепления:', error);
+      console.error("Ошибка при изменении статуса закрепления:", error)
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось изменить статус закрепления публикации',
-        variant: 'destructive',
-      });
+        title: "Ошибка",
+        description: "Не удалось изменить статус закрепления публикации",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   // Проверяем состояние загрузки
   if (loading) {
@@ -81,7 +93,7 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
 
   // Проверяем, что posts не undefined, не null и является массивом
   if (!posts || !Array.isArray(posts) || posts.length === 0) {
-    console.log('Нет публикаций для отображения в таблице:', posts);
+    console.log("Нет публикаций для отображения в таблице:", posts)
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground">Публикации не найдены</p>
@@ -94,13 +106,25 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-border">
-            <th className="py-3 px-4 text-left font-medium text-muted-foreground">Автор</th>
-            <th className="py-3 px-4 text-left font-medium text-muted-foreground">Заголовок</th>
-            <th className="py-3 px-4 text-left font-medium text-muted-foreground">Дата</th>
-            <th className="py-3 px-4 text-left font-medium text-muted-foreground">Теги</th>
-            <th className="py-3 px-4 text-left font-medium text-muted-foreground">Статистика</th>
+            <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+              Автор
+            </th>
+            <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+              Заголовок
+            </th>
+            <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+              Дата
+            </th>
+            <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+              Теги
+            </th>
+            <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+              Статистика
+            </th>
             {canDelete && (
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Действия</th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Действия
+              </th>
             )}
           </tr>
         </thead>
@@ -115,7 +139,9 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <SimpleAvatar username={post.author?.username} />
-                    <span className="font-medium text-sm whitespace-nowrap">{post.author?.username}</span>
+                    <span className="font-medium text-sm whitespace-nowrap">
+                      {post.author?.username}
+                    </span>
                   </div>
                   <div className="flex justify-center">
                     <Badge
@@ -134,9 +160,8 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                 <div className="text-muted-foreground text-sm line-clamp-1 mt-1">
                   <div className="prose dark:prose-invert prose-sm max-w-none">
                     {post.content.length > 100
-                      ? post.content.substring(0, 100) + '...'
-                      : post.content
-                    }
+                      ? post.content.substring(0, 100) + "..."
+                      : post.content}
                   </div>
                 </div>
               </td>
@@ -146,12 +171,18 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
               <td className="py-3 px-4">
                 <div className="flex flex-wrap gap-1">
                   {post.tags?.slice(0, 3).map((tag) => (
-                    <span key={tag} className="tag text-xs py-0.5 px-2">
+                    <Badge 
+                      key={tag} 
+                      variant="outline"
+                      className="text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)] bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-xs py-0.5 px-2"
+                    >
                       {tag}
-                    </span>
+                    </Badge>
                   ))}
                   {post.tags && post.tags.length > 3 && (
-                    <span className="text-xs text-muted-foreground">+{post.tags.length - 3}</span>
+                    <span className="text-xs text-muted-foreground">
+                      +{post.tags.length - 3}
+                    </span>
                   )}
                 </div>
               </td>
@@ -180,8 +211,8 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                         size="icon"
                         className="h-8 w-8 text-[hsl(var(--saas-purple))]"
                         onClick={(e) => {
-                          e.stopPropagation(); // Предотвращаем всплытие события
-                          router.push(`/edit/${post.id}`);
+                          e.stopPropagation() // Предотвращаем всплытие события
+                          router.push(`/edit/${post.id}`)
                         }}
                       >
                         <Pencil className="h-4 w-4" />
@@ -191,21 +222,23 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-8 w-8 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
+                        className={`h-8 w-8 ${post.pinned ? "text-[hsl(var(--saas-purple))]" : ""}`}
                         onClick={(e) => {
-                          e.stopPropagation(); // Предотвращаем всплытие события
-                          handleTogglePin(post.id);
+                          e.stopPropagation() // Предотвращаем всплытие события
+                          handleTogglePin(post.id)
                         }}
-                        title={post.pinned ? 'Открепить' : 'Закрепить'}
+                        title={post.pinned ? "Открепить" : "Закрепить"}
                       >
-                        <Paperclip className={`h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
+                        <Paperclip
+                          className={`h-4 w-4 ${post.pinned ? "text-[hsl(var(--saas-purple))]" : "text-gray-400"}`}
+                        />
                       </Button>
                     )}
                     <DeletePostButton
                       postId={post.id}
                       onSuccess={() => {
                         // Удаляем пост из локального состояния
-                        setPosts(posts.filter(p => p.id !== post.id));
+                        setPosts(posts.filter((p) => p.id !== post.id))
                       }}
                     />
                   </div>

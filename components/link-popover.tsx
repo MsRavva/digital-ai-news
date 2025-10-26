@@ -1,6 +1,5 @@
-'use client'
+"use client"
 
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Link as LinkIcon } from "lucide-react"
+import { useState } from "react"
 
 interface LinkPopoverProps {
   onLinkAdd: (url: string, name: string) => void
@@ -36,7 +36,11 @@ export function LinkPopover({ onLinkAdd }: LinkPopoverProps) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-1 border-[hsl(var(--saas-purple))] text-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
+        >
           <LinkIcon className="h-4 w-4" />
           <span>Добавить ссылку</span>
         </Button>

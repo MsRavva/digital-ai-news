@@ -5,7 +5,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 // Create a single supabase client for the entire server-side application
 export const createServerSupabaseClient = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey
   return createClient(supabaseUrl, serviceRoleKey)
 }
 

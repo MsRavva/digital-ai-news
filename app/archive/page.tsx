@@ -1,29 +1,32 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { useAuth } from "@/context/auth-context"
-import { useRouter } from "next/navigation"
 import { InfinitePostsList } from "@/components/infinite-posts-list"
+import { MainNav } from "@/components/main-nav"
 import { PaginatedPostsTable } from "@/components/paginated-posts-table"
-import { ViewToggle } from "@/components/view-toggle"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/components/ui/use-toast"
+import { UserNav } from "@/components/user-nav"
+import { ViewToggle } from "@/components/view-toggle"
+import { useAuth } from "@/context/auth-context"
 import { Search, X } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function ArchivePage() {
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>(() => {
-    if (typeof window !== 'undefined') {
-      const savedView = localStorage.getItem('archiveViewMode') as 'grid' | 'table' | null
-      return savedView || 'table'
+  const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
+    if (typeof window !== "undefined") {
+      const savedView = localStorage.getItem("archiveViewMode") as
+        | "grid"
+        | "table"
+        | null
+      return savedView || "table"
     }
-    return 'table'
+    return "table"
   })
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState("")
   const [categoryKey, setCategoryKey] = useState(0)
   const { user, profile } = useAuth()
   const { toast } = useToast()
@@ -35,15 +38,15 @@ export default function ArchivePage() {
       toast({
         title: "Доступ запрещен",
         description: "У вас нет прав для просмотра архива",
-        variant: "destructive"
+        variant: "destructive",
       })
       router.push("/")
     }
   }, [profile, router, toast])
 
-  const handleViewChange = (view: 'grid' | 'table') => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('archiveViewMode', view)
+  const handleViewChange = (view: "grid" | "table") => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("archiveViewMode", view)
     }
     setViewMode(view)
   }
@@ -51,12 +54,12 @@ export default function ArchivePage() {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value
     setSearchQuery(query)
-    setCategoryKey(prevKey => prevKey + 1)
+    setCategoryKey((prevKey) => prevKey + 1)
   }
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm dark:bg-[#090b0d]/90 dark:border-[#181c22]">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm dark:bg-background/90 dark:border-border">
         <div className="w-full px-4 mx-auto flex h-16 items-center justify-between">
           <MainNav />
           <div className="flex items-center space-x-4">
@@ -67,13 +70,19 @@ export default function ArchivePage() {
 
       <main className="flex-1">
         <div className="w-full px-4 py-6 mx-auto">
-          <Card>
+          <div className="saas-window mb-8">
+            <div className="saas-window-header">
+              <div className="saas-window-dot saas-window-dot-red"></div>
+              <div className="saas-window-dot saas-window-dot-yellow"></div>
+              <div className="saas-window-dot saas-window-dot-green"></div>
+            </div>
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h1 className="text-2xl font-bold mb-2">Архив публикаций</h1>
                   <p className="text-muted-foreground">
-                    Архивированные публикации доступны только для учителей и администраторов
+                    Архивированные публикации доступны только для учителей и
+                    администраторов
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -89,15 +98,22 @@ export default function ArchivePage() {
                     {searchQuery && (
                       <button
                         className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground"
-                        onClick={() => setSearchQuery('')}
+                        onClick={() => setSearchQuery("")}
                         aria-label="Очистить поиск"
                       >
                         <X className="h-4 w-4" />
                       </button>
                     )}
                   </div>
-                  <ViewToggle onViewChange={handleViewChange} initialView={viewMode} />
-                  <Button variant="outline" onClick={() => router.push("/")}>
+                  <ViewToggle
+                    onViewChange={handleViewChange}
+                    initialView={viewMode}
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => router.push("/")}
+                    className="border-[hsl(var(--saas-purple))] text-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
+                  >
                     Вернуться на главную
                   </Button>
                 </div>
@@ -107,11 +123,13 @@ export default function ArchivePage() {
                 <div className="mb-4 p-2 bg-[hsl(var(--saas-purple)/0.1)] rounded-md text-sm flex items-center justify-between">
                   <div className="flex items-center">
                     <Search className="h-4 w-4 mr-2 text-[hsl(var(--saas-purple))]" />
-                    <span>Поиск: <span className="font-medium">{searchQuery}</span></span>
+                    <span>
+                      Поиск: <span className="font-medium">{searchQuery}</span>
+                    </span>
                   </div>
                   <button
                     className="text-muted-foreground hover:text-foreground flex items-center"
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => setSearchQuery("")}
                   >
                     <X className="h-4 w-4 mr-1" />
                     <span>Очистить</span>
@@ -120,7 +138,7 @@ export default function ArchivePage() {
               )}
 
               <Card className="p-0 border-0 shadow-none dark:bg-transparent">
-                {viewMode === 'grid' ? (
+                {viewMode === "grid" ? (
                   <InfinitePostsList
                     key={`infinite-${categoryKey}`}
                     includeArchived={true}
@@ -139,7 +157,7 @@ export default function ArchivePage() {
                 )}
               </Card>
             </div>
-          </Card>
+          </div>
         </div>
       </main>
     </div>

@@ -1,171 +1,201 @@
-'use client'
+"use client"
 
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { Badge } from "@/components/ui/badge"
-import { MessageSquare, ThumbsUp, Eye, MoreHorizontal, Pencil, Paperclip } from "lucide-react"
-import Link from "next/link"
-import type { Post } from "@/types/database"
-import { useAuth } from "@/context/auth-context"
-import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
 import { DeletePostButton } from "@/components/delete-post-button"
-import { togglePinPost } from "@/lib/client-api"
+import { Badge } from "@/components/ui/badge"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/context/auth-context"
+import { togglePinPost } from "@/lib/client-api"
+import type { Post } from "@/types/database"
+import {
+  Eye,
+  MessageSquare,
+  MoreHorizontal,
+  Paperclip,
+  Pencil,
+  ThumbsUp,
+} from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 interface PostCardProps {
   post: Post
 }
 
 export function PostCard({ post }: PostCardProps) {
-  const { profile } = useAuth();
-  const router = useRouter();
+  const { profile } = useAuth()
+  const router = useRouter()
 
   // Проверка, имеет ли пользователь права учителя или админа
-  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
-  const canDelete = isTeacherOrAdmin;
-  const { toast } = useToast();
+  const isTeacherOrAdmin =
+    profile?.role === "teacher" || profile?.role === "admin"
+  const canDelete = isTeacherOrAdmin
+  const { toast } = useToast()
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = () => {
-    if (!profile) return false;
-    return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
-  };
+    if (!profile) return false
+    return (
+      profile.role === "teacher" ||
+      profile.role === "admin" ||
+      post.author?.username === profile.username
+    )
+  }
 
   // Функция для закрепления/открепления поста
   const handleTogglePin = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
 
     try {
-      const success = await togglePinPost(post.id);
+      const success = await togglePinPost(post.id)
       if (success) {
         toast({
-          title: post.pinned ? 'Публикация откреплена' : 'Публикация закреплена',
-          description: 'Статус публикации успешно изменен',
-        });
+          title: post.pinned
+            ? "Публикация откреплена"
+            : "Публикация закреплена",
+          description: "Статус публикации успешно изменен",
+        })
         // Перезагрузка страницы для обновления списка публикаций
-        router.refresh();
+        router.refresh()
       }
     } catch (error) {
-      console.error('Ошибка при изменении статуса закрепления:', error);
+      console.error("Ошибка при изменении статуса закрепления:", error)
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось изменить статус закрепления публикации',
-        variant: 'destructive',
-      });
+        title: "Ошибка",
+        description: "Не удалось изменить статус закрепления публикации",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <Link href={`/posts/${post.id}`}>
-        <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg w-full">
-          <div className="w-full">
-            <div className="flex items-center justify-between w-full mb-4">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <div className="flex-shrink-0 mr-1">
-                    <SimpleAvatar username={post.author?.username} size="md" />
-                  </div>
-                  <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))] whitespace-nowrap">
-                    {post.author?.username}
-                  </span>
+        <div className="post-card p-6 hover:border-primary/50 transition-all duration-200 rounded-lg w-full h-full flex flex-col bg-card shadow-sm border border-border hover:shadow-md hover:-translate-y-1">
+          <div className="flex items-center justify-between w-full mb-4">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <div className="flex-shrink-0 mr-1">
+                  <SimpleAvatar username={post.author?.username} size="md" />
                 </div>
-                <div className="flex items-center gap-2 ml-1">
-                  <Badge
-                    variant="outline"
-                    className="bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
-                  >
-                    {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(post.created_at).toLocaleDateString("ru-RU")}
-                  </span>
-                </div>
+                <span className="font-medium text-primary whitespace-nowrap">
+                  {post.author?.username}
+                </span>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                  <button className="text-muted-foreground hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                    <MoreHorizontal className="h-5 w-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {canEdit() && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        router.push(`/edit/${post.id}`);
-                      }}
-                      className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] focus:text-[hsl(var(--saas-purple-dark))] cursor-pointer"
-                    >
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Редактировать
-                    </DropdownMenuItem>
-                  )}
-                  {isTeacherOrAdmin && (
-                    <DropdownMenuItem
-                      onClick={handleTogglePin}
-                      className={`cursor-pointer ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
-                    >
-                      <Paperclip className={`mr-2 h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
-                      {post.pinned ? 'Открепить' : 'Закрепить'}
-                    </DropdownMenuItem>
-                  )}
-                  {canDelete && (
-                    <DropdownMenuItem
-                      onSelect={(e) => e.preventDefault()}
-                      className="text-red-500 hover:text-red-700 focus:text-red-700 cursor-pointer p-0"
-                    >
-                      <DeletePostButton
-                        postId={post.id}
-                        variant="ghost"
-                        showIcon={true}
-                        showText={true}
-                        className="w-full justify-start px-2 py-1.5 text-red-500 hover:text-red-700"
-                      />
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2 ml-1">
+                <Badge
+                  variant="outline"
+                  className="bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)]"
+                >
+                  {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(post.created_at).toLocaleDateString("ru-RU")}
+                </span>
+              </div>
             </div>
-            <div className="w-full">
-              <h3 className="text-xl font-semibold mt-3 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200 w-full">
-                {post.title}
-              </h3>
-              <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
-                <div className="prose dark:prose-invert prose-sm max-w-none">
-                  {post.content.length > 150
-                    ? post.content.substring(0, 150) + '...'
-                    : post.content
-                  }
-                </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                asChild
+                onClick={(e) => e.preventDefault()}
+              >
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                  <MoreHorizontal className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {canEdit() && (
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      router.push(`/edit/${post.id}`)
+                    }}
+                    className="text-primary hover:text-primary/80 focus:text-primary/80 cursor-pointer"
+                  >
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Редактировать
+                  </DropdownMenuItem>
+                )}
+                {isTeacherOrAdmin && (
+                  <DropdownMenuItem
+                    onClick={handleTogglePin}
+                    className={cn(
+                      "cursor-pointer",
+                      post.pinned ? "text-primary" : ""
+                    )}
+                  >
+                    <Paperclip
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        post.pinned ? "text-primary" : "text-gray-400"
+                      )}
+                    />
+                    {post.pinned ? "Открепить" : "Закрепить"}
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-error hover:text-error/80 focus:text-error/80 cursor-pointer p-0"
+                  >
+                    <DeletePostButton
+                      postId={post.id}
+                      variant="ghost"
+                      showIcon={true}
+                      showText={true}
+                      className="w-full justify-start px-2 py-1.5 text-error hover:text-error/80"
+                    />
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex-grow">
+            <h3 className="text-xl font-semibold mt-3 hover:text-primary transition-colors duration-200 w-full">
+              {post.title}
+            </h3>
+            <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
+              <div className="prose dark:prose-invert prose-sm max-w-none">
+                {post.content.length > 150
+                  ? post.content.substring(0, 150) + "..."
+                  : post.content}
               </div>
-              <div className="flex flex-wrap gap-2 mt-4 w-full">
-                {post.tags?.map((tag) => (
-                  <span key={tag} className="tag">
-                    {tag}
-                  </span>
-                ))}
+            </div>
+          </div>
+          <div className="flex justify-between items-end mt-4 w-full">
+            <div className="flex flex-wrap gap-2">
+              {post.tags?.map((tag) => (
+                <Badge 
+                  key={tag} 
+                  variant="outline"
+                  className="bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)]"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1 hover:text-primary transition-colors duration-200">
+                <MessageSquare className="h-4 w-4" />
+                <span>{post.commentsCount}</span>
               </div>
-              <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground w-full">
-                <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{post.commentsCount}</span>
-                </div>
-                <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                  <ThumbsUp className="h-4 w-4" />
-                  <span>{post.likesCount}</span>
-                </div>
-                <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                  <Eye className="h-4 w-4" />
-                  <span>{post.viewsCount}</span>
-                </div>
+              <div className="flex items-center gap-1 hover:text-primary transition-colors duration-200">
+                <ThumbsUp className="h-4 w-4" />
+                <span>{post.likesCount}</span>
+              </div>
+              <div className="flex items-center gap-1 hover:text-primary transition-colors duration-200">
+                <Eye className="h-4 w-4" />
+                <span>{post.viewsCount}</span>
               </div>
             </div>
           </div>

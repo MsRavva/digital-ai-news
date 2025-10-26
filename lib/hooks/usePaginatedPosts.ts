@@ -1,63 +1,70 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { getPaginatedPosts } from '@/lib/client-api';
-import { Post } from '@/types/database';
+import { getPaginatedPosts } from "@/lib/client-api"
+import type { Post } from "@/types/database"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 export function usePaginatedPosts(options?: {
-  initialLimit?: number;
-  category?: string;
-  authorId?: string;
-  tag?: string;
-  includeArchived?: boolean;
-  archivedOnly?: boolean;
+  initialLimit?: number
+  category?: string
+  authorId?: string
+  tag?: string
+  includeArchived?: boolean
+  archivedOnly?: boolean
 }) {
-  const limit = options?.initialLimit || 10;
+  const limit = options?.initialLimit || 10
 
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [lastVisible, setLastVisible] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [posts, setPosts] = useState<Post[]>([])
+  const [lastVisible, setLastVisible] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
+  const [hasMore, setHasMore] = useState(true)
 
   // Используем useRef для отслеживания изменений параметров фильтрации
   const prevOptionsRef = useRef({
     category: options?.category,
     authorId: options?.authorId,
     tag: options?.tag,
-    archivedOnly: options?.archivedOnly
-  });
+    archivedOnly: options?.archivedOnly,
+  })
 
   // Функция для загрузки первой страницы
   const loadInitialPosts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
-      console.log('Загрузка постов с категорией:', options?.category);
+      console.log("Загрузка постов с категорией:", options?.category)
       const result = await getPaginatedPosts({
         limit,
         category: options?.category,
         authorId: options?.authorId,
         tag: options?.tag,
         includeArchived: options?.includeArchived,
-        archivedOnly: options?.archivedOnly
-      });
+        archivedOnly: options?.archivedOnly,
+      })
 
-      setPosts(result.posts);
-      setLastVisible(result.lastVisible);
-      setHasMore(!!result.lastVisible && result.posts.length === limit);
+      setPosts(result.posts)
+      setLastVisible(result.lastVisible)
+      setHasMore(!!result.lastVisible && result.posts.length === limit)
     } catch (err) {
-      console.error('Failed to load posts:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load posts'));
+      console.error("Failed to load posts:", err)
+      setError(err instanceof Error ? err : new Error("Failed to load posts"))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [limit, options?.category, options?.authorId, options?.tag, options?.includeArchived, options?.archivedOnly]);
+  }, [
+    limit,
+    options?.category,
+    options?.authorId,
+    options?.tag,
+    options?.includeArchived,
+    options?.archivedOnly,
+  ])
 
   // Функция для загрузки следующей страницы
   const loadMorePosts = useCallback(async () => {
-    if (!lastVisible || loading || !hasMore) return;
+    if (!lastVisible || loading || !hasMore) return
 
-    setLoading(true);
+    setLoading(true)
 
     try {
       const result = await getPaginatedPosts({
@@ -67,44 +74,57 @@ export function usePaginatedPosts(options?: {
         authorId: options?.authorId,
         tag: options?.tag,
         includeArchived: options?.includeArchived,
-        archivedOnly: options?.archivedOnly
-      });
+        archivedOnly: options?.archivedOnly,
+      })
 
-      setPosts(prev => [...prev, ...result.posts]);
-      setLastVisible(result.lastVisible);
-      setHasMore(!!result.lastVisible && result.posts.length === limit);
+      setPosts((prev) => [...prev, ...result.posts])
+      setLastVisible(result.lastVisible)
+      setHasMore(!!result.lastVisible && result.posts.length === limit)
     } catch (err) {
-      console.error('Failed to load more posts:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load more posts'));
+      console.error("Failed to load more posts:", err)
+      setError(
+        err instanceof Error ? err : new Error("Failed to load more posts"),
+      )
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [lastVisible, loading, hasMore, limit, options?.category, options?.authorId, options?.tag, options?.includeArchived, options?.archivedOnly]);
+  }, [
+    lastVisible,
+    loading,
+    hasMore,
+    limit,
+    options?.category,
+    options?.authorId,
+    options?.tag,
+    options?.includeArchived,
+    options?.archivedOnly,
+  ])
 
   // Функция для полного сброса состояния и загрузки данных заново
   const resetAndRefresh = useCallback(() => {
-    setPosts([]);
-    setLastVisible(null);
-    setHasMore(true);
-    loadInitialPosts();
-  }, [loadInitialPosts]);
+    setPosts([])
+    setLastVisible(null)
+    setHasMore(true)
+    loadInitialPosts()
+  }, [loadInitialPosts])
 
   // Загружаем первую страницу при монтировании компонента
   useEffect(() => {
-    loadInitialPosts();
-  }, [loadInitialPosts]);
+    loadInitialPosts()
+  }, [loadInitialPosts])
 
   // Отслеживаем изменения параметров фильтрации и сбрасываем состояние при необходимости
   useEffect(() => {
-    const prevOptions = prevOptionsRef.current;
+    const prevOptions = prevOptionsRef.current
 
     // Проверяем, изменились ли параметры фильтрации
-    if (prevOptions.category !== options?.category ||
-        prevOptions.authorId !== options?.authorId ||
-        prevOptions.tag !== options?.tag ||
-        prevOptions.archivedOnly !== options?.archivedOnly) {
-
-      console.log('Параметры фильтрации изменились:', {
+    if (
+      prevOptions.category !== options?.category ||
+      prevOptions.authorId !== options?.authorId ||
+      prevOptions.tag !== options?.tag ||
+      prevOptions.archivedOnly !== options?.archivedOnly
+    ) {
+      console.log("Параметры фильтрации изменились:", {
         prevCategory: prevOptions.category,
         newCategory: options?.category,
         prevAuthorId: prevOptions.authorId,
@@ -112,21 +132,27 @@ export function usePaginatedPosts(options?: {
         prevTag: prevOptions.tag,
         newTag: options?.tag,
         prevArchivedOnly: prevOptions.archivedOnly,
-        newArchivedOnly: options?.archivedOnly
-      });
+        newArchivedOnly: options?.archivedOnly,
+      })
 
       // Обновляем ref с текущими значениями
       prevOptionsRef.current = {
         category: options?.category,
         authorId: options?.authorId,
         tag: options?.tag,
-        archivedOnly: options?.archivedOnly
-      };
+        archivedOnly: options?.archivedOnly,
+      }
 
       // Сбрасываем состояние и загружаем данные заново
-      resetAndRefresh();
+      resetAndRefresh()
     }
-  }, [options?.category, options?.authorId, options?.tag, options?.archivedOnly, resetAndRefresh]);
+  }, [
+    options?.category,
+    options?.authorId,
+    options?.tag,
+    options?.archivedOnly,
+    resetAndRefresh,
+  ])
 
   return {
     posts,
@@ -135,6 +161,6 @@ export function usePaginatedPosts(options?: {
     hasMore,
     loadMorePosts,
     refresh: loadInitialPosts,
-    resetAndRefresh
-  };
+    resetAndRefresh,
+  }
 }

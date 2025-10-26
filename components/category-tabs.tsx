@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react"
 
 const categories = [
-  { value: 'url', label: 'URL' },
-  { value: 'preview', label: 'Предпросмотр' },
-  { value: 'edit', label: 'Редактирование' }
+  { value: "url", label: "URL" },
+  { value: "preview", label: "Предпросмотр" },
+  { value: "edit", label: "Редактирование" },
 ]
 
 interface CategoryTabsProps {
@@ -17,15 +17,15 @@ interface CategoryTabsProps {
 
 export function CategoryTabs({
   onCategoryChange,
-  initialCategory = 'news',
-  includeUrl = false
+  initialCategory = "news",
+  includeUrl = false,
 }: CategoryTabsProps) {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory)
 
   // Фильтруем категории, если не нужно включать URL
   const filteredCategories = includeUrl
     ? categories
-    : categories.filter(cat => cat.value !== 'url')
+    : categories.filter((cat) => cat.value !== "url")
 
   // Эффект для инициализации выбранной категории при монтировании
   useEffect(() => {
@@ -45,7 +45,11 @@ export function CategoryTabs({
   }
 
   return (
-    <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="w-full">
+    <Tabs
+      value={selectedCategory}
+      onValueChange={handleCategoryChange}
+      className="w-full"
+    >
       <TabsList className="bg-black dark:bg-black rounded-md p-1 h-10 flex items-center">
         {filteredCategories.map((category) => (
           <TabsTrigger

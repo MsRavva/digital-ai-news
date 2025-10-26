@@ -30,13 +30,28 @@
 
 /* Сам код внутри блока */
 .code-block code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-size: 0.875rem;
+  font-family: "Victor Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 1rem; /* Увеличенный размер шрифта */
   line-height: 1.5;
   white-space: pre;
   padding: 0;
   background-color: transparent;
   border: none;
+}
+
+/* Инлайн-код */
+.markdown-content code:not(.code-block code) {
+  font-family: "Victor Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 1rem; /* Увеличенный размер шрифта */
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  background-color: var(--inline-code-bg, #e5e7eb);
+  color: var(--inline-code-text, #1f2937);
+}
+
+.dark .markdown-content code:not(.code-block code) {
+  background-color: var(--inline-code-bg-dark, #374151);
+  color: var(--inline-code-text-dark, #f9fafb);
 }
 
 /* Метка языка */

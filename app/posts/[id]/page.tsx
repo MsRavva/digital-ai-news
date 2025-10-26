@@ -1,25 +1,10 @@
-'use client'
+"use client"
 
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { MainNav } from "@/components/main-nav"
-import { UserNav } from "@/components/user-nav"
-import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
-import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore } from "lucide-react"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
-import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
-import { useEffect, useState } from 'react'
-import React, { use } from 'react'
-import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost } from '@/lib/client-api'
+import { CommentsList } from "@/components/comments-list"
 import { DeletePostButton } from "@/components/delete-post-button"
-import { Post } from '@/types/database'
-import { useAuth } from '@/context/auth-context'
-import { useToast } from '@/components/ui/use-toast'
-import { useRouter } from 'next/navigation'
+import { MainNav } from "@/components/main-nav"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,41 +16,72 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { useToast } from "@/components/ui/use-toast"
+import { UserNav } from "@/components/user-nav"
+import { useAuth } from "@/context/auth-context"
+import {
+  archivePost,
+  getPostById,
+  hasUserBookmarkedPost,
+  hasUserLikedPost,
+  likePost,
+  recordView,
+  toggleBookmark,
+  unarchivePost,
+} from "@/lib/client-api"
+import type { Post } from "@/types/database"
+import {
+  Archive,
+  ArchiveRestore,
+  Bookmark,
+  Eye,
+  MessageSquare,
+  Pencil,
+  Share2,
+  ThumbsUp,
+} from "lucide-react"
+import { useRouter, useParams } from "next/navigation"
+import { useEffect, useState } from "react"
 
 // Функция для обрезки длинных строк
 const truncateString = (str: string, maxLength: number) => {
-  if (str.length <= maxLength) return str;
-  return str.substring(0, maxLength) + '...';
-};
+  if (str.length <= maxLength) return str
+  return str.substring(0, maxLength) + "..."
+}
 
 // Функция для обработки ссылок в HTML-контенте
 const processHtmlContent = (content: string) => {
   // Обрезаем длинные ссылки в тексте ссылок
-  return content.replace(/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g, (match, url, text) => {
-    // Если текст ссылки слишком длинный, обрезаем его
-    const displayText = text.length > 60 ? truncateString(text, 60) : text;
-    // Добавляем класс для стилизации и обрезки ссылок
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="post-link">${displayText}</a>`;
-  });
-};
+  return content.replace(
+    /<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g,
+    (match, url, text) => {
+      // Если текст ссылки слишком длинный, обрезаем его
+      const displayText = text.length > 60 ? truncateString(text, 60) : text
+      // Добавляем класс для стилизации и обрезки ссылок
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="post-link">${displayText}</a>`
+    },
+  )
+}
 
 // Функция для обработки base64-изображений в контенте
 const processBase64Images = (content: string) => {
   // Проверяем, есть ли в контенте base64-изображения
-  if (content.includes('data:image/')) {
-    console.log('Post content contains base64 images');
+  if (content.includes("data:image/")) {
+    console.log("Post content contains base64 images")
   }
-  return content;
-};
-
-type Props = {
-  params: { id: string }
+  return content
 }
 
-export default function PostPage({ params }: Props) {
-  // Используем React.use() для развертывания params
-  const unwrappedParams = use(params);
-  const postId = unwrappedParams.id
+type Props = {}
+
+export default function PostPage({}: Props) {
+  const params = useParams()
+  const postId = params.id as string
 
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
@@ -78,11 +94,12 @@ export default function PostPage({ params }: Props) {
   const router = useRouter()
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
-  const canEdit = post && profile && (
-    profile.role === "teacher" ||
-    profile.role === "admin" ||
-    post.author?.username === profile.username
-  )
+  const canEdit =
+    post &&
+    profile &&
+    (profile.role === "teacher" ||
+      profile.role === "admin" ||
+      post.author?.username === profile.username)
 
   // Загрузка поста и запись просмотра
   useEffect(() => {
@@ -92,7 +109,7 @@ export default function PostPage({ params }: Props) {
 
         // Проверяем наличие base64-изображений в контенте
         if (postData && postData.content) {
-          processBase64Images(postData.content);
+          processBase64Images(postData.content)
         }
 
         setPost(postData)
@@ -107,7 +124,7 @@ export default function PostPage({ params }: Props) {
           await recordView(postId, user.uid)
         }
       } catch (error) {
-        console.error('Ошибка при загрузке публикации:', error)
+        console.error("Ошибка при загрузке публикации:", error)
       } finally {
         setLoading(false)
       }
@@ -124,7 +141,7 @@ export default function PostPage({ params }: Props) {
           const liked = await hasUserLikedPost(postId, user.uid)
           setIsLiked(liked)
         } catch (error) {
-          console.error('Ошибка при проверке лайка:', error)
+          console.error("Ошибка при проверке лайка:", error)
         }
       }
     }
@@ -140,7 +157,7 @@ export default function PostPage({ params }: Props) {
           const bookmarked = await hasUserBookmarkedPost(postId, user.uid)
           setIsBookmarked(bookmarked)
         } catch (error) {
-          console.error('Ошибка при проверке избранного:', error)
+          console.error("Ошибка при проверке избранного:", error)
         }
       }
     }
@@ -154,7 +171,7 @@ export default function PostPage({ params }: Props) {
       toast({
         title: "Ошибка",
         description: "Вы должны быть авторизованы для отправки лайков",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -163,7 +180,7 @@ export default function PostPage({ params }: Props) {
       const result = await likePost(postId, user.uid)
 
       // Запоминаем предыдущее состояние лайка
-      const wasLiked = isLiked;
+      const wasLiked = isLiked
 
       // Обновляем состояние лайка
       setIsLiked(result)
@@ -173,27 +190,27 @@ export default function PostPage({ params }: Props) {
       if (post) {
         // Если ранее не было лайка и мы его добавили, увеличиваем счетчик
         // Если ранее был лайк и мы его удалили, уменьшаем счетчик
-        let newLikesCount = post.likesCount || 0;
+        let newLikesCount = post.likesCount || 0
 
         if (result && !wasLiked) {
           // Добавили лайк
-          newLikesCount += 1;
+          newLikesCount += 1
         } else if (!result && wasLiked) {
           // Удалили лайк
-          newLikesCount = Math.max(0, newLikesCount - 1);
+          newLikesCount = Math.max(0, newLikesCount - 1)
         }
 
         setPost({
           ...post,
-          likesCount: newLikesCount
+          likesCount: newLikesCount,
         })
       }
     } catch (error) {
-      console.error('Ошибка при лайке/анлайке:', error)
+      console.error("Ошибка при лайке/анлайке:", error)
       toast({
         title: "Ошибка",
         description: "Не удалось обработать лайк",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
@@ -204,7 +221,7 @@ export default function PostPage({ params }: Props) {
       toast({
         title: "Ошибка",
         description: "Вы должны быть авторизованы для добавления в избранное",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -215,25 +232,31 @@ export default function PostPage({ params }: Props) {
 
       toast({
         title: result ? "Добавлено в избранное" : "Удалено из избранного",
-        description: result ? "Публикация добавлена в избранное" : "Публикация удалена из избранного",
+        description: result
+          ? "Публикация добавлена в избранное"
+          : "Публикация удалена из избранного",
       })
     } catch (error) {
-      console.error('Ошибка при добавлении/удалении из избранного:', error)
+      console.error("Ошибка при добавлении/удалении из избранного:", error)
       toast({
         title: "Ошибка",
         description: "Не удалось обработать действие",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
 
   // Обработчик архивирования поста
   const handleArchive = async () => {
-    if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
+    if (
+      !user ||
+      !profile ||
+      (profile.role !== "teacher" && profile.role !== "admin")
+    ) {
       toast({
         title: "Ошибка",
         description: "У вас нет прав для архивирования публикаций",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -249,42 +272,44 @@ export default function PostPage({ params }: Props) {
         if (post) {
           setPost({
             ...post,
-            archived: true
+            archived: true,
           })
         }
 
         toast({
           title: "Публикация архивирована",
-          description: "Публикация успешно перемещена в архив"
+          description: "Публикация успешно перемещена в архив",
         })
       } else {
         toast({
           title: "Ошибка",
           description: "Не удалось архивировать публикацию",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
-      console.error('Ошибка при архивировании публикации:', error)
+      console.error("Ошибка при архивировании публикации:", error)
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при архивировании публикации",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setIsArchiving(false)
     }
   }
 
-
-
   // Обработчик восстановления поста из архива
   const handleUnarchive = async () => {
-    if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
+    if (
+      !user ||
+      !profile ||
+      (profile.role !== "teacher" && profile.role !== "admin")
+    ) {
       toast({
         title: "Ошибка",
         description: "У вас нет прав для восстановления публикаций из архива",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -300,27 +325,27 @@ export default function PostPage({ params }: Props) {
         if (post) {
           setPost({
             ...post,
-            archived: false
+            archived: false,
           })
         }
 
         toast({
           title: "Публикация восстановлена",
-          description: "Публикация успешно восстановлена из архива"
+          description: "Публикация успешно восстановлена из архива",
         })
       } else {
         toast({
           title: "Ошибка",
           description: "Не удалось восстановить публикацию из архива",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
-      console.error('Ошибка при восстановлении публикации из архива:', error)
+      console.error("Ошибка при восстановлении публикации из архива:", error)
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при восстановлении публикации из архива",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setIsArchiving(false)
@@ -330,7 +355,7 @@ export default function PostPage({ params }: Props) {
   if (loading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <header className="border-b">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm dark:bg-background/90 dark:border-border">
           <div className="flex h-16 items-center px-4 sm:px-6">
             <MainNav />
             <div className="ml-auto flex items-center space-x-4">
@@ -352,7 +377,7 @@ export default function PostPage({ params }: Props) {
   if (!post) {
     return (
       <div className="flex min-h-screen flex-col">
-        <header className="border-b">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm dark:bg-background/90 dark:border-border">
           <div className="flex h-16 items-center px-4 sm:px-6">
             <MainNav />
             <div className="ml-auto flex items-center space-x-4">
@@ -373,7 +398,7 @@ export default function PostPage({ params }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="border-b">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm dark:bg-background/90 dark:border-border">
         <div className="flex h-16 items-center px-4 sm:px-6">
           <MainNav />
           <div className="ml-auto flex items-center space-x-4">
@@ -383,189 +408,222 @@ export default function PostPage({ params }: Props) {
       </header>
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="mx-auto w-full">
-          <Card className="p-6">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4">
-                  <SimpleAvatar username={post.author?.username} size="lg" />
-                  <div>
-                    <div className="font-medium">{post.author?.username}</div>
-                    <div className="flex items-center">
-                      <Badge variant="outline">{post.author?.role === "teacher" ? "Учитель" : "Ученик"}</Badge>
-                      <span className="text-sm text-muted-foreground ml-2">
-                        {new Date(post.created_at).toLocaleDateString("ru-RU")}
-                      </span>
+          <div className="saas-window mb-8">
+            <div className="saas-window-header">
+              <div className="saas-window-dot saas-window-dot-red"></div>
+              <div className="saas-window-dot saas-window-dot-yellow"></div>
+              <div className="saas-window-dot saas-window-dot-green"></div>
+            </div>
+            <div className="p-6">
+              <Card className="p-6">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-4">
+                      <SimpleAvatar username={post.author?.username} size="lg" />
+                      <div>
+                        <div className="font-medium">{post.author?.username}</div>
+                        <div className="flex items-center">
+                          <Badge variant="primary">
+                            {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground ml-2">
+                            {new Date(post.created_at).toLocaleDateString("ru-RU")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      {canEdit && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1 text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
+                          onClick={() => router.push(`/edit/${post.id}`)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Редактировать
+                        </Button>
+                      )}
+
+                      {/* Кнопка удаления для учителей и админов */}
+                      {profile &&
+                        (profile.role === "teacher" ||
+                          profile.role === "admin") && (
+                          <DeletePostButton
+                            postId={post.id}
+                            variant="outline"
+                            size="sm"
+                            showIcon={true}
+                            showText={true}
+                            className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          />
+                        )}
+
+                      {/* Кнопки архивирования/восстановления для учителей и админов */}
+                      {profile &&
+                        (profile.role === "teacher" || profile.role === "admin") &&
+                        (isArchived ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-1 text-green-600 hover:text-green-70 hover:bg-green-50"
+                              >
+                                <ArchiveRestore className="h-4 w-4" />
+                                Восстановить
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Восстановить публикацию из архива?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Публикация будет восстановлена и станет доступна
+                                  всем пользователям.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleUnarchive}
+                                  disabled={isArchiving}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  {isArchiving
+                                    ? "Восстановление..."
+                                    : "Восстановить"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-100 border-amber-600"
+                              >
+                                <Archive className="h-4 w-4" />В архив
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Архивировать публикацию?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Публикация будет перемещена в архив и станет
+                                  недоступна для обычных пользователей.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Отмена</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={handleArchive}
+                                  disabled={isArchiving}
+                                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                                >
+                                  {isArchiving
+                                    ? "Архивирование..."
+                                    : "Архивировать"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ))}
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleBookmark}
+                        className={
+                          isBookmarked ? "text-[hsl(var(--saas-purple))]" : ""
+                        }
+                      >
+                        <Bookmark
+                          className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
+                        />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="text-muted-foreground hover:text-primary"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {post.tags?.map((tag) => (
+                      <Badge 
+                        key={tag} 
+                        className="text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)] bg-white dark:bg-[hsl(var(--saas-purple)/0.1)]"
+                      >
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  {/* Используем MarkdownRenderer для рендеринга контента */}
+                  <MarkdownRenderer
+                    content={post.content}
+                    className="prose dark:prose-invert max-w-[80%] w-full"
+                  />
+
+                  {/* Добавляем стили для обработки изображений */}
+                  <style jsx global>{`
+                    .post-markdown-content img {
+                      display: block;
+                      max-width: 100%;
+                      height: auto;
+                      margin: 1rem 0;
+                      border-radius: 0.375rem;
+                      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    }
+
+                    .post-markdown-content .base64-image {
+                      display: block !important;
+                      max-width: 100% !important;
+                      height: auto !important;
+                    }
+                  `}</style>
+
+                  <div className="flex items-center space-x-6 mt-6">
+                    <Button
+                      variant="outline"
+                      className={`flex items-center gap-1 h-9 px-3 py-2 rounded-md border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground ${isLiked ? "bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))] border-[hsl(var(--saas-purple))] hover:border-[hsl(var(--saas-purple-dark))]" : ""}`}
+                      onClick={handleLike}
+                    >
+                      <ThumbsUp
+                        className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`}
+                      />
+                      <span>{post.likesCount || 0}</span>
+                    </Button>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <MessageSquare className="h-4 w-4" />
+                      <span>{post.commentsCount || 0} комментариев</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span>{post.viewsCount || 0} просмотров</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  {canEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1 text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
-                      onClick={() => router.push(`/edit/${post.id}`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                      Редактировать
-                    </Button>
-                  )}
 
-                  {/* Кнопка удаления для учителей и админов */}
-                  {profile && (profile.role === "teacher" || profile.role === "admin") && (
-                    <DeletePostButton
-                      postId={post.id}
-                      variant="outline"
-                      size="sm"
-                      showIcon={true}
-                      showText={true}
-                      className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    />
-                  )}
+                <Separator className="my-6" />
 
-                  {/* Кнопки архивирования/восстановления для учителей и админов */}
-                  {profile && (profile.role === "teacher" || profile.role === "admin") && (
-                    isArchived ? (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                          >
-                            <ArchiveRestore className="h-4 w-4" />
-                            Восстановить
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Восстановить публикацию из архива?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Публикация будет восстановлена и станет доступна всем пользователям.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Отмена</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleUnarchive}
-                              disabled={isArchiving}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              {isArchiving ? "Восстановление..." : "Восстановить"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    ) : (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                          >
-                            <Archive className="h-4 w-4" />
-                            В архив
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Архивировать публикацию?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Публикация будет перемещена в архив и станет недоступна для обычных пользователей.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Отмена</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleArchive}
-                              disabled={isArchiving}
-                              className="bg-amber-600 hover:bg-amber-700"
-                            >
-                              {isArchiving ? "Архивирование..." : "Архивировать"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )
-                  )}
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleBookmark}
-                    className={isBookmarked ? 'text-[hsl(var(--saas-purple))]' : ''}
-                  >
-                    <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
+                <div>
+                  <CommentsList postId={postId} />
                 </div>
-              </div>
-
-              <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-
-              <div className="flex flex-wrap gap-2 mb-4">
-                {post.tags?.map((tag) => (
-                  <Badge key={tag} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-
-              {/* Используем MarkdownIt для рендеринга контента */}
-              <div className="markdown-content">
-                <MarkdownItRenderer
-                  content={post.content}
-                  className="post-markdown-content"
-                />
-              </div>
-
-              {/* Добавляем стили для обработки изображений */}
-              <style jsx global>{`
-                .post-markdown-content img {
-                  display: block;
-                  max-width: 100%;
-                  height: auto;
-                  margin: 1rem 0;
-                  border-radius: 0.375rem;
-                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-                }
-
-                .post-markdown-content .base64-image {
-                  display: block !important;
-                  max-width: 100% !important;
-                  height: auto !important;
-                }
-              `}</style>
-
-              <div className="flex items-center space-x-6 mt-6">
-                <Button
-                  variant="outline"
-                  className={`flex items-center gap-1 ${isLiked ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' : ''}`}
-                  onClick={handleLike}
-                >
-                  <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-                  <span>{post.likesCount || 0}</span>
-                </Button>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{post.commentsCount || 0} комментариев</span>
-                </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Eye className="h-4 w-4" />
-                  <span>{post.viewsCount || 0} просмотров</span>
-                </div>
-              </div>
+              </Card>
             </div>
-
-            <Separator className="my-6" />
-
-            <div>
-              <CommentsList postId={postId} />
-            </div>
-          </Card>
+          </div>
         </div>
       </main>
     </div>

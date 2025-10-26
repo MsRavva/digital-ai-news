@@ -1,0 +1,269 @@
+@import "./tokens/typography.css";
+@import "./utilities/animations.css";
+@import "./utilities/transitions.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --saas-window-bg: hsl(var(--background));
+  --saas-window-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --saas-window-shadow-dark: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+}
+
+.dark {
+  --saas-window-bg: hsl(var(--card));
+  --saas-window-shadow: var(--saas-window-shadow-dark);
+}
+
+body {
+  background-image: radial-gradient(circle at center, hsl(var(--primary) / 0.15) 0%, hsl(var(--secondary) / 0.1) 40%, transparent 70%);
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+}
+
+.dark body {
+  background-image: radial-gradient(circle at center, hsl(var(--primary) / 0.25) 0%, hsl(var(--secondary) / 0.15) 40%, transparent 70%);
+  background-color: hsl(var(--background));
+}
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Typography styles */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-heading);
+  color: hsl(var(--heading-color));
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+h1 {
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-4);
+}
+
+h2 {
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-tight);
+  margin-bottom: var(--spacing-3);
+}
+
+h3 {
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-snug);
+  margin-bottom: var(--spacing-2);
+}
+
+h4 {
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-2);
+}
+
+h5 {
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-1);
+}
+
+h6 {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-1);
+}
+
+p {
+  margin-bottom: var(--spacing-4);
+  color: hsl(var(--foreground));
+  line-height: var(--line-height-relaxed);
+}
+
+a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: hsl(var(--primary-700));
+}
+
+.dark a:hover {
+  color: hsl(var(--primary-300));
+}
+
+/* SaaS Window styles */
+.saas-window {
+  background: var(--saas-window-bg);
+  border: 1px solid var(--saas-window-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--saas-window-shadow);
+  transition: all 0.3s ease;
+}
+
+.dark .saas-window {
+  background: var(--saas-window-bg);
+  border: 1px solid var(--saas-window-border);
+}
+
+/* Card border override for dark theme */
+.dark .rounded-lg.border {
+  border-color: hsl(var(--border)) !important;
+}
+
+.dark .rounded-xl.border {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* More specific selector for Card components */
+.dark [class*="rounded-"].border {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Override for the specific Card component used in create form */
+.dark .bg-card.border {
+  border-color: hsl(var(--border)) !important;
+}
+
+.saas-window:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -6px rgba(0, 0, 0, 0.15);
+}
+
+.dark .saas-window:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 10px 10px -6px rgba(0, 0, 0, 0.35);
+}
+
+.saas-window-header {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--saas-window-border);
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.saas-window-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: var(--spacing-2);
+}
+
+.saas-window-dot-red {
+  background-color: hsl(var(--error-500));
+}
+
+.saas-window-dot-yellow {
+  background-color: hsl(var(--warning-500));
+}
+
+.saas-window-dot-green {
+  background-color: hsl(var(--success-500));
+}
+
+/* View toggle styles */
+.view-mode-container {
+  display: flex;
+  background: hsl(var(--muted));
+  border-radius: var(--border-radius-md);
+  padding: 2px;
+}
+
+.dark .view-mode-container {
+  background: hsl(var(--muted));
+}
+
+.view-mode-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  transition: all 0.2s ease;
+}
+
+.view-mode-button:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+
+.view-mode-button.active {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--saas-purple));
+}
+
+.dark .view-mode-button:hover {
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+
+.dark .view-mode-button.active {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--saas-purple));
+}
+
+/* Стили для нумерованных списков внутри prose */
+.prose ol {
+    list-style-type: decimal !important;
+    padding-left: 1.5rem !important;
+}
+.prose ol > li::before {
+    content: "" !important;
+    display: none !important;
+}
+
+/* Улучшенные стили для карточек */
+.post-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--border-radius-lg);
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.post-card:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.dark .post-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+.dark .post-card:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.25);
+}

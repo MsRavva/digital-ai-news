@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { Check, Copy } from 'lucide-react'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
+import { Check, Copy } from "lucide-react"
+import React, { useState } from "react"
+import { toast } from "sonner"
 
 interface CodeBlockProps {
   code: string
@@ -17,17 +17,13 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
     setCopied(true)
-    toast.success('Код скопирован в буфер обмена')
+    toast.success("Код скопирован в буфер обмена")
     setTimeout(() => setCopied(false), 2000)
   }
 
   return (
-    <div className={cn('code-block', className)}>
-      {language && (
-        <div className="language-label">
-          {language}
-        </div>
-      )}
+    <div className={cn("code-block", className)}>
+      {language && <div className="language-label">{language}</div>}
       <pre>
         <button
           onClick={handleCopy}
@@ -40,9 +36,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
             <Copy className="h-4 w-4" />
           )}
         </button>
-        <code className={language ? `language-${language}` : ''}>
-          {code}
-        </code>
+        <code className={language ? `language-${language}` : ""}>{code}</code>
       </pre>
     </div>
   )

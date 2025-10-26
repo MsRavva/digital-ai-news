@@ -1,19 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command"
+import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { useEffect, useState } from "react"
 
 const categories = [
   { value: "all", label: "Все категории" },
@@ -23,16 +19,19 @@ const categories = [
 ]
 
 interface CategoryFilterProps {
-  onCategoryChange: (category: string) => void;
-  initialCategory?: string;
+  onCategoryChange: (category: string) => void
+  initialCategory?: string
 }
 
-export function CategoryFilter({ onCategoryChange, initialCategory }: CategoryFilterProps) {
+export function CategoryFilter({
+  onCategoryChange,
+  initialCategory,
+}: CategoryFilterProps) {
   const [open, setOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(() => {
     // Если передана начальная категория, используем её
     if (initialCategory) {
-      return initialCategory;
+      return initialCategory
     }
 
     // Иначе пытаемся получить сохраненную категорию из localStorage
@@ -53,27 +52,32 @@ export function CategoryFilter({ onCategoryChange, initialCategory }: CategoryFi
 
   // Эффект для инициализации выбранной категории при монтировании
   useEffect(() => {
-    console.log('CategoryFilter: Инициализация с категорией', selectedCategory);
-    onCategoryChange(selectedCategory);
-  }, []);
+    console.log("CategoryFilter: Инициализация с категорией", selectedCategory)
+    onCategoryChange(selectedCategory)
+  }, [])
 
   // Эффект для обновления выбранной категории при изменении initialCategory
   useEffect(() => {
     if (initialCategory && initialCategory !== selectedCategory) {
-      console.log('CategoryFilter: Обновление категории с', selectedCategory, 'на', initialCategory);
-      setSelectedCategory(initialCategory);
+      console.log(
+        "CategoryFilter: Обновление категории с",
+        selectedCategory,
+        "на",
+        initialCategory,
+      )
+      setSelectedCategory(initialCategory)
     }
-  }, [initialCategory]);
+  }, [initialCategory])
 
   const handleCategorySelect = (currentValue: string) => {
-    console.log('CategoryFilter: Выбрана категория', currentValue);
-    setSelectedCategory(currentValue);
-    setOpen(false);
-    onCategoryChange(currentValue);
+    console.log("CategoryFilter: Выбрана категория", currentValue)
+    setSelectedCategory(currentValue)
+    setOpen(false)
+    onCategoryChange(currentValue)
   }
 
   const selectedCategoryLabel = categories.find(
-    (category) => category.value === selectedCategory
+    (category) => category.value === selectedCategory,
   )?.label
 
   return (
@@ -97,12 +101,14 @@ export function CategoryFilter({ onCategoryChange, initialCategory }: CategoryFi
                 key={category.value}
                 value={category.value}
                 onSelect={handleCategorySelect}
-                className={`px-3 py-1.5 ${selectedCategory === category.value ? 'bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))]' : 'dark:text-white dark:hover:bg-[#2a2c35]'}`}
+                className={`px-3 py-1.5 ${selectedCategory === category.value ? "bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))]" : "dark:text-white dark:hover:bg-[#2a2c35]"}`}
               >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    selectedCategory === category.value ? "opacity-100 text-[hsl(var(--saas-purple))] dark:text-[hsl(var(--saas-purple-light))]" : "opacity-0"
+                    selectedCategory === category.value
+                      ? "opacity-100 text-[hsl(var(--saas-purple))] dark:text-[hsl(var(--saas-purple-light))]"
+                      : "opacity-0",
                   )}
                 />
                 {category.label}

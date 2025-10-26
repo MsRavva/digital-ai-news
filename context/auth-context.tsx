@@ -2,26 +2,51 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { User as FirebaseUser } from "firebase/auth"
-import type { Profile } from "@/types/database"
-import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, getUserProfile, updateUserProfile as firebaseUpdateUserProfile, subscribeToAuthChanges, signInWithGoogle as firebaseSignInWithGoogle, signInWithGithub as firebaseSignInWithGithub, getRedirectResult } from "@/lib/firebase-auth"
-import { validateUsername } from "@/lib/validation"
 import { useToast } from "@/components/ui/use-toast"
+import {
+  signIn as firebaseSignIn,
+  signInWithGithub as firebaseSignInWithGithub,
+  signInWithGoogle as firebaseSignInWithGoogle,
+  signOut as firebaseSignOut,
+  signUp as firebaseSignUp,
+  updateUserProfile as firebaseUpdateUserProfile,
+  getRedirectResult,
+  getUserProfile,
+  subscribeToAuthChanges,
+} from "@/lib/firebase-auth"
+import { validateUsername } from "@/lib/validation"
+import type { Profile } from "@/types/database"
+import type { User as FirebaseUser } from "firebase/auth"
+import { useRouter } from "next/navigation"
+import { createContext, useContext, useEffect, useState } from "react"
 
 // Проверка, что код выполняется в браузере
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined"
 
 interface AuthContextType {
   user: FirebaseUser | null
   profile: Profile | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, username: string, role?: string) => Promise<{ error: any }>
-  signInWithGoogle: () => Promise<{ user: FirebaseUser | null, error: any, profile: Profile | null }>
-  signInWithGithub: () => Promise<{ user: FirebaseUser | null, error: any, profile: Profile | null }>
-  updateProfile: (profileData: Partial<Profile>) => Promise<{ success: boolean; error: any }>
+  signUp: (
+    email: string,
+    password: string,
+    username: string,
+    role?: string,
+  ) => Promise<{ error: any }>
+  signInWithGoogle: () => Promise<{
+    user: FirebaseUser | null
+    error: any
+    profile: Profile | null
+  }>
+  signInWithGithub: () => Promise<{
+    user: FirebaseUser | null
+    error: any
+    profile: Profile | null
+  }>
+  updateProfile: (
+    profileData: Partial<Profile>,
+  ) => Promise<{ success: boolean; error: any }>
   signOut: () => Promise<void>
 }
 
@@ -43,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Пожалуйста, введите корректные Имя и Фамилию",
         duration: 5000,
       })
-      router.push('/profile?update=username')
+      router.push("/profile?update=username")
       setNeedsProfileUpdate(false)
     }
   }, [needsProfileUpdate, profile, isLoading, router, toast])
@@ -51,50 +76,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Выполняем только на клиенте
     if (!isBrowser) {
-      return;
+      return
     }
 
     // Проверяем результат редиректа после аутентификации
     const checkRedirectResult = async () => {
       try {
-        const { user, error } = await getRedirectResult();
+        const { user, error } = await getRedirectResult()
 
         if (error) {
-          console.error("Redirect result error:", error);
-          return;
+          console.error("Redirect result error:", error)
+          return
         }
 
         if (user) {
           // Пользователь успешно аутентифицирован через редирект
-          const userProfile = await getUserProfile(user.uid);
+          const userProfile = await getUserProfile(user.uid)
 
           // Проверяем имя пользователя на соответствие требованиям
           if (userProfile && userProfile.username) {
-            const usernameError = validateUsername(userProfile.username);
+            const usernameError = validateUsername(userProfile.username)
             if (usernameError) {
               // Если имя пользователя не соответствует требованиям, перенаправляем на страницу профиля
               toast({
                 title: "Пожалуйста, обновите ваш профиль",
                 description: "Пожалуйста, введите корректные Имя и Фамилию",
                 duration: 5000,
-              });
-              router.push('/profile?update=username');
+              })
+              router.push("/profile?update=username")
             } else {
               // Если имя пользователя соответствует требованиям, перенаправляем на главную страницу
-              router.push('/');
+              router.push("/")
             }
           } else {
             // Если профиля нет, перенаправляем на главную страницу
-            router.push('/');
+            router.push("/")
           }
         }
       } catch (error) {
-        console.error("Error checking redirect result:", error);
+        console.error("Error checking redirect result:", error)
       }
-    };
+    }
 
     // Проверяем результат редиректа
-    checkRedirectResult();
+    checkRedirectResult()
 
     // Подписываемся на изменения состояния аутентификации
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
@@ -107,9 +132,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Проверяем имя пользователя на соответствие требованиям
         if (userProfile && userProfile.username) {
-          const usernameError = validateUsername(userProfile.username);
+          const usernameError = validateUsername(userProfile.username)
           if (usernameError) {
-            setNeedsProfileUpdate(true);
+            setNeedsProfileUpdate(true)
           }
         }
       } else {
@@ -131,26 +156,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error }
   }
 
-  const signUp = async (email: string, password: string, username: string, role: string = "student") => {
+  const signUp = async (
+    email: string,
+    password: string,
+    username: string,
+    role = "student",
+  ) => {
     // Всегда используем роль student независимо от переданного значения
-    const { user, error } = await firebaseSignUp(email, password, username, "student")
+    const { user, error } = await firebaseSignUp(
+      email,
+      password,
+      username,
+      "student",
+    )
     return { error }
   }
 
   const signInWithGoogle = async () => {
     const { user, error } = await firebaseSignInWithGoogle()
-    let profile = null;
+    let profile = null
     if (user) {
-      profile = await getUserProfile(user.uid);
+      profile = await getUserProfile(user.uid)
     }
     return { user, error, profile }
   }
 
   const signInWithGithub = async () => {
     const { user, error } = await firebaseSignInWithGithub()
-    let profile = null;
+    let profile = null
     if (user) {
-      profile = await getUserProfile(user.uid);
+      profile = await getUserProfile(user.uid)
     }
     return { user, error, profile }
   }
@@ -176,7 +211,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, isLoading, signIn, signUp, signInWithGoogle, signInWithGithub, updateProfile, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        isLoading,
+        signIn,
+        signUp,
+        signInWithGoogle,
+        signInWithGithub,
+        updateProfile,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

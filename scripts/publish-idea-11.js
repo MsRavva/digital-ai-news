@@ -1,43 +1,43 @@
 // Скрипт для публикации идеи проекта
-const admin = require('firebase-admin');
-const fs = require('fs');
-const path = require('path');
+const admin = require("firebase-admin")
+const fs = require("fs")
+const path = require("path")
 
 // Инициализируем Firebase Admin SDK
-const serviceAccount = require('../serviceAccountKey.json');
+const serviceAccount = require("../serviceAccountKey.json")
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+  credential: admin.credential.cert(serviceAccount),
+})
 
 // Получаем ссылку на Firestore
-const db = admin.firestore();
+const db = admin.firestore()
 
 // Функция для публикации идеи проекта
 async function publishProjectIdea(filePath) {
   try {
-    console.log(`Публикация идеи проекта из файла: ${filePath}`);
-    
+    console.log(`Публикация идеи проекта из файла: ${filePath}`)
+
     // Чтение содержимого файла
-    const content = fs.readFileSync(filePath, 'utf8');
-    
+    const content = fs.readFileSync(filePath, "utf8")
+
     // Извлечение заголовка (первая строка, начинающаяся с #)
-    const titleMatch = content.match(/^# (.+)$/m);
-    const title = titleMatch ? titleMatch[1].trim() : 'Без заголовка';
-    
+    const titleMatch = content.match(/^# (.+)$/m)
+    const title = titleMatch ? titleMatch[1].trim() : "Без заголовка"
+
     // Извлечение описания (первый абзац после введения)
-    const descriptionMatch = content.match(/## Описание проекта\s+([^#]+)/);
-    const description = descriptionMatch 
-      ? descriptionMatch[1].trim().split('\n\n')[0] 
-      : 'Без описания';
-    
+    const descriptionMatch = content.match(/## Описание проекта\s+([^#]+)/)
+    const description = descriptionMatch
+      ? descriptionMatch[1].trim().split("\n\n")[0]
+      : "Без описания"
+
     // Извлечение тегов
-    const tagsMatch = content.match(/\*\*Теги\*\*: (.+)/);
-    const tagsString = tagsMatch ? tagsMatch[1].trim() : '';
+    const tagsMatch = content.match(/\*\*Теги\*\*: (.+)/)
+    const tagsString = tagsMatch ? tagsMatch[1].trim() : ""
     const tags = tagsString
       .split(/[,\s#]+/)
-      .filter(tag => tag.length > 0)
-      .map(tag => tag.trim());
-    
+      .filter((tag) => tag.length > 0)
+      .map((tag) => tag.trim())
+
     // Создание документа публикации
     const postData = {
       title: title,
@@ -52,34 +52,37 @@ async function publishProjectIdea(filePath) {
       comments: 0,
       archived: false,
       pinned: false,
-      tags: tags
-    };
+      tags: tags,
+    }
 
     // Добавление документа в коллекцию posts
-    const docRef = await db.collection('posts').add(postData);
-    console.log(`Опубликована идея проекта: ${title} (ID: ${docRef.id})`);
+    const docRef = await db.collection("posts").add(postData)
+    console.log(`Опубликована идея проекта: ${title} (ID: ${docRef.id})`)
 
-    return docRef.id;
+    return docRef.id
   } catch (error) {
-    console.error(`Ошибка при публикации идеи проекта из файла ${filePath}:`, error);
-    return null;
+    console.error(
+      `Ошибка при публикации идеи проекта из файла ${filePath}:`,
+      error,
+    )
+    return null
   }
 }
 
 // Путь к файлу с идеей
-const ideaFilePath = path.join(__dirname, '../publications/idea-11-22.04.25.md');
+const ideaFilePath = path.join(__dirname, "../publications/idea-11-22.04.25.md")
 
 // Публикация идеи
 publishProjectIdea(ideaFilePath)
   .then((postId) => {
     if (postId) {
-      console.log(`Идея проекта успешно опубликована с ID: ${postId}`);
+      console.log(`Идея проекта успешно опубликована с ID: ${postId}`)
     } else {
-      console.error('Не удалось опубликовать идею проекта');
+      console.error("Не удалось опубликовать идею проекта")
     }
-    process.exit(0);
+    process.exit(0)
   })
   .catch((error) => {
-    console.error('Ошибка при выполнении скрипта:', error);
-    process.exit(1);
-  });
+    console.error("Ошибка при выполнении скрипта:", error)
+    process.exit(1)
+  })

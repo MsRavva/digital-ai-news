@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import { useEffect, useRef, useCallback } from 'react'
-import { usePaginatedPosts } from '@/lib/hooks/usePaginatedPosts'
-import { PostCard } from './post-card'
-import { Skeleton } from './ui/skeleton'
-import { useInView } from 'react-intersection-observer'
+import { usePaginatedPosts } from "@/lib/hooks/usePaginatedPosts"
+import { useCallback, useEffect, useRef } from "react"
+import { useInView } from "react-intersection-observer"
+import { PostCard } from "./post-card"
+import { Skeleton } from "./ui/skeleton"
 
 interface InfinitePostsListProps {
   category?: string
@@ -22,8 +22,8 @@ export function InfinitePostsList({
   tag,
   initialLimit = 10,
   includeArchived = false,
-  searchQuery = '',
-  archivedOnly = false
+  searchQuery = "",
+  archivedOnly = false,
 }: InfinitePostsListProps) {
   const { posts, loading, error, hasMore, loadMorePosts } = usePaginatedPosts({
     initialLimit,
@@ -31,31 +31,34 @@ export function InfinitePostsList({
     authorId,
     tag,
     includeArchived,
-    archivedOnly
+    archivedOnly,
   })
 
   // Фильтрация постов по поисковому запросу и флагу archived
-  let filteredPosts = posts;
+  let filteredPosts = posts
   if (archivedOnly) {
-    filteredPosts = filteredPosts.filter(post => post.archived === true);
+    filteredPosts = filteredPosts.filter((post) => post.archived === true)
   } else if (includeArchived) {
     // показываем все (архивные и неархивные)
   } else {
-    filteredPosts = filteredPosts.filter(post => !post.archived);
+    filteredPosts = filteredPosts.filter((post) => !post.archived)
   }
   if (searchQuery) {
-    filteredPosts = filteredPosts.filter(post =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    filteredPosts = filteredPosts.filter(
+      (post) =>
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tags?.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase()),
+        ) ||
+        post.author?.username.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
   }
 
   // Используем react-intersection-observer для определения, когда пользователь прокрутил до конца списка
   const { ref, inView } = useInView({
     threshold: 0,
-    rootMargin: '100px',
+    rootMargin: "100px",
   })
 
   // Загружаем больше постов, когда пользователь прокрутил до конца списка
@@ -74,18 +77,26 @@ export function InfinitePostsList({
   }
 
   return (
-    <div className="card-grid">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredPosts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <div key={post.id} className="h-full">
+          <PostCard key={post.id} post={post} />
+        </div>
       ))}
 
       {/* Индикатор загрузки или конца списка */}
       {loading ? (
         <div className="col-span-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <PostCardSkeleton />
-            <PostCardSkeleton />
-            <PostCardSkeleton />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="h-full">
+              <PostCardSkeleton />
+            </div>
+            <div className="h-full">
+              <PostCardSkeleton />
+            </div>
+            <div className="h-full">
+              <PostCardSkeleton />
+            </div>
           </div>
         </div>
       ) : hasMore && !searchQuery ? (
@@ -94,11 +105,13 @@ export function InfinitePostsList({
         <div ref={ref} className="h-10 col-span-full" />
       ) : filteredPosts.length > 0 ? (
         <div className="text-center text-muted-foreground p-4 col-span-full">
-          {searchQuery ? 'Конец результатов поиска' : 'Больше публикаций нет'}
+          {searchQuery ? "Конец результатов поиска" : "Больше публикаций нет"}
         </div>
       ) : (
         <div className="text-center text-muted-foreground p-4 col-span-full">
-          {searchQuery ? 'По вашему запросу ничего не найдено' : 'Публикации не найдены'}
+          {searchQuery
+            ? "По вашему запросу ничего не найдено"
+            : "Публикации не найдены"}
         </div>
       )}
     </div>
@@ -108,7 +121,7 @@ export function InfinitePostsList({
 // Скелетон для карточки публикации
 function PostCardSkeleton() {
   return (
-    <div className="post-card p-6 rounded-lg w-full">
+    <div className="post-card p-6 rounded-lg w-full h-full flex flex-col bg-card border border-border">
       <div className="w-full">
         <div className="flex items-center justify-between w-full mb-4">
           <div className="flex flex-col gap-1">
@@ -123,16 +136,18 @@ function PostCardSkeleton() {
           </div>
           <Skeleton className="h-5 w-5 rounded-full" />
         </div>
-        <div className="w-full">
+        <div className="flex-grow">
           <Skeleton className="h-6 w-3/4 mt-3" />
           <Skeleton className="h-4 w-full mt-2" />
           <Skeleton className="h-4 w-full mt-1" />
-          <div className="flex flex-wrap gap-2 mt-4 w-full">
+        </div>
+        <div className="flex justify-between items-end mt-4 w-full">
+          <div className="flex flex-wrap gap-2">
             <Skeleton className="h-6 w-16" />
             <Skeleton className="h-6 w-16" />
             <Skeleton className="h-6 w-16" />
           </div>
-          <div className="flex items-center gap-6 mt-4 w-full">
+          <div className="flex items-center gap-4 text-sm">
             <Skeleton className="h-5 w-16" />
             <Skeleton className="h-5 w-16" />
             <Skeleton className="h-5 w-16" />

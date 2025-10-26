@@ -1,12 +1,6 @@
 "use client"
 
-import Link from "next/link"
-import { useTheme } from "next-themes"
-import { Moon, Sun, Newspaper } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useEffect, useState } from "react"
-import { useAuth } from "@/context/auth-context"
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { useAuth } from "@/context/auth-context"
+import { Moon, Newspaper, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
+import Link from "next/link"
+import { useEffect, useState } from "react"
 
 export function AuthHeader() {
   const { setTheme, theme, resolvedTheme } = useTheme()
@@ -32,16 +32,28 @@ export function AuthHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-sm dark:bg-[#090b0d]/90 dark:border-[#181c22]">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-sm dark:bg-background/90 dark:border-border">
       <div className="w-[75%] mx-auto flex h-16 items-center justify-between">
         <div className="flex-1 flex items-center">
-          <Link href="/" className="font-bold text-xl flex items-center group mr-8">
+          <Link
+            href="/"
+            className="font-bold text-xl flex items-center group mr-8"
+          >
             <div className="relative mr-3 group-hover:scale-110 transition-transform duration-200">
-              <img src="/newspaper-icon.svg" alt="AI News Logo" width="40" height="40" />
+              <img
+                src="/newspaper-icon.svg"
+                alt="AI News Logo"
+                width="40"
+                height="40"
+              />
             </div>
             <div className="flex items-center">
-              <span className="bg-[radial-gradient(circle_at_center,_#3b82f6_0%,_hsl(var(--saas-purple))_100%)] bg-clip-text text-transparent font-extrabold">AI</span>
-              <span className="ml-1.5 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">News</span>
+              <span className="bg-[radial-gradient(circle_at_center,_#3b82f6_0%,_hsl(var(--saas-purple))_100%)] bg-clip-text text-transparent font-extrabold">
+                AI
+              </span>
+              <span className="ml-1.5 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                News
+              </span>
             </div>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
@@ -62,23 +74,34 @@ export function AuthHeader() {
               className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
               onClick={toggleTheme}
             >
-              {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {resolvedTheme === "dark" ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
             </Button>
           )}
 
           {!user || !profile ? (
             <div className="flex items-center space-x-4">
               <Link href="/login">
-                <Button variant="saas" size="sm">Войти</Button>
+                <Button variant="saas" size="sm">
+                  Войти
+                </Button>
               </Link>
               <Link href="/register">
-                <Button variant="saas-secondary" size="sm">Регистрация</Button>
+                <Button variant="saas-secondary" size="sm">
+                  Регистрация
+                </Button>
               </Link>
             </div>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-10 px-3 transition-all duration-200 flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-10 px-3 transition-all duration-200 flex items-center gap-2"
+                >
                   <SimpleAvatar username={profile.username} size="sm" />
                   <span className="text-[hsl(var(--saas-purple))] font-bold">
                     {profile.username}
@@ -88,8 +111,12 @@ export function AuthHeader() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">{profile.username}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    <p className="text-sm font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+                      {profile.username}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />

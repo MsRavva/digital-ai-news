@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
 
 const categories = [
   { id: "news", name: "Новости" },
@@ -25,8 +25,10 @@ export function TagsFilter({ tags }: TagsFilterProps) {
   const selectedCategories = searchParams.get("categories")?.split(",") || []
   const selectedTags = searchParams.get("tags")?.split(",") || []
 
-  const [selectedCategoriesState, setSelectedCategoriesState] = useState<string[]>(selectedCategories)
-  const [selectedTagsState, setSelectedTagsState] = useState<string[]>(selectedTags)
+  const [selectedCategoriesState, setSelectedCategoriesState] =
+    useState<string[]>(selectedCategories)
+  const [selectedTagsState, setSelectedTagsState] =
+    useState<string[]>(selectedTags)
 
   const handleCategoryChange = (category: string, checked: boolean) => {
     let newCategories: string[]
@@ -73,7 +75,9 @@ export function TagsFilter({ tags }: TagsFilterProps) {
     <div className="space-y-6">
       <Card variant="border" className="overflow-hidden">
         <CardHeader className="pb-3 bg-[hsl(var(--saas-purple)/0.03)]">
-          <CardTitle className="text-base font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">Категории</CardTitle>
+          <CardTitle className="text-base font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+            Категории
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="space-y-4">
@@ -82,10 +86,15 @@ export function TagsFilter({ tags }: TagsFilterProps) {
                 <Checkbox
                   id={`category-${category.id}`}
                   checked={selectedCategoriesState.includes(category.id)}
-                  onCheckedChange={(checked) => handleCategoryChange(category.id, checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    handleCategoryChange(category.id, checked as boolean)
+                  }
                   className="text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] data-[state=checked]:bg-[hsl(var(--saas-purple))] data-[state=checked]:border-[hsl(var(--saas-purple))] h-4 w-4"
                 />
-                <Label htmlFor={`category-${category.id}`} className="text-sm font-normal cursor-pointer">
+                <Label
+                  htmlFor={`category-${category.id}`}
+                  className="text-sm font-normal cursor-pointer"
+                >
                   {category.name}
                 </Label>
               </div>
@@ -96,7 +105,9 @@ export function TagsFilter({ tags }: TagsFilterProps) {
 
       <Card variant="border" className="overflow-hidden">
         <CardHeader className="pb-3 bg-[hsl(var(--saas-purple)/0.03)]">
-          <CardTitle className="text-base font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">Популярные теги</CardTitle>
+          <CardTitle className="text-base font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+            Популярные теги
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="flex flex-wrap gap-2">

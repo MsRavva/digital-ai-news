@@ -1,49 +1,58 @@
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { Badge } from "@/components/ui/badge"
-import { MessageSquare, ThumbsUp, Eye, MoreHorizontal, Pencil } from "lucide-react"
-import Link from "next/link"
-import type { Post } from "@/types/database"
-import { useAuth } from "@/context/auth-context"
-import { useState, useEffect } from "react"
-import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { DeletePostButton } from "@/components/delete-post-button"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
+import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/context/auth-context"
+import type { Post } from "@/types/database"
+import {
+  Eye,
+  MessageSquare,
+  MoreHorizontal,
+  Pencil,
+  ThumbsUp,
+} from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface PostsListProps {
   posts: Post[]
 }
 
 export function PostsList({ posts: initialPosts }: PostsListProps) {
-  const { profile } = useAuth();
-  const { toast } = useToast();
-  const router = useRouter();
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const { profile } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [posts, setPosts] = useState<Post[]>(initialPosts)
 
   // Проверка, имеет ли пользователь права на удаление (учитель или админ)
-  const canDelete = profile?.role === "teacher" || profile?.role === "admin";
+  const canDelete = profile?.role === "teacher" || profile?.role === "admin"
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = (post: Post) => {
-    if (!profile) return false;
-    return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
-  };
+    if (!profile) return false
+    return (
+      profile.role === "teacher" ||
+      profile.role === "admin" ||
+      post.author?.username === profile.username
+    )
+  }
 
   // Обновляем список постов при изменении initialPosts
   useEffect(() => {
-    setPosts(initialPosts);
-  }, [initialPosts]);
+    setPosts(initialPosts)
+  }, [initialPosts])
 
   // Проверяем, что posts не undefined, не null и является массивом
   if (!posts || !Array.isArray(posts) || posts.length === 0) {
-    console.log('Нет публикаций для отображения:', posts);
+    console.log("Нет публикаций для отображения:", posts)
     return (
       <div className="p-8 text-center">
         <p className="text-muted-foreground">Публикации не найдены</p>
@@ -51,117 +60,135 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
     )
   }
 
-
-
   return (
-    <div className="card-grid">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {posts.map((post) => (
-          <div key={post.id} className="relative">
-            <Link href={`/posts/${post.id}`}>
-              <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg w-full">
-                <div className="w-full">
-                  <div className="flex items-center justify-between w-full mb-4">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-shrink-0 mr-1">
-                          <SimpleAvatar username={post.author?.username} size="md" />
-                        </div>
-                        <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))] whitespace-nowrap">
-                          {post.author?.username}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 ml-1">
-                        <Badge
-                          variant="outline"
-                          className="bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
-                        >
-                          {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString("ru-RU")}
-                        </span>
-                      </div>
+        <div key={post.id} className="h-full">
+          <Link href={`/posts/${post.id}`}>
+            <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg w-full h-full flex flex-col bg-card border border-border hover:shadow-md hover:-translate-y-1">
+              <div className="flex items-center justify-between w-full mb-4">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-shrink-0 mr-1">
+                      <SimpleAvatar
+                        username={post.author?.username}
+                        size="md"
+                      />
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                        <button className="text-muted-foreground hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                          <MoreHorizontal className="h-5 w-5" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {canEdit(post) && (
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              router.push(`/edit/${post.id}`);
-                            }}
-                            className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] focus:text-[hsl(var(--saas-purple-dark))] cursor-pointer"
-                          >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Редактировать
-                          </DropdownMenuItem>
-                        )}
-                        {canDelete && (
-                          <DropdownMenuItem
-                            onSelect={(e) => e.preventDefault()}
-                            className="text-red-500 hover:text-red-700 focus:text-red-700 cursor-pointer p-0"
-                          >
-                            <DeletePostButton
-                              postId={post.id}
-                              onSuccess={() => {
-                                // Удаляем пост из локального состояния
-                                setPosts(posts.filter(p => p.id !== post.id));
-                              }}
-                              variant="ghost"
-                              showIcon={true}
-                              showText={true}
-                              className="w-full justify-start px-2 py-1.5 text-red-500 hover:text-red-700"
-                            />
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))] whitespace-nowrap">
+                      {post.author?.username}
+                    </span>
                   </div>
-                  <div className="w-full">
-                    <h3 className="text-xl font-semibold mt-3 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200 w-full">
-                      {post.title}
-                    </h3>
-                    <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
-                      <div className="prose dark:prose-invert prose-sm max-w-none">
-                        {post.content.length > 150
-                          ? post.content.substring(0, 150) + '...'
-                          : post.content
-                        }
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-4 w-full">
-                      {post.tags?.map((tag) => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground w-full">
-                      <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                        <MessageSquare className="h-4 w-4" />
-                        <span>{post.commentsCount}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                        <ThumbsUp className="h-4 w-4" />
-                        <span>{post.likesCount}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
-                        <Eye className="h-4 w-4" />
-                        <span>{post.viewsCount}</span>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 ml-1">
+                    <Badge
+                      variant="outline"
+                      className="bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)]"
+                    >
+                      {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(post.created_at).toLocaleDateString("ru-RU")}
+                    </span>
+                  </div>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    asChild
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <button className="text-muted-foreground hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                      <MoreHorizontal className="h-5 w-5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canEdit(post) && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          router.push(`/edit/${post.id}`)
+                        }}
+                        className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] focus:text-[hsl(var(--saas-purple-dark))] cursor-pointer"
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Редактировать
+                      </DropdownMenuItem>
+                    )}
+                    {canDelete && (
+                      <DropdownMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-red-500 hover:text-red-700 focus:text-red-700 cursor-pointer p-0"
+                      >
+                        <DeletePostButton
+                          postId={post.id}
+                          onSuccess={() => {
+                            // Удаляем пост из локального состояния
+                            setPosts(posts.filter((p) => p.id !== post.id))
+                          }}
+                          variant="ghost"
+                          showIcon={true}
+                          showText={true}
+                          className="w-full justify-start px-2 py-1.5 text-red-500 hover:text-red-700"
+                        />
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="flex-grow">
+                <h3 className="text-xl font-semibold mt-3 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200 w-full">
+                  {post.title}
+                </h3>
+                <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
+                  <div className="prose dark:prose-invert prose-sm max-w-none">
+                    {post.content.length > 150
+                      ? post.content.substring(0, 150) + "..."
+                      : post.content}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4 w-full">
+                  {post.tags?.map((tag) => (
+                    <Badge 
+                      key={tag} 
+                      variant="outline"
+                      className="bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between items-end mt-4 w-full">
+                <div className="flex flex-wrap gap-2">
+                  {post.tags?.map((tag) => (
+                    <Badge 
+                      key={tag} 
+                      variant="outline"
+                      className="bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)]"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{post.commentsCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                    <ThumbsUp className="h-4 w-4" />
+                    <span>{post.likesCount}</span>
+                  </div>
+                  <div className="flex items-center gap-1 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                    <Eye className="h-4 w-4" />
+                    <span>{post.viewsCount}</span>
                   </div>
                 </div>
               </div>
-            </Link>
-          </div>
-        ))}
+            </div>
+          </Link>
+        </div>
+      ))}
     </div>
   )
 }

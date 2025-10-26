@@ -1,26 +1,26 @@
-'use client'
- 
-import React, { useState } from 'react'
-import { Check, Copy } from 'lucide-react'
-import { toast } from 'sonner'
-import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'
-import js from 'react-syntax-highlighter/dist/cjs/languages/hljs/javascript'
-import python from 'react-syntax-highlighter/dist/cjs/languages/hljs/python'
-import html from 'react-syntax-highlighter/dist/cjs/languages/hljs/xml'
-import css from 'react-syntax-highlighter/dist/cjs/languages/hljs/css'
-import json from 'react-syntax-highlighter/dist/cjs/languages/hljs/json'
-import bash from 'react-syntax-highlighter/dist/cjs/languages/hljs/bash'
-import markdown from 'react-syntax-highlighter/dist/cjs/languages/hljs/markdown'
-import { githubGist } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
+"use client"
+
+import { Check, Copy } from "lucide-react"
+import React, { useState } from "react"
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
+import bash from "react-syntax-highlighter/dist/cjs/languages/hljs/bash"
+import css from "react-syntax-highlighter/dist/cjs/languages/hljs/css"
+import js from "react-syntax-highlighter/dist/cjs/languages/hljs/javascript"
+import json from "react-syntax-highlighter/dist/cjs/languages/hljs/json"
+import markdown from "react-syntax-highlighter/dist/cjs/languages/hljs/markdown"
+import python from "react-syntax-highlighter/dist/cjs/languages/hljs/python"
+import html from "react-syntax-highlighter/dist/cjs/languages/hljs/xml"
+import { githubGist } from "react-syntax-highlighter/dist/cjs/styles/hljs"
+import { toast } from "sonner"
 
 // Регистрируем языки
-SyntaxHighlighter.registerLanguage('javascript', js)
-SyntaxHighlighter.registerLanguage('python', python)
-SyntaxHighlighter.registerLanguage('html', html)
-SyntaxHighlighter.registerLanguage('css', css)
-SyntaxHighlighter.registerLanguage('json', json)
-SyntaxHighlighter.registerLanguage('bash', bash)
-SyntaxHighlighter.registerLanguage('markdown', markdown)
+SyntaxHighlighter.registerLanguage("javascript", js)
+SyntaxHighlighter.registerLanguage("python", python)
+SyntaxHighlighter.registerLanguage("html", html)
+SyntaxHighlighter.registerLanguage("css", css)
+SyntaxHighlighter.registerLanguage("json", json)
+SyntaxHighlighter.registerLanguage("bash", bash)
+SyntaxHighlighter.registerLanguage("markdown", markdown)
 
 interface EnhancedCodeBlockProps {
   code: string
@@ -28,18 +28,22 @@ interface EnhancedCodeBlockProps {
   className?: string
 }
 
-export function EnhancedCodeBlock({ code, language = 'text', className }: EnhancedCodeBlockProps) {
+export function EnhancedCodeBlock({
+  code,
+  language = "text",
+  className,
+}: EnhancedCodeBlockProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
     setCopied(true)
-    toast.success('Код скопирован в буфер обмена')
+    toast.success("Код скопирован в буфер обмена")
     setTimeout(() => setCopied(false), 2000)
   }
 
   // Определяем язык для подсветки
-  const highlightLanguage = language === 'text' ? undefined : language
+  const highlightLanguage = language === "text" ? undefined : language
 
   return (
     <div className={`relative rounded-md overflow-hidden my-4 ${className}`}>
@@ -61,11 +65,11 @@ export function EnhancedCodeBlock({ code, language = 'text', className }: Enhanc
         style={githubGist}
         customStyle={{
           margin: 0,
-          borderRadius: '0.375rem',
-          fontSize: '0.875rem',
+          borderRadius: "0.375rem",
+          fontSize: "0.875rem",
         }}
         codeTagProps={{
-          className: 'font-mono',
+          className: "font-sans",
         }}
         showLineNumbers={false}
       >

@@ -1,6 +1,6 @@
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageSquare, Eye } from "lucide-react"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { Eye, MessageSquare } from "lucide-react"
 import Link from "next/link"
 
 type ForumTopic = {
@@ -135,13 +135,23 @@ export function ForumTopicsList({ filter }: ForumTopicsListProps) {
                   </div>
                   {topic.lastReply && (
                     <div className="flex items-center gap-2">
-                      <SimpleAvatar username={topic.lastReply.author.name} size="sm" />
+                      <SimpleAvatar
+                        username={topic.lastReply.author.name}
+                        size="sm"
+                      />
                       <div className="text-xs">
-                        <span className="text-muted-foreground">Последний ответ от </span>
-                        <span className="font-medium">{topic.lastReply.author.name}</span>
+                        <span className="text-muted-foreground">
+                          Последний ответ от{" "}
+                        </span>
+                        <span className="font-medium">
+                          {topic.lastReply.author.name}
+                        </span>
                         <span className="text-muted-foreground">
                           {" "}
-                          · {new Date(topic.lastReply.date).toLocaleDateString("ru-RU")}
+                          ·{" "}
+                          {new Date(topic.lastReply.date).toLocaleDateString(
+                            "ru-RU",
+                          )}
                         </span>
                       </div>
                     </div>

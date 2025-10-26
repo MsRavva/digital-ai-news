@@ -1,9 +1,11 @@
-'use client'
+"use client"
 
-import React, { useEffect, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { codeToHtml } from 'shiki'
+import type React from "react"
+import { useEffect, useState } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { codeToHtml } from "shiki"
+import { useTheme } from "next-themes"
 
 interface CodeBlockProps {
   code: string
@@ -13,51 +15,191 @@ interface CodeBlockProps {
 const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
   const [html, setHtml] = useState<string | null>(null)
   const [error, setError] = useState<boolean>(false)
+  const [copied, setCopied] = useState(false)
+  const { theme } = useTheme()
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   useEffect(() => {
     const highlightCode = async () => {
       try {
+        // Явно указываем доступную тему и язык для избежания использования css-variables
+        const codeLang = language && language !== 'text' ? language : 'plaintext';
         const highlightedHtml = await codeToHtml(code, {
-          lang: language,
-          theme: 'github-dark'
+          lang: codeLang,
+          theme: 'github-light',
         })
         setHtml(highlightedHtml)
       } catch (err) {
-        console.error('Error highlighting code:', err)
-        setError(true)
+        console.error("Error highlighting code with github-light theme:", err)
+        // Если github-light недоступна, используем другую тему
+        try {
+          const codeLang = language && language !== 'text' ? language : 'plaintext';
+          const highlightedHtml = await codeToHtml(code, {
+            lang: codeLang,
+            theme: 'min-light',
+          })
+          setHtml(highlightedHtml)
+        } catch (fallbackErr) {
+          console.error("Fallback error highlighting code:", fallbackErr)
+          setError(true)
+        }
       }
     }
 
-    if (code && language) {
+    // Если language === 'text' или undefined, отображаем как обычный код без подсветки
+    if (!language || language === 'text') {
+      setHtml(null); // Просто отображаем как обычный код
+    } else if (code && language) {
       highlightCode()
     }
   }, [code, language])
 
   if (error) {
     return (
-      <pre className="p-4 my-4 bg-gray-800 rounded-md overflow-x-auto">
-        <code className="text-sm text-gray-200">
-          {code}
-        </code>
-      </pre>
+      <div className="my-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+        <div className="flex items-center gap-2 mb-2">
+          <svg
+            className="h-5 w-5 text-red-500"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span className="font-medium">Ошибка подсветки кода</span>
+        </div>
+        <pre className="mt-2 overflow-x-auto rounded bg-red-100 p-3 text-sm">
+          <code>{code}</code>
+        </pre>
+      </div>
+    )
+  }
+
+  // Если language === 'text' или undefined, отображаем как обычный код с карточкой и кнопкой копирования
+  if (!language || language === 'text') {
+    return (
+      <div className="relative group my-4 rounded-lg border border-gray-200 bg-white dark:bg-gray-800 shadow-sm overflow-hidden w-1/2">
+        <pre className="overflow-x-auto p-2 bg-gray-50 dark:bg-gray-700">
+          <code className="text-gray-800 dark:text-gray-200 whitespace-pre">{code}</code>
+        </pre>
+        <button
+          className={`absolute top-2 right-2 p-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all duration-200 ${
+            copied ? "bg-green-500 text-white" : ""
+          }`}
+          onClick={handleCopy}
+          title={copied ? "Скопировано!" : "Скопировать код"}
+        >
+          {copied ? (
+            <svg
+              className="h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg
+              className="h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+            </svg>
+          )}
+        </button>
+      </div>
     )
   }
 
   if (!html) {
     return (
-      <pre className="p-4 my-4 bg-gray-800 rounded-md overflow-x-auto">
-        <code className="text-sm text-gray-200 animate-pulse">
-          {code}
-        </code>
-      </pre>
+      <div className="my-4 rounded-lg border border-gray-200 bg-gray-50 p-2 w-1/2">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="h-5 w-5 bg-gray-200 rounded-full animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+        </div>
+        <pre className="mt-2 overflow-x-auto rounded bg-gray-100 dark:bg-gray-700 p-3">
+          <code className="text-gray-400 dark:text-gray-200">{code}</code>
+        </pre>
+      </div>
     )
   }
 
   return (
-    <div 
-      dangerouslySetInnerHTML={{ __html: html }} 
-      className="rounded-md overflow-hidden my-4"
-    />
+    <div className="relative group my-4 rounded-lg border border-gray-200 bg-white dark:bg-gray-800 shadow-sm overflow-hidden w-1/2">
+      <div
+        dangerouslySetInnerHTML={{ __html: html }}
+        className="overflow-x-auto p-2"
+      />
+      <button
+        className={`absolute top-2 right-2 p-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all duration-200 ${
+          copied ? "bg-green-500 text-white" : ""
+        }`}
+        onClick={handleCopy}
+        title={copied ? "Скопировано!" : "Скопировать код"}
+      >
+        {copied ? (
+          <svg
+            className="h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg
+            className="h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+          </svg>
+        )}
+      </button>
+    </div>
   )
 }
 
@@ -66,7 +208,10 @@ interface MarkdownRendererProps {
   className?: string
 }
 
-export function MarkdownRenderer({ content, className }: MarkdownRendererProps) {
+export function MarkdownRenderer({
+  content,
+  className,
+}: MarkdownRendererProps) {
   const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
@@ -86,60 +231,86 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
   }
 
   return (
-    <div className={`markdown-content prose prose-stone dark:prose-invert max-w-none ${className}`}>
+    <div className={`markdown-content max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, inline, className, children, ...props }) {
-            // Для инлайнового кода используем стандартное оформление
-            if (inline) {
+          code({ className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "")
+            const language = match ? match[1] : "text"
+            const codeContent = String(children).replace(/\n$/, "")
+
+            // Проверяем, является ли это инлайновым кодом (если нет языка или язык 'text', и нет переносов строк)
+            const isInline = !match && !codeContent.includes('\n')
+
+            if (isInline) {
+              const [copied, setCopied] = useState(false)
+              const handleCopy = async () => {
+                await navigator.clipboard.writeText(String(children))
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }
               return (
-                <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-md text-sm font-mono">
-                  {children}
+                <code
+                  className="inline-flex items-center gap-1 rounded-md text-sm font-sans transition-all duration-200 whitespace-normal break-words bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 markdown-inline-code"
+                  onClick={handleCopy}
+                  title={copied ? "Скопировано!" : "Нажмите, чтобы скопировать"}
+                  style={{ 
+                    wordBreak: 'break-word'
+                  }}
+                >
+                  <span>{children}</span>
+                  {copied && (
+                    <svg
+                      className="h-3 w-3 text-green-600"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
                 </code>
               )
             }
 
-            // Для блоков кода используем подсветку Shiki
-            const match = /language-(\w+)/.exec(className || '')
-            const language = match ? match[1] : 'text'
-            
-            // Преобразуем содержимое в строку
-            const codeContent = String(children).replace(/\n$/, '')
-            
-            return <CodeBlock code={codeContent} language={language} />
+            // Для многострочного кода без определенного языка используем тот же компонент CodeBlock, но без подсветки синтаксиса
+            return <CodeBlock code={codeContent} language={language === "text" ? "" : language} />
           },
           img({ node, ...props }) {
-            // Проверяем, что src не пустой
             if (!props.src) {
               return null
             }
 
-            // Проверяем, что src является действительным URL или base64-строкой
-            const src = props.src
-            const isBase64 = src.startsWith('data:image/')
-            
-            // Если это base64-изображение, добавляем специальную обработку
+            const src = String(props.src) // Преобразуем src в строку
+            const isBase64 = src.startsWith("data:image/")
+
             if (isBase64) {
               try {
-                // Проверяем, что base64-строка корректна
-                if (src.length < 1000000) { // Ограничиваем размер для предотвращения проблем с производительностью
+                if (src.length < 1000000) {
                   return (
                     <img
                       {...props}
                       src={src}
                       className="base64-image max-w-full h-auto my-4 rounded-lg shadow-md"
                       loading="lazy"
-                      alt={props.alt || 'Изображение'}
+                      alt={props.alt || "Изображение"}
                       onError={(e) => {
-                        console.error('Error loading base64 image')
-                        e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Изображение+недоступно'
-                        e.currentTarget.alt = 'Изображение недоступно'
+                        console.error("Error loading base64 image")
+                        e.currentTarget.src =
+                          "https://via.placeholder.com/400x300?text=Изображение+недоступно"
+                        e.currentTarget.alt = "Изображение недоступно"
                       }}
                     />
                   )
                 } else {
-                  console.warn('Base64 image too large, not rendering')
+                  console.warn("Base64 image too large, not rendering")
                   return (
                     <div className="max-w-full p-4 my-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 rounded-md">
                       Изображение слишком большое для отображения
@@ -147,7 +318,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
                   )
                 }
               } catch (error) {
-                console.error('Error processing base64 image:', error)
+                console.error("Error processing base64 image:", error)
                 return (
                   <div className="max-w-full p-4 my-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 rounded-md">
                     Ошибка при обработке изображения
@@ -161,14 +332,15 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               <img
                 {...props}
                 src={src}
-                className="markdown-image max-w-full h-auto my-4 rounded-lg shadow-md"
+                className="rounded-lg shadow-md"
                 loading="lazy"
-                alt={props.alt || 'Изображение'}
+                alt={props.alt || "Изображение"}
                 onError={(e) => {
-                  console.error('Error loading image:', src)
+                  console.error("Error loading image:", src)
                   // Устанавливаем замещающее изображение
-                  e.currentTarget.src = 'https://via.placeholder.com/400x300?text=Изображение+недоступно'
-                  e.currentTarget.alt = 'Изображение недоступно'
+                  e.currentTarget.src =
+                    "https://via.placeholder.com/400x300?text=Изображение+недоступно"
+                  e.currentTarget.alt = "Изображение недоступно"
                 }}
               />
             )
@@ -177,13 +349,16 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           table({ node, ...props }) {
             return (
               <div className="overflow-x-auto my-4">
-                <table className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg" {...props} />
+                <table
+                  className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg"
+                  {...props}
+                />
               </div>
             )
           },
           th({ node, ...props }) {
             return (
-              <th 
+              <th
                 className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-left text-sm font-semibold text-gray-700 dark:text-gray-300"
                 {...props}
               />
@@ -191,7 +366,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           },
           td({ node, ...props }) {
             return (
-              <td 
+              <td
                 className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300"
                 {...props}
               />
@@ -200,12 +375,12 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
           // Стилизация блоков цитат
           blockquote({ node, ...props }) {
             return (
-              <blockquote 
+              <blockquote
                 className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-1 my-4 italic text-gray-600 dark:text-gray-400"
                 {...props}
               />
             )
-          }
+          },
         }}
       >
         {content}
