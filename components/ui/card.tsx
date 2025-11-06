@@ -3,17 +3,20 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'saas' | 'elevated' | 'glass' | 'border'
+  variant?: "default" | "saas" | "elevated" | "glass" | "border"
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, variant = 'default', ...props }, ref) => {
+  ({ className, variant = "default", ...props }, ref) => {
     const variantClassNames = {
-      default: 'rounded-lg border bg-card text-card-foreground shadow-sm',
-      saas: 'saas-card',
-      elevated: 'rounded-xl border-0 bg-card text-card-foreground shadow-md hover:shadow-lg transition-all duration-200',
-      glass: 'rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-card-foreground shadow-sm',
-      border: 'rounded-xl border-2 border-[hsl(var(--saas-purple)/0.2)] bg-card text-card-foreground shadow-sm hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200',
+      default: "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
+      saas: "rounded-lg border bg-card text-card-foreground shadow-md transition-all duration-200",
+      elevated:
+        "rounded-xl border-0 bg-card text-card-foreground shadow-md hover:shadow-lg transition-all duration-200",
+      glass:
+        "rounded-xl border border-white/20 bg-white/10 backdrop-blur-md text-card-foreground shadow-sm transition-all duration-200",
+      border:
+        "rounded-xl border-2 border-primary/20 bg-card text-card-foreground shadow-sm hover:border-primary/50 transition-all duration-200",
     }
 
     return (
@@ -23,7 +26,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         {...props}
       />
     )
-  }
+  },
 )
 Card.displayName = "Card"
 
@@ -47,7 +50,7 @@ const CardTitle = React.forwardRef<
     ref={ref}
     className={cn(
       "text-2xl font-semibold leading-none tracking-tight",
-      className
+      className,
     )}
     {...props}
   />

@@ -1,11 +1,11 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import * as AvatarPrimitive from '@radix-ui/react-avatar'
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
+import * as React from "react"
 
 // Проверка, что код выполняется в браузере
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined"
 
 export const CustomAvatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -14,8 +14,8 @@ export const CustomAvatar = React.forwardRef<
   <AvatarPrimitive.Root
     ref={ref}
     className={cn(
-      'relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[hsl(var(--saas-purple))]',
-      className
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border-2 border-[hsl(var(--saas-purple))]",
+      className,
     )}
     {...props}
   />
@@ -28,7 +28,7 @@ export const CustomAvatarImage = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
-    className={cn('aspect-square h-full w-full', className)}
+    className={cn("aspect-square h-full w-full", className)}
     {...props}
   />
 ))
@@ -41,8 +41,8 @@ export const CustomAvatarFallback = React.forwardRef<
   <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
-      'flex h-full w-full items-center justify-center rounded-full bg-white dark:bg-[#0e1012] text-[hsl(var(--saas-purple))] font-extrabold text-lg',
-      className
+      "flex h-full w-full items-center justify-center rounded-full bg-white dark:bg-[#0e1012] text-[hsl(var(--saas-purple))] font-extrabold text-lg",
+      className,
     )}
     {...props}
   />

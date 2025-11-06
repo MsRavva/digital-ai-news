@@ -1,6 +1,5 @@
 "use client"
 
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,10 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { useAuth } from "@/context/auth-context"
-import Link from "next/link"
-import { Moon, Sun, User, FileText, Settings, LogOut, Plus } from "lucide-react"
+import { FileText, LogOut, Moon, Plus, Settings, Sun, User } from "lucide-react"
 import { useTheme } from "next-themes"
+import Link from "next/link"
 import { useEffect, useState } from "react"
 
 export function UserNav() {
@@ -42,15 +42,23 @@ export function UserNav() {
             className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
             onClick={toggleTheme}
           >
-            {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {resolvedTheme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </Button>
         )}
         <div className="flex items-center space-x-2">
           <Link href="/login">
-            <Button variant="saas" size="sm">Войти</Button>
+            <Button variant="saas" size="sm">
+              Войти
+            </Button>
           </Link>
           <Link href="/register">
-            <Button variant="saas-secondary" size="sm">Регистрация</Button>
+            <Button variant="saas-secondary" size="sm">
+              Регистрация
+            </Button>
           </Link>
         </div>
       </div>
@@ -67,12 +75,19 @@ export function UserNav() {
           className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
           onClick={toggleTheme}
         >
-          {resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {resolvedTheme === "dark" ? (
+            <Sun className="h-5 w-5" />
+          ) : (
+            <Moon className="h-5 w-5" />
+          )}
         </Button>
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-12 px-3 transition-all duration-200 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-12 px-3 transition-all duration-200 flex items-center gap-4"
+          >
             <SimpleAvatar username={profile.username} size="xl" />
             <span className="text-[hsl(var(--saas-purple))] font-bold text-lg">
               {profile.username}
@@ -82,8 +97,12 @@ export function UserNav() {
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal py-3">
             <div className="flex flex-col space-y-2">
-              <p className="text-lg font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">{profile.username}</p>
-              <p className="text-base leading-none text-muted-foreground">{user.email}</p>
+              <p className="text-lg font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+                {profile.username}
+              </p>
+              <p className="text-base leading-none text-muted-foreground">
+                {user.email}
+              </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

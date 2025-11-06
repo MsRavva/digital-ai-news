@@ -8,7 +8,7 @@ const nextConfig = {
     parallelServerBuildTraces: false,
     // Отключаем новые функции React 19
     optimizePackageImports: [],
-    ppr: false
+    ppr: false,
   },
   // Внешние пакеты для серверных компонентов
   serverExternalPackages: [],
@@ -29,17 +29,19 @@ const nextConfig = {
         fs: false,
         path: false,
         os: false,
-      };
+      }
     }
 
     // Решаем проблему с next-flight-client-entry-loader
     config.resolve.alias = {
       ...config.resolve.alias,
-      'next-flight-client-entry-loader': require.resolve('next/dist/build/webpack/loaders/next-flight-client-entry-loader'),
-    };
+      "next-flight-client-entry-loader": require.resolve(
+        "next/dist/build/webpack/loaders/next-flight-client-entry-loader",
+      ),
+    }
 
-    return config;
+    return config
   },
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig

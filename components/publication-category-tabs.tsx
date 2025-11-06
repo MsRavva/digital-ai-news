@@ -1,13 +1,13 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react"
 
 const categories = [
-  { value: 'all', label: 'Все категории' },
-  { value: 'news', label: 'Новости' },
-  { value: 'materials', label: 'Учебные материалы' },
-  { value: 'project-ideas', label: 'Идеи проектов' }
+  { value: "all", label: "Все категории" },
+  { value: "news", label: "Новости" },
+  { value: "materials", label: "Учебные материалы" },
+  { value: "project-ideas", label: "Идеи проектов" },
 ]
 
 interface PublicationCategoryTabsProps {
@@ -17,7 +17,7 @@ interface PublicationCategoryTabsProps {
 
 export function PublicationCategoryTabs({
   onCategoryChange,
-  initialCategory = 'news'
+  initialCategory = "news",
 }: PublicationCategoryTabsProps) {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory)
 
@@ -39,13 +39,17 @@ export function PublicationCategoryTabs({
   }
 
   return (
-    <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="w-auto">
-      <TabsList className="bg-muted dark:bg-muted rounded-md p-1 h-10 flex items-center w-auto">
+    <Tabs
+      value={selectedCategory}
+      onValueChange={handleCategoryChange}
+      className="w-auto"
+    >
+      <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
         {categories.map((category) => (
           <TabsTrigger
             key={category.value}
             value={category.value}
-            className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-[hsl(var(--saas-purple))] data-[state=active]:bg-background dark:data-[state=active]:text-[hsl(var(--saas-purple-light))] rounded-sm"
+            className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-[hsl(var(--saas-purple))] data-[state=active]:bg-background dark:data-[state=active]:text-[hsl(var(--saas-purple-light))] rounded-sm transition-all duration-200"
           >
             {category.label}
           </TabsTrigger>

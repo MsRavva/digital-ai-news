@@ -1,9 +1,11 @@
-'use client'
+"use client"
 
-import React, { useRef } from 'react'
-import { Textarea } from '@/components/ui/textarea'
+import { Textarea } from "@/components/ui/textarea"
+import type React from "react"
+import { useRef } from "react"
 
-interface EnhancedTextareaProps extends React.ComponentPropsWithoutRef<typeof Textarea> {}
+interface EnhancedTextareaProps
+  extends React.ComponentPropsWithoutRef<typeof Textarea> {}
 
 export function EnhancedTextarea({
   value,
@@ -14,7 +16,7 @@ export function EnhancedTextarea({
 
   // Обработчик нажатия клавиш для Ctrl+Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault()
 
       // Получаем текущую позицию курсора
@@ -25,15 +27,15 @@ export function EnhancedTextarea({
       // Вставляем перенос строки с двумя пробелами в конце для корректного отображения в Markdown
       const newValue =
         textarea.value.substring(0, start) +
-        '  \n' +
+        "  \n" +
         textarea.value.substring(end)
 
       // Обновляем значение и позицию курсора
       if (onChange) {
         const event = {
           target: {
-            value: newValue
-          }
+            value: newValue,
+          },
         } as React.ChangeEvent<HTMLTextAreaElement>
         onChange(event)
 
@@ -57,8 +59,14 @@ export function EnhancedTextarea({
         {...props}
       />
       <div className="mt-1 text-xs text-muted-foreground space-y-1">
-        <p>Используйте Ctrl+Enter для вставки новой строки. Поддерживается формат Markdown.</p>
-        <p>Для создания блока кода с кнопкой копирования используйте три обратных кавычки ``` и укажите язык, например: ```js</p>
+        <p>
+          Используйте Ctrl+Enter для вставки новой строки. Поддерживается формат
+          Markdown.
+        </p>
+        <p>
+          Для создания блока кода с кнопкой копирования используйте три обратных
+          кавычки ``` и укажите язык, например: ```js
+        </p>
       </div>
     </div>
   )

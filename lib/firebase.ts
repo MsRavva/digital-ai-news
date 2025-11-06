@@ -1,11 +1,11 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getApp, getApps, initializeApp } from "firebase/app"
+import { getAuth } from "firebase/auth"
+import { getFirestore } from "firebase/firestore"
+import { getStorage } from "firebase/storage"
 
 // Проверка, что код выполняется в браузере
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== "undefined"
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -17,32 +17,32 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-};
+}
 
 // Initialize Firebase на клиенте и сервере
-let app;
-let auth;
-let db;
-let storage;
+let app
+let auth
+let db
+let storage
 
 // Инициализируем Firebase на клиенте и сервере
 try {
   if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
+    app = initializeApp(firebaseConfig)
   } else {
-    app = getApp();
+    app = getApp()
   }
 
   // Инициализируем сервисы Firebase
-  db = getFirestore(app);
+  db = getFirestore(app)
 
   // Инициализируем сервисы, которые работают только в браузере
   if (isBrowser) {
-    auth = getAuth(app);
-    storage = getStorage(app);
+    auth = getAuth(app)
+    storage = getStorage(app)
   }
 } catch (error) {
-  console.error('Error initializing Firebase:', error);
+  console.error("Error initializing Firebase:", error)
 }
 
-export { app, auth, db, storage };
+export { app, auth, db, storage }

@@ -1,0 +1,178 @@
+/* Темная тема */
+[data-color-mode="dark"] .w-md-editor-text-input,
+[data-color-mode="dark"] .w-md-editor-text-pre,
+[data-color-mode="dark"] .w-md-editor-text-pre .token.plain { /* Добавлен селектор для обычного текста */
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-color-mode="dark"] .w-md-editor-text-pre .token.url,
+[data-color-mode="dark"] .w-md-editor-text-pre .token.content,
+[data-color-mode="dark"] .w-md-editor-text-pre .punctuation {
+  color: hsl(var(--primary-300)) !important;
+}
+
+/* Убираем backticks у встроенного кода в темной теме - более специфичные правила */
+.dark .markdown-content code:not(pre code)::before,
+.dark .markdown-content code:not(pre code)::after,
+.dark .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
+.dark .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: "" !important;
+}
+
+/* Убираем backticks у встроенного кода - более специфичные правила */
+.markdown-content code:not(pre code)::before,
+.markdown-content code:not(pre code)::after,
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: "" !important;
+}
+
+/* Стили для inline кода в светлой теме - более специфичные правила */
+/*
+code:not(pre code),
+.prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: hsl(var(--secondary-200)) !important; 
+  color: hsl(var(--foreground)) !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 0.25em !important;
+  font-size: 0.9em !important;
+}
+*/
+
+/* Стили для inline кода в темной теме - более специфичные правила */
+/*
+.dark code:not(pre code),
+.dark .prose :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+  background-color: hsl(var(--primary-900)) !important; 
+  color: hsl(var(--primary-100)) !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 0.25em !important;
+  font-size: 0.9em !important;
+}
+*/
+
+/* Стили для блоков pre в светлой теме */
+pre {
+  background-color: hsl(var(--secondary-200)) !important; /* более темно-серый цвет для светлой темы */
+  color: hsl(var(--foreground)) !important;
+  padding: 1em !important;
+  border-radius: 0.25em !important;
+  overflow-x: auto;
+}
+
+/* Стили для блоков pre в темной теме */
+.dark pre {
+  background-color: hsl(var(--primary-900)) !important; /* более темный фиолетовый цвет для темной темы */
+  color: hsl(var(--primary-100)) !important;
+  padding: 1em !important;
+  border-radius: 0.25em !important;
+  overflow-x: auto;
+}
+
+/* Стили для кода вне prose контекста - более специфичные правила */
+/*
+code.inline-code,
+.markdown-content code.inline-code {
+  background-color: hsl(var(--secondary-200)) !important; 
+  color: hsl(var(--foreground)) !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 0.25em !important;
+  font-size: 0.9em !important;
+}
+*/
+
+/*
+.dark code.inline-code,
+.dark .markdown-content code.inline-code {
+  background-color: hsl(var(--primary-900)) !important; 
+  color: hsl(var(--primary-100)) !important;
+}
+*/
+
+.prose {
+  border: none !important;
+}
+
+.prose a {
+  color: hsl(var(--primary)) !important;
+}
+
+/* Стили для блоков кода с подсветкой синтаксиса */
+.markdown-content .relative.group pre {
+  background-color: initial !important;
+  color: initial !important;
+  padding: initial !important;
+  border-radius: initial !important;
+}
+
+/* Стили для кнопки копирования кода */
+.markdown-content .relative.group .absolute {
+  z-index: 10;
+}
+
+/* Улучшенные стили для таблиц */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+
+.prose th {
+  background-color: hsl(var(--secondary-100));
+  border: 1px solid hsl(var(--border));
+  padding: 0.5em;
+  text-align: left;
+  font-weight: 600;
+}
+
+.dark .prose th {
+  background-color: hsl(var(--secondary-800));
+  border: 1px solid hsl(var(--border));
+}
+
+.prose td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5em;
+}
+
+.dark .prose td {
+  border: 1px solid hsl(var(--border));
+}
+
+/* Улучшенные стили для цитат */
+.prose blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: 1em;
+  margin: 1em 0;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--secondary-50));
+  padding: 1em;
+  border-radius: 0 0.25em 0.25em 0;
+}
+
+.dark .prose blockquote {
+  background-color: hsl(var(--secondary-900));
+  color: hsl(var(--foreground));
+}
+
+/* Улучшенные стили для списков */
+.prose ul, .prose ol {
+  margin: 1em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.25em 0;
+}
+
+/* Улучшенные стили для изображений */
+.prose img {
+  border-radius: 0.5em;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  height: auto;
+}
+
+.dark .prose img {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.25);
+}

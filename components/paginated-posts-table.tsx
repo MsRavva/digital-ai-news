@@ -1,20 +1,30 @@
-'use client'
+"use client"
 
+import { DeletePostButton } from "@/components/delete-post-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, ThumbsUp, Eye, Pencil, ChevronLeft, ChevronRight, Paperclip, Archive, ArchiveRestore } from "lucide-react"
-import Link from "next/link"
-import type { Post } from "@/types/database"
-import { formatDate } from "@/lib/utils"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { useAuth } from "@/context/auth-context"
-import { useState, useEffect } from "react"
-import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/navigation"
-import { DeletePostButton } from "@/components/delete-post-button"
-import { usePaginatedPosts } from "@/lib/hooks/usePaginatedPosts"
 import { Skeleton } from "@/components/ui/skeleton"
-import { togglePinPost, archivePost, unarchivePost } from "@/lib/client-api"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/context/auth-context"
+import { archivePost, togglePinPost, unarchivePost } from "@/lib/client-api"
+import { usePaginatedPosts } from "@/lib/hooks/usePaginatedPosts"
+import { formatDate } from "@/lib/utils"
+import type { Post } from "@/types/database"
+import {
+  Archive,
+  ArchiveRestore,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  MessageSquare,
+  Paperclip,
+  Pencil,
+  ThumbsUp,
+} from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 interface PaginatedPostsTableProps {
   category?: string
@@ -32,154 +42,162 @@ export function PaginatedPostsTable({
   tag,
   pageSize = 10,
   includeArchived = false,
-  searchQuery = '',
-  archivedOnly = false
+  searchQuery = "",
+  archivedOnly = false,
 }: PaginatedPostsTableProps) {
-  const { profile } = useAuth();
-  const { toast } = useToast();
-  const router = useRouter();
+  const { profile } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
 
   // Состояние для пагинации
-  const [currentPage, setCurrentPage] = useState(1);
-  const [lastVisibleIds, setLastVisibleIds] = useState<string[]>([null]); // Первый элемент null для первой страницы
+  const [currentPage, setCurrentPage] = useState(1)
+  const [lastVisibleIds, setLastVisibleIds] = useState<string[]>([null]) // Первый элемент null для первой страницы
 
   // Получаем данные с пагинацией
-  const {
-    posts,
-    loading,
-    error,
-    hasMore,
-    loadMorePosts,
-    refresh
-  } = usePaginatedPosts({
-    initialLimit: pageSize,
-    category,
-    authorId,
-    tag,
-    includeArchived,
-    archivedOnly
-  });
+  const { posts, loading, error, hasMore, loadMorePosts, refresh } =
+    usePaginatedPosts({
+      initialLimit: pageSize,
+      category,
+      authorId,
+      tag,
+      includeArchived,
+      archivedOnly,
+    })
 
   // Фильтрация постов по поисковому запросу и флагу archived
-  let filteredPosts = posts;
+  let filteredPosts = posts
   if (archivedOnly) {
-    filteredPosts = filteredPosts.filter(post => post.archived === true);
+    filteredPosts = filteredPosts.filter((post) => post.archived === true)
   } else if (includeArchived) {
     // показываем все (архивные и неархивные)
   } else {
-    filteredPosts = filteredPosts.filter(post => !post.archived);
+    filteredPosts = filteredPosts.filter((post) => !post.archived)
   }
   if (searchQuery) {
-    filteredPosts = filteredPosts.filter(post =>
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      post.author?.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    filteredPosts = filteredPosts.filter(
+      (post) =>
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tags?.some((tag) =>
+          tag.toLowerCase().includes(searchQuery.toLowerCase()),
+        ) ||
+        post.author?.username.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
   }
 
   // Сбрасываем состояние пагинации при изменении категории, автора или тега
   useEffect(() => {
-    setCurrentPage(1);
-    setLastVisibleIds([null]);
-    refresh();
-  }, [category, authorId, tag, refresh]);
+    setCurrentPage(1)
+    setLastVisibleIds([null])
+    refresh()
+  }, [category, authorId, tag, refresh])
 
   // Обработчик для перехода на следующую страницу
   const handleNextPage = async () => {
     if (hasMore) {
       // Сохраняем текущий lastVisible для возможности возврата назад
       if (currentPage >= lastVisibleIds.length) {
-        await loadMorePosts();
-        setLastVisibleIds(prev => [...prev, posts[posts.length - 1]?.id]);
+        await loadMorePosts()
+        setLastVisibleIds((prev) => [...prev, posts[posts.length - 1]?.id])
       } else {
         // Используем сохраненный lastVisible
-        await loadMorePosts();
+        await loadMorePosts()
       }
-      setCurrentPage(prev => prev + 1);
+      setCurrentPage((prev) => prev + 1)
     }
-  };
+  }
 
   // Обработчик для перехода на предыдущую страницу
   const handlePrevPage = () => {
     if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+      setCurrentPage((prev) => prev - 1)
       // Используем сохраненный lastVisible для предыдущей страницы
       // Это потребует дополнительной логики в хуке usePaginatedPosts
-      refresh(); // Временное решение - перезагружаем первую страницу
+      refresh() // Временное решение - перезагружаем первую страницу
     }
-  };
+  }
 
   // Проверка, имеет ли пользователь права учителя или админа
-  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
-  const canDelete = isTeacherOrAdmin;
+  const isTeacherOrAdmin =
+    profile?.role === "teacher" || profile?.role === "admin"
+  const canDelete = isTeacherOrAdmin
 
   // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = (post: Post) => {
-    if (!profile) return false;
-    return profile.role === "teacher" || profile.role === "admin" || post.author?.username === profile.username;
-  };
+    if (!profile) return false
+    return (
+      profile.role === "teacher" ||
+      profile.role === "admin" ||
+      post.author?.username === profile.username
+    )
+  }
 
   // Функция для закрепления/открепления поста
   const handleTogglePin = async (postId: string) => {
     try {
-      const success = await togglePinPost(postId);
+      const success = await togglePinPost(postId)
       if (success) {
         // Обновляем список после изменения статуса закрепления
-        refresh();
+        refresh()
         toast({
-          title: 'Статус закрепления изменен',
-          description: 'Статус публикации успешно изменен',
-        });
+          title: "Статус закрепления изменен",
+          description: "Статус публикации успешно изменен",
+        })
       }
     } catch (error) {
-      console.error('Ошибка при изменении статуса закрепления:', error);
+      console.error("Ошибка при изменении статуса закрепления:", error)
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось изменить статус закрепления публикации',
-        variant: 'destructive',
-      });
+        title: "Ошибка",
+        description: "Не удалось изменить статус закрепления публикации",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   // Функция для архивации/разархивации поста
   const handleToggleArchive = async (postId: string, archived: boolean) => {
     try {
-      let success = false;
+      let success = false
       if (archived) {
-        success = await unarchivePost(postId);
+        success = await unarchivePost(postId)
       } else {
-        success = await archivePost(postId);
+        success = await archivePost(postId)
       }
       if (success) {
-        refresh();
+        refresh()
         toast({
-          title: archived ? 'Публикация восстановлена' : 'Публикация архивирована',
-          description: archived ? 'Публикация успешно восстановлена из архива' : 'Публикация успешно перемещена в архив',
-        });
+          title: archived
+            ? "Публикация восстановлена"
+            : "Публикация архивирована",
+          description: archived
+            ? "Публикация успешно восстановлена из архива"
+            : "Публикация успешно перемещена в архив",
+        })
       }
     } catch (error) {
-      console.error('Ошибка при изменении статуса архивации:', error);
+      console.error("Ошибка при изменении статуса архивации:", error)
       toast({
-        title: 'Ошибка',
-        description: 'Не удалось изменить статус архивации публикации',
-        variant: 'destructive',
-      });
+        title: "Ошибка",
+        description: "Не удалось изменить статус архивации публикации",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   // Если произошла ошибка
   if (error) {
     return (
       <div className="p-8 text-center">
-        <p className="text-red-500">Ошибка при загрузке публикаций: {error.message}</p>
+        <p className="text-red-500">
+          Ошибка при загрузке публикаций: {error.message}
+        </p>
       </div>
-    );
+    )
   }
 
   // Если данные загружаются и нет постов
   if (loading && posts.length === 0) {
-    return <PostsTableSkeleton pageSize={pageSize} canDelete={canDelete} />;
+    return <PostsTableSkeleton pageSize={pageSize} canDelete={canDelete} />
   }
 
   // Если нет публикаций
@@ -188,16 +206,18 @@ export function PaginatedPostsTable({
       <div className="p-8 text-center">
         <p className="text-muted-foreground">Публикации не найдены</p>
       </div>
-    );
+    )
   }
 
   // Если есть поисковый запрос, но нет результатов
   if (!loading && searchQuery && filteredPosts.length === 0) {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground">По вашему запросу ничего не найдено</p>
+        <p className="text-muted-foreground">
+          По вашему запросу ничего не найдено
+        </p>
       </div>
-    );
+    )
   }
 
   return (
@@ -206,13 +226,25 @@ export function PaginatedPostsTable({
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-border">
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Автор</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Заголовок</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Дата</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Теги</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Статистика</th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Автор
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Заголовок
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Дата
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Теги
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Статистика
+              </th>
               {canDelete && (
-                <th className="py-3 px-4 text-left font-medium text-muted-foreground">Действия</th>
+                <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                  Действия
+                </th>
               )}
             </tr>
           </thead>
@@ -227,7 +259,9 @@ export function PaginatedPostsTable({
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
                       <SimpleAvatar username={post.author?.username} />
-                      <span className="font-medium text-sm whitespace-nowrap">{post.author?.username}</span>
+                      <span className="font-medium text-sm whitespace-nowrap">
+                        {post.author?.username}
+                      </span>
                     </div>
                     <div className="flex justify-center">
                       <Badge
@@ -246,9 +280,8 @@ export function PaginatedPostsTable({
                   <div className="text-muted-foreground text-sm line-clamp-1 mt-1">
                     <div className="prose dark:prose-invert prose-sm max-w-none">
                       {post.content.length > 100
-                        ? post.content.substring(0, 100) + '...'
-                        : post.content
-                      }
+                        ? post.content.substring(0, 100) + "..."
+                        : post.content}
                     </div>
                   </div>
                 </td>
@@ -258,12 +291,18 @@ export function PaginatedPostsTable({
                 <td className="py-3 px-4">
                   <div className="flex flex-wrap gap-1">
                     {post.tags?.slice(0, 3).map((tag) => (
-                      <span key={tag} className="tag text-xs py-0.5 px-2">
+                      <Badge 
+                        key={tag} 
+                        variant="outline"
+                        className="text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)] bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-xs py-0.5 px-2"
+                      >
                         {tag}
-                      </span>
+                      </Badge>
                     ))}
                     {post.tags && post.tags.length > 3 && (
-                      <span className="text-xs text-muted-foreground">+{post.tags.length - 3}</span>
+                      <span className="text-xs text-muted-foreground">
+                        +{post.tags.length - 3}
+                      </span>
                     )}
                   </div>
                 </td>
@@ -292,8 +331,8 @@ export function PaginatedPostsTable({
                           size="icon"
                           className="h-8 w-8 text-[hsl(var(--saas-purple))]"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/edit/${post.id}`);
+                            e.stopPropagation()
+                            router.push(`/edit/${post.id}`)
                           }}
                         >
                           <Pencil className="h-4 w-4" />
@@ -303,14 +342,16 @@ export function PaginatedPostsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`h-8 w-8 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
+                          className={`h-8 w-8 ${post.pinned ? "text-[hsl(var(--saas-purple))]" : ""}`}
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleTogglePin(post.id);
+                            e.stopPropagation()
+                            handleTogglePin(post.id)
                           }}
-                          title={post.pinned ? 'Открепить' : 'Закрепить'}
+                          title={post.pinned ? "Открепить" : "Закрепить"}
                         >
-                          <Paperclip className={`h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
+                          <Paperclip
+                            className={`h-4 w-4 ${post.pinned ? "text-[hsl(var(--saas-purple))]" : "text-gray-400"}`}
+                          />
                         </Button>
                       )}
                       {/* Кнопка архивации/разархивации */}
@@ -318,12 +359,16 @@ export function PaginatedPostsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`h-8 w-8 ${post.archived ? 'text-green-600 dark:text-green-400' : 'text-orange-500 dark:text-orange-400'} hover:text-green-700 dark:hover:text-green-300`}
+                          className={`h-8 w-8 ${post.archived ? "text-green-600 dark:text-green-400" : "text-orange-500 dark:text-orange-400"} hover:text-green-700 dark:hover:text-green-300`}
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleArchive(post.id, !!post.archived);
+                            e.stopPropagation()
+                            handleToggleArchive(post.id, !!post.archived)
                           }}
-                          title={post.archived ? 'Восстановить из архива' : 'Архивировать'}
+                          title={
+                            post.archived
+                              ? "Восстановить из архива"
+                              : "Архивировать"
+                          }
                         >
                           {post.archived ? (
                             <ArchiveRestore className="h-4 w-4" />
@@ -335,11 +380,11 @@ export function PaginatedPostsTable({
                       <DeletePostButton
                         postId={post.id}
                         onSuccess={() => {
-                          refresh();
+                          refresh()
                           toast({
                             title: "Публикация удалена",
                             description: "Публикация была успешно удалена",
-                          });
+                          })
                         }}
                       />
                     </div>
@@ -402,7 +447,7 @@ export function PaginatedPostsTable({
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // Скелетон для таблицы публикаций
@@ -413,13 +458,25 @@ function PostsTableSkeleton({ pageSize = 10, canDelete = false }) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-border">
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Автор</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Заголовок</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Дата</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Теги</th>
-              <th className="py-3 px-4 text-left font-medium text-muted-foreground">Статистика</th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Автор
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Заголовок
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Дата
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Теги
+              </th>
+              <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                Статистика
+              </th>
               {canDelete && (
-                <th className="py-3 px-4 text-left font-medium text-muted-foreground">Действия</th>
+                <th className="py-3 px-4 text-left font-medium text-muted-foreground">
+                  Действия
+                </th>
               )}
             </tr>
           </thead>
@@ -480,5 +537,5 @@ function PostsTableSkeleton({ pageSize = 10, canDelete = false }) {
         </div>
       </div>
     </div>
-  );
+  )
 }

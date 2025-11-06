@@ -4,10 +4,10 @@ import type React from "react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { addComment } from "@/lib/firebase-db"
-import { useToast } from "@/components/ui/use-toast"
+import { useState } from "react"
 
 interface CommentFormProps {
   postId: string
@@ -22,7 +22,7 @@ export function CommentForm({
   parentId,
   onCommentAdded,
   onCancel,
-  placeholder = "Напишите комментарий..."
+  placeholder = "Напишите комментарий...",
 }: CommentFormProps) {
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,7 +36,7 @@ export function CommentForm({
       toast({
         title: "Ошибка",
         description: "Вы должны быть авторизованы для отправки комментариев",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -48,7 +48,7 @@ export function CommentForm({
         content: comment,
         post_id: postId,
         author_id: user.uid,
-        parent_id: parentId
+        parent_id: parentId,
       }
 
       const commentId = await addComment(commentData)
@@ -57,7 +57,7 @@ export function CommentForm({
         setComment("")
         toast({
           title: "Успех",
-          description: "Комментарий успешно добавлен"
+          description: "Комментарий успешно добавлен",
         })
 
         if (onCommentAdded) {
@@ -69,7 +69,7 @@ export function CommentForm({
       toast({
         title: "Ошибка",
         description: "Не удалось добавить комментарий",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
@@ -96,10 +96,7 @@ export function CommentForm({
             Отмена
           </Button>
         )}
-        <Button
-          type="submit"
-          disabled={!comment.trim() || isSubmitting}
-        >
+        <Button type="submit" disabled={!comment.trim() || isSubmitting}>
           {isSubmitting ? "Отправка..." : "Отправить"}
         </Button>
       </div>

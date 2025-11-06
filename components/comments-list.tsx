@@ -1,17 +1,5 @@
 "use client"
 
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ThumbsUp, Reply, Trash2 } from "lucide-react"
-import { useState, useEffect } from "react"
-import { useAuth } from "@/context/auth-context"
-import { getCommentsByPostId, likeComment, unlikeComment } from "@/lib/firebase-db"
-import { deleteComment } from "@/lib/client-api"
-import { CommentForm } from "./comment-form"
-import { useToast } from "@/components/ui/use-toast"
-import type { Comment } from "@/types/database"
-import { motion, AnimatePresence } from "framer-motion"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +10,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/context/auth-context"
+import { deleteComment } from "@/lib/client-api"
+import {
+  getCommentsByPostId,
+  likeComment,
+  unlikeComment,
+} from "@/lib/firebase-db"
+import type { Comment } from "@/types/database"
+import { AnimatePresence, motion } from "framer-motion"
+import { Reply, ThumbsUp, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { CommentForm } from "./comment-form"
 
 interface CommentsListProps {
   postId: string
@@ -34,7 +38,9 @@ export function CommentsList({ postId }: CommentsListProps) {
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set())
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [deletingComments, setDeletingComments] = useState<Set<string>>(new Set())
+  const [deletingComments, setDeletingComments] = useState<Set<string>>(
+    new Set(),
+  )
   const { user, profile } = useAuth()
   const { toast } = useToast()
 
@@ -51,7 +57,7 @@ export function CommentsList({ postId }: CommentsListProps) {
       toast({
         title: "Ошибка",
         description: "Не удалось загрузить комментарии",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setLoading(false)
@@ -70,7 +76,8 @@ export function CommentsList({ postId }: CommentsListProps) {
     const isAuthor = comment.author.username === profile.username
 
     // Учитель или админ может удалить любой комментарий
-    const isTeacherOrAdmin = profile.role === "teacher" || profile.role === "admin"
+    const isTeacherOrAdmin =
+      profile.role === "teacher" || profile.role === "admin"
 
     return isAuthor || isTeacherOrAdmin
   }
@@ -95,25 +102,26 @@ export function CommentsList({ postId }: CommentsListProps) {
 
     // Добавляем эффект дрожания перед удалением
     const applyShakeEffect = (commentId: string) => {
-      const element = document.getElementById(`comment-${commentId}`);
+      const element = document.getElementById(`comment-${commentId}`)
       if (element) {
-        element.style.animation = 'shake 0.4s cubic-bezier(.36,.07,.19,.97) both';
+        element.style.animation =
+          "shake 0.4s cubic-bezier(.36,.07,.19,.97) both"
       }
-    };
+    }
 
     // Последовательно применяем эффект дрожания к каждому комментарию
     // Сначала родительский комментарий, затем дочерние
-    setTimeout(() => applyShakeEffect(commentToDelete), 0);
+    setTimeout(() => applyShakeEffect(commentToDelete), 0)
 
     // Добавляем дочерние комментарии в список удаляемых с задержкой
     childComments.forEach((id, index) => {
-      setTimeout(() => applyShakeEffect(id), 100 + index * 50);
-    });
+      setTimeout(() => applyShakeEffect(id), 100 + index * 50)
+    })
 
     // Плавно добавляем комментарии в список удаляемых
     // Сначала родительский комментарий
     setTimeout(() => {
-      setDeletingComments(prev => {
+      setDeletingComments((prev) => {
         const newSet = new Set(prev)
         newSet.add(commentToDelete)
         return newSet
@@ -121,66 +129,75 @@ export function CommentsList({ postId }: CommentsListProps) {
 
       // Затем дочерние комментарии последовательно
       childComments.forEach((id, index) => {
-        setTimeout(() => {
-          setDeletingComments(prev => {
-            const newSet = new Set(prev)
-            newSet.add(id)
-            return newSet
-          })
-        }, 100 + index * 50) // Последовательное добавление с задержкой
+        setTimeout(
+          () => {
+            setDeletingComments((prev) => {
+              const newSet = new Set(prev)
+              newSet.add(id)
+              return newSet
+            })
+          },
+          100 + index * 50,
+        ) // Последовательное добавление с задержкой
       })
     }, 400)
 
     // Ждем завершения анимации с небольшим запасом
-    setTimeout(async () => {
-      try {
-        const success = await deleteComment(commentToDelete)
+    setTimeout(
+      async () => {
+        try {
+          const success = await deleteComment(commentToDelete)
 
-        if (success) {
-          toast({
-            title: "Успешно",
-            description: "Комментарий был удален",
-            variant: "default"
-          })
+          if (success) {
+            toast({
+              title: "Успешно",
+              description: "Комментарий был удален",
+              variant: "default",
+            })
 
-          // Обновляем список комментариев
-          fetchComments()
-        } else {
+            // Обновляем список комментариев
+            fetchComments()
+          } else {
+            toast({
+              title: "Ошибка",
+              description: "Не удалось удалить комментарий",
+              variant: "destructive",
+            })
+
+            // Убираем комментарии из списка удаляемых
+            setDeletingComments((prev) => {
+              const newSet = new Set(prev)
+              allCommentsToAnimate.forEach((id) => newSet.delete(id))
+              return newSet
+            })
+          }
+        } catch (error) {
+          console.error("Error deleting comment:", error)
           toast({
             title: "Ошибка",
-            description: "Не удалось удалить комментарий",
-            variant: "destructive"
+            description: "Произошла ошибка при удалении комментария",
+            variant: "destructive",
           })
 
           // Убираем комментарии из списка удаляемых
-          setDeletingComments(prev => {
+          setDeletingComments((prev) => {
             const newSet = new Set(prev)
-            allCommentsToAnimate.forEach(id => newSet.delete(id))
+            allCommentsToAnimate.forEach((id) => newSet.delete(id))
             return newSet
           })
+        } finally {
+          setIsDeleting(false)
         }
-      } catch (error) {
-        console.error("Error deleting comment:", error)
-        toast({
-          title: "Ошибка",
-          description: "Произошла ошибка при удалении комментария",
-          variant: "destructive"
-        })
-
-        // Убираем комментарии из списка удаляемых
-        setDeletingComments(prev => {
-          const newSet = new Set(prev)
-          allCommentsToAnimate.forEach(id => newSet.delete(id))
-          return newSet
-        })
-      } finally {
-        setIsDeleting(false)
-      }
-    }, (animationDuration + 0.3) * 1000) // Добавляем запас времени для завершения анимации
+      },
+      (animationDuration + 0.3) * 1000,
+    ) // Добавляем запас времени для завершения анимации
   }
 
   // Функция для поиска всех дочерних комментариев
-  const findAllChildComments = (commentId: string, commentsList: Comment[]): string[] => {
+  const findAllChildComments = (
+    commentId: string,
+    commentsList: Comment[],
+  ): string[] => {
     const childIds: string[] = []
 
     // Рекурсивная функция для поиска дочерних комментариев
@@ -209,7 +226,7 @@ export function CommentsList({ postId }: CommentsListProps) {
       toast({
         title: "Ошибка",
         description: "Вы должны быть авторизованы для отправки лайков",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -219,14 +236,14 @@ export function CommentsList({ postId }: CommentsListProps) {
 
       if (isLiked) {
         await unlikeComment(commentId, user.uid)
-        setLikedComments(prev => {
+        setLikedComments((prev) => {
           const newSet = new Set(prev)
           newSet.delete(commentId)
           return newSet
         })
       } else {
         await likeComment(commentId, user.uid)
-        setLikedComments(prev => new Set([...prev, commentId]))
+        setLikedComments((prev) => new Set([...prev, commentId]))
       }
 
       // Обновляем комментарии после лайка/анлайка
@@ -236,7 +253,7 @@ export function CommentsList({ postId }: CommentsListProps) {
       toast({
         title: "Ошибка",
         description: "Не удалось обработать лайк",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
@@ -257,7 +274,7 @@ export function CommentsList({ postId }: CommentsListProps) {
         scale: 1,
         rotateX: 0,
         position: "relative",
-        zIndex: 1
+        zIndex: 1,
       },
       hidden: {
         opacity: 0,
@@ -265,12 +282,13 @@ export function CommentsList({ postId }: CommentsListProps) {
         marginBottom: isReply ? 0 : 24, // Сохраняем маржин для плавного скролла
         x: -10,
         backgroundColor: "rgba(255, 0, 0, 0.08)",
-        boxShadow: "0 0 15px rgba(255, 0, 0, 0.5), inset 0 0 10px rgba(255, 0, 0, 0.2)",
+        boxShadow:
+          "0 0 15px rgba(255, 0, 0, 0.5), inset 0 0 10px rgba(255, 0, 0, 0.2)",
         scale: 0.9,
         rotateX: -10,
         position: "relative",
-        zIndex: 0
-      }
+        zIndex: 0,
+      },
     }
 
     return (
@@ -286,13 +304,16 @@ export function CommentsList({ postId }: CommentsListProps) {
           duration: animationDuration,
           ease: [0.25, 0.1, 0.25, 1], // Более выразительная кривая
           opacity: { duration: animationDuration * 0.8 },
-          backgroundColor: { duration: animationDuration * 0.5, ease: "easeOut" },
+          backgroundColor: {
+            duration: animationDuration * 0.5,
+            ease: "easeOut",
+          },
           boxShadow: { duration: animationDuration * 0.6, ease: "easeOut" },
           x: { duration: animationDuration * 0.7, ease: "easeIn" },
           y: { duration: animationDuration * 0.8, ease: "easeInOut" }, // Плавное движение вверх
           scale: { duration: animationDuration, ease: "anticipate" },
           rotateX: { duration: animationDuration * 0.7, ease: "easeIn" },
-          zIndex: { duration: 0 } // Мгновенное изменение z-index
+          zIndex: { duration: 0 }, // Мгновенное изменение z-index
         }}
       >
         <div className="flex items-start gap-4">
@@ -312,7 +333,7 @@ export function CommentsList({ postId }: CommentsListProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-2 ${likedComments.has(comment.id) ? 'text-[hsl(var(--saas-purple))]' : ''}`}
+                className={`h-8 px-2 ${likedComments.has(comment.id) ? "text-[hsl(var(--saas-purple))]" : ""}`}
                 onClick={() => handleLike(comment.id)}
                 disabled={isDeleting}
               >
@@ -322,8 +343,10 @@ export function CommentsList({ postId }: CommentsListProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2"
-                onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                className={`h-8 px-2 ${likedComments.has(comment.id) ? "text-[hsl(var(--saas-purple))]" : "text-muted-foreground hover:text-[hsl(var(--saas-purple))]"}`}
+                onClick={() =>
+                  setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                }
                 disabled={isDeleting}
               >
                 <Reply className="h-3 w-3 mr-1" />
@@ -370,17 +393,25 @@ export function CommentsList({ postId }: CommentsListProps) {
   }
 
   if (loading) {
-    return <div className="py-4 text-center text-muted-foreground">Загрузка комментариев...</div>
+    return (
+      <div className="py-4 text-center text-muted-foreground">
+        Загрузка комментариев...
+      </div>
+    )
   }
 
   return (
     <>
-      <AlertDialog open={commentToDelete !== null} onOpenChange={(open) => !open && setCommentToDelete(null)}>
+      <AlertDialog
+        open={commentToDelete !== null}
+        onOpenChange={(open) => !open && setCommentToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удаление комментария</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите удалить этот комментарий? Все ответы на него также будут удалены. Это действие нельзя отменить.
+              Вы уверены, что хотите удалить этот комментарий? Все ответы на
+              него также будут удалены. Это действие нельзя отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -427,7 +458,7 @@ export function CommentsList({ postId }: CommentsListProps) {
               transition={{
                 duration: 0.5,
                 ease: "easeOut",
-                delay: comments.length === 0 ? 0 : 0.3 // Задержка появления после удаления последнего комментария
+                delay: comments.length === 0 ? 0 : 0.3, // Задержка появления после удаления последнего комментария
               }}
             >
               Комментариев пока нет. Будьте первым, кто оставит комментарий!

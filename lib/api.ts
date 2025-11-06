@@ -25,7 +25,10 @@ export async function getPosts(category?: string) {
 
   // Get author information for all posts
   const authorIds = [...new Set(posts.map((post) => post.author_id))]
-  const { data: authors } = await supabase.from("profiles").select("id, username, role").in("id", authorIds)
+  const { data: authors } = await supabase
+    .from("profiles")
+    .select("id, username, role")
+    .in("id", authorIds)
 
   // Create a map of author IDs to author data
   const authorMap = new Map()
@@ -55,7 +58,10 @@ export async function getPosts(category?: string) {
   const tagIds = [...new Set(postTags?.map((pt) => pt.tag_id) || [])]
 
   // Get tag names
-  const { data: tags } = await supabase.from("tags").select("id, name").in("id", tagIds)
+  const { data: tags } = await supabase
+    .from("tags")
+    .select("id, name")
+    .in("id", tagIds)
 
   // Create a map of tag IDs to tag names
   const tagMap = new Map()
@@ -79,10 +85,17 @@ export async function getPosts(category?: string) {
 
   // Transform the data to match our UI needs
   return posts.map((post) => {
-    const author = authorMap.get(post.author_id) || { username: "Unknown", role: "student" }
+    const author = authorMap.get(post.author_id) || {
+      username: "Unknown",
+      role: "student",
+    }
     const tagIds = postTagsMap.get(post.id) || []
     const postTags = tagIds.map((tagId) => tagMap.get(tagId)).filter(Boolean)
-    const stats = statsMap.get(post.id) || { likesCount: 0, commentsCount: 0, viewsCount: 0 }
+    const stats = statsMap.get(post.id) || {
+      likesCount: 0,
+      commentsCount: 0,
+      viewsCount: 0,
+    }
 
     return {
       id: post.id,
@@ -104,7 +117,11 @@ export async function getPostById(id: string) {
   const supabase = createServerSupabaseClient()
 
   // Get the post
-  const { data: post, error } = await supabase.from("posts").select("*").eq("id", id).single()
+  const { data: post, error } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("id", id)
+    .single()
 
   if (error || !post) {
     console.error("Error fetching post:", error)
@@ -112,14 +129,24 @@ export async function getPostById(id: string) {
   }
 
   // Get the author
-  const { data: author } = await supabase.from("profiles").select("username, role").eq("id", post.author_id).single()
+  const { data: author } = await supabase
+    .from("profiles")
+    .select("username, role")
+    .eq("id", post.author_id)
+    .single()
 
   // Get post tags
-  const { data: postTags } = await supabase.from("post_tags").select("tag_id").eq("post_id", post.id)
+  const { data: postTags } = await supabase
+    .from("post_tags")
+    .select("tag_id")
+    .eq("post_id", post.id)
 
   // Get tag names
   const tagIds = postTags?.map((pt) => pt.tag_id) || []
-  const { data: tags } = await supabase.from("tags").select("name").in("id", tagIds)
+  const { data: tags } = await supabase
+    .from("tags")
+    .select("name")
+    .in("id", tagIds)
 
   const postTags2 = tags?.map((tag) => tag.name) || []
 
@@ -170,13 +197,21 @@ export async function createPost(data: {
   // Process tags
   for (const tagName of data.tags) {
     // Check if tag exists
-    const { data: existingTag } = await supabase.from("tags").select("id").eq("name", tagName).single()
+    const { data: existingTag } = await supabase
+      .from("tags")
+      .select("id")
+      .eq("name", tagName)
+      .single()
 
     let tagId
 
     if (!existingTag) {
       // Create tag
-      const { data: newTag, error: tagError } = await supabase.from("tags").insert({ name: tagName }).select().single()
+      const { data: newTag, error: tagError } = await supabase
+        .from("tags")
+        .insert({ name: tagName })
+        .select()
+        .single()
 
       if (tagError) {
         console.error("Error creating tag:", tagError)
@@ -219,7 +254,10 @@ export async function getCommentsByPostId(postId: string) {
 
   // Get author information
   const authorIds = [...new Set(comments.map((comment) => comment.author_id))]
-  const { data: authors } = await supabase.from("profiles").select("id, username, role").in("id", authorIds)
+  const { data: authors } = await supabase
+    .from("profiles")
+    .select("id, username, role")
+    .in("id", authorIds)
 
   // Create a map of author IDs to author data
   const authorMap = new Map()
@@ -229,7 +267,10 @@ export async function getCommentsByPostId(postId: string) {
 
   // Transform the data
   const transformedComments = comments.map((comment) => {
-    const author = authorMap.get(comment.author_id) || { username: "Unknown", role: "student" }
+    const author = authorMap.get(comment.author_id) || {
+      username: "Unknown",
+      role: "student",
+    }
 
     return {
       id: comment.id,
@@ -350,7 +391,11 @@ export async function likePost(postId: string, userId: string) {
     // If the error is a duplicate key error, the user already liked the post
     if (error.code === "23505") {
       // Remove the like
-      const { error: unlikeError } = await supabase.from("likes").delete().eq("post_id", postId).eq("user_id", userId)
+      const { error: unlikeError } = await supabase
+        .from("likes")
+        .delete()
+        .eq("post_id", postId)
+        .eq("user_id", userId)
 
       if (unlikeError) {
         console.error("Error unliking post:", unlikeError)
