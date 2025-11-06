@@ -1,9 +1,8 @@
 /*
  * Стили для блоков кода и заголовков
  * Используются в компонентах:
- * - markdown-it-renderer.tsx
- * - markdown-renderer.tsx
- * - TailwindMarkdownEditor.tsx
+ * - markdown-content.tsx
+ * - code-block.tsx
  */
 
 /* Базовые стили для блоков кода */
@@ -21,22 +20,36 @@
   margin: 0;
   padding: 0.5rem 1rem 1rem 1rem;
   overflow-x: auto;
-  background-color: var(--code-bg);
-  border: 1px solid var(--code-border);
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
   border-radius: 0.375rem;
-  color: var(--code-text);
+  color: hsl(var(--foreground));
   display: inline-block;
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 /* Сам код внутри блока */
 .code-block code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
   font-size: 0.875rem;
   line-height: 1.5;
   white-space: pre;
   padding: 0;
   background-color: transparent;
   border: none;
+  display: block;
+  width: 100%;
+}
+
+/* Стили для подсветки синтаксиса от shiki */
+.code-block code[data-theme] {
+  background-color: transparent !important;
+}
+
+.code-block code pre {
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
 }
 
 /* Метка языка */
@@ -47,10 +60,11 @@
   font-size: 0.75rem;
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
-  background-color: var(--code-label-bg);
-  color: var(--code-label-text);
-  border: 1px solid var(--code-label-border);
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
   z-index: 10;
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }
 
 /* Кнопка копирования */
@@ -64,9 +78,9 @@
   align-items: center;
   justify-content: center;
   border-radius: 0.25rem;
-  background-color: var(--copy-button-bg);
-  color: var(--copy-button-text);
-  border: 1px solid var(--copy-button-border);
+  background-color: hsl(var(--saas-purple));
+  color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--saas-purple-dark));
   opacity: 0.7;
   transition: all 0.2s ease;
   z-index: 10;
@@ -81,23 +95,23 @@
   transform: scale(0.95);
 }
 
-/* Темная тема */
+/* Темная тема - используем те же переменные, они автоматически меняются */
 .dark .code-block pre {
-  background-color: var(--code-bg-dark);
-  border-color: var(--code-border-dark);
-  color: var(--code-text-dark);
+  background-color: hsl(var(--muted));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
 }
 
 .dark .code-block .language-label {
-  background-color: var(--code-label-bg-dark);
-  color: var(--code-label-text-dark);
-  border-color: var(--code-label-border-dark);
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  border-color: hsl(var(--border));
 }
 
 .dark .code-block .copy-button {
-  background-color: var(--copy-button-bg-dark);
-  color: var(--copy-button-text-dark);
-  border-color: var(--copy-button-border-dark);
+  background-color: hsl(var(--saas-purple));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--saas-purple-dark));
 }
 
 /* Стили для заголовков */

@@ -8,8 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CategoryTabs } from '@/components/category-tabs'
 import { Badge } from '@/components/ui/badge'
 import { Loader2 } from 'lucide-react'
-import { MarkdownItRenderer } from '@/components/markdown-it-renderer'
-import TailwindMarkdownEditor from '@/src/components/TailwindMarkdownEditor'
+import { MarkdownContent } from '@/components/ui/markdown-content'
+import { MarkdownEditor } from '@/components/ui/markdown-editor'
 import { useToast } from '@/components/ui/use-toast'
 import { useAuth } from '@/context/auth-context'
 import { createPost } from '@/lib/client-api'
@@ -182,7 +182,7 @@ export function NewsScraper() {
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">{title}</h2>
                 <div className="border rounded-md p-4 bg-background">
-                  <MarkdownItRenderer content={content} className="prose-code:bg-transparent" />
+                  <MarkdownContent content={content} />
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -228,9 +228,9 @@ export function NewsScraper() {
                 </div>
                 <div className="grid gap-2">
                   <label htmlFor="content" className="text-sm font-medium">Содержание</label>
-                  <TailwindMarkdownEditor
+                  <MarkdownEditor
                     value={content}
-                    onChange={setContent}
+                    onChange={(val) => setContent(val || '')}
                   />
                 </div>
                 <div className="grid gap-2">

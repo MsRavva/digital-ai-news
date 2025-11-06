@@ -124,6 +124,9 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  code, pre, .font-mono {
+    font-family: var(--font-ubuntu-mono), "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  }
 }
 
 /* Enhanced gradient for light mode */

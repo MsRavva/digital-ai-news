@@ -10,8 +10,7 @@ import { UserNav } from "@/components/user-nav"
 import { CommentsList } from "@/components/comments-list"
 import { CommentForm } from "@/components/comment-form"
 import { MessageSquare, ThumbsUp, Eye, Share2, Bookmark, Pencil, Archive, ArchiveRestore } from "lucide-react"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
-import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
+import { MarkdownContent } from "@/components/ui/markdown-content"
 import { useEffect, useState } from 'react'
 import React, { use } from 'react'
 import { getPostById, recordView, likePost, hasUserLikedPost, toggleBookmark, hasUserBookmarkedPost, archivePost, unarchivePost } from '@/lib/client-api'
@@ -32,26 +31,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-// Функция для обрезки длинных строк
 const truncateString = (str: string, maxLength: number) => {
   if (str.length <= maxLength) return str;
   return str.substring(0, maxLength) + '...';
 };
 
-// Функция для обработки ссылок в HTML-контенте
 const processHtmlContent = (content: string) => {
-  // Обрезаем длинные ссылки в тексте ссылок
   return content.replace(/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/g, (match, url, text) => {
-    // Если текст ссылки слишком длинный, обрезаем его
     const displayText = text.length > 60 ? truncateString(text, 60) : text;
-    // Добавляем класс для стилизации и обрезки ссылок
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="post-link">${displayText}</a>`;
   });
 };
 
-// Функция для обработки base64-изображений в контенте
 const processBase64Images = (content: string) => {
-  // Проверяем, есть ли в контенте base64-изображения
   if (content.includes('data:image/')) {
     console.log('Post content contains base64 images');
   }
@@ -63,7 +55,6 @@ type Props = {
 }
 
 export default function PostPage({ params }: Props) {
-  // Используем React.use() для развертывания params
   const unwrappedParams = use(params);
   const postId = unwrappedParams.id
 
@@ -77,32 +68,27 @@ export default function PostPage({ params }: Props) {
   const { toast } = useToast()
   const router = useRouter()
 
-  // Проверка, имеет ли пользователь права на редактирование (владелец, учитель или админ)
   const canEdit = post && profile && (
     profile.role === "teacher" ||
     profile.role === "admin" ||
     post.author?.username === profile.username
   )
 
-  // Загрузка поста и запись просмотра
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const postData = await getPostById(postId)
 
-        // Проверяем наличие base64-изображений в контенте
         if (postData && postData.content) {
           processBase64Images(postData.content);
         }
 
         setPost(postData)
 
-        // Устанавливаем состояние архивации
         if (postData) {
           setIsArchived(!!postData.archived)
         }
 
-        // Записываем просмотр, если пользователь авторизован
         if (user) {
           await recordView(postId, user.uid)
         }
@@ -116,7 +102,6 @@ export default function PostPage({ params }: Props) {
     fetchPost()
   }, [postId, user])
 
-  // Проверка, лайкнул ли пользователь пост
   useEffect(() => {
     const checkIfLiked = async () => {
       if (user && postId) {
@@ -132,7 +117,6 @@ export default function PostPage({ params }: Props) {
     checkIfLiked()
   }, [postId, user])
 
-  // Проверка, добавил ли пользователь пост в избранное
   useEffect(() => {
     const checkIfBookmarked = async () => {
       if (user && postId) {
@@ -148,7 +132,6 @@ export default function PostPage({ params }: Props) {
     checkIfBookmarked()
   }, [postId, user])
 
-  // Обработчик лайка/анлайка
   const handleLike = async () => {
     if (!user) {
       toast({
@@ -162,24 +145,16 @@ export default function PostPage({ params }: Props) {
     try {
       const result = await likePost(postId, user.uid)
 
-      // Запоминаем предыдущее состояние лайка
       const wasLiked = isLiked;
 
-      // Обновляем состояние лайка
       setIsLiked(result)
 
-      // Обновляем счетчик лайков в UI
-      // result=true означает, что лайк был добавлен, result=false - удален
       if (post) {
-        // Если ранее не было лайка и мы его добавили, увеличиваем счетчик
-        // Если ранее был лайк и мы его удалили, уменьшаем счетчик
         let newLikesCount = post.likesCount || 0;
 
         if (result && !wasLiked) {
-          // Добавили лайк
           newLikesCount += 1;
         } else if (!result && wasLiked) {
-          // Удалили лайк
           newLikesCount = Math.max(0, newLikesCount - 1);
         }
 
@@ -198,7 +173,6 @@ export default function PostPage({ params }: Props) {
     }
   }
 
-  // Обработчик добавления/удаления из избранного
   const handleBookmark = async () => {
     if (!user) {
       toast({
@@ -227,7 +201,6 @@ export default function PostPage({ params }: Props) {
     }
   }
 
-  // Обработчик архивирования поста
   const handleArchive = async () => {
     if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
       toast({
@@ -278,7 +251,6 @@ export default function PostPage({ params }: Props) {
 
 
 
-  // Обработчик восстановления поста из архива
   const handleUnarchive = async () => {
     if (!user || !profile || (profile.role !== "teacher" && profile.role !== "admin")) {
       toast({
@@ -411,7 +383,6 @@ export default function PostPage({ params }: Props) {
                     </Button>
                   )}
 
-                  {/* Кнопка удаления для учителей и админов */}
                   {profile && (profile.role === "teacher" || profile.role === "admin") && (
                     <DeletePostButton
                       postId={post.id}
@@ -423,7 +394,6 @@ export default function PostPage({ params }: Props) {
                     />
                   )}
 
-                  {/* Кнопки архивирования/восстановления для учителей и админов */}
                   {profile && (profile.role === "teacher" || profile.role === "admin") && (
                     isArchived ? (
                       <AlertDialog>
@@ -514,15 +484,13 @@ export default function PostPage({ params }: Props) {
                 ))}
               </div>
 
-              {/* Используем MarkdownIt для рендеринга контента */}
               <div className="markdown-content">
-                <MarkdownItRenderer
+                <MarkdownContent
                   content={post.content}
                   className="post-markdown-content"
                 />
               </div>
 
-              {/* Добавляем стили для обработки изображений */}
               <style jsx global>{`
                 .post-markdown-content img {
                   display: block;

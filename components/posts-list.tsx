@@ -7,7 +7,6 @@ import { useAuth } from "@/context/auth-context"
 import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter } from "next/navigation"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { DeletePostButton } from "@/components/delete-post-button"
 import {
   DropdownMenu,

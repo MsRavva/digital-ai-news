@@ -1,26 +1,22 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect, ChangeEvent } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { EnhancedTextarea } from "@/components/enhanced-textarea"
 import { PublicationCategoryTabs } from "@/components/publication-category-tabs"
 import { Badge } from "@/components/ui/badge"
-import { X, LinkIcon, Loader2, Pencil } from "lucide-react"
-import { LinkPopover } from "./link-popover"
+import { X, Loader2, Pencil } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import { getPostById, updatePost } from "@/lib/client-api"
-import { Progress } from "@/components/ui/progress"
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Post } from "@/types/database"
-import { MarkdownRenderer } from "@/components/markdown-renderer"
-import { MarkdownItRenderer } from "@/components/markdown-it-renderer"
-import TailwindMarkdownEditor from "../src/components/TailwindMarkdownEditor";
+import { MarkdownContent } from "@/components/ui/markdown-content"
+import { MarkdownEditor } from "@/components/ui/markdown-editor"
 
 interface Attachment {
   type: 'link';
@@ -272,7 +268,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
             </div>
             <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
             <div className="markdown-content">
-              <MarkdownItRenderer
+              <MarkdownContent
                 content={fullContent}
                 className="edit-preview-markdown-content mb-4"
               />
@@ -354,7 +350,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="content">Содержание</Label>
-                <TailwindMarkdownEditor value={content} onChange={setContent} />
+                <MarkdownEditor value={content} onChange={(val) => setContent(val || '')} />
               </div>
               <div className="grid gap-3">
                 <Label htmlFor="category">Категория</Label>
