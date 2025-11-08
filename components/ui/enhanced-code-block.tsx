@@ -1,8 +1,9 @@
 "use client"
 
 import { Check, Copy } from "lucide-react"
+import { useTheme } from "next-themes"
 import React, { useState } from "react"
-import { Light as SyntaxHighlighter } from "react-syntax-highlighter"
+import { Light as SyntaxHighlighter, Dark as SyntaxHighlighterDark } from "react-syntax-highlighter"
 import bash from "react-syntax-highlighter/dist/cjs/languages/hljs/bash"
 import css from "react-syntax-highlighter/dist/cjs/languages/hljs/css"
 import js from "react-syntax-highlighter/dist/cjs/languages/hljs/javascript"
@@ -11,16 +12,22 @@ import markdown from "react-syntax-highlighter/dist/cjs/languages/hljs/markdown"
 import python from "react-syntax-highlighter/dist/cjs/languages/hljs/python"
 import html from "react-syntax-highlighter/dist/cjs/languages/hljs/xml"
 import { githubGist } from "react-syntax-highlighter/dist/cjs/styles/hljs"
+import { githubDark } from "react-syntax-highlighter/dist/cjs/styles/hljs"
 import { toast } from "sonner"
 
-// Регистрируем языки
-SyntaxHighlighter.registerLanguage("javascript", js)
-SyntaxHighlighter.registerLanguage("python", python)
-SyntaxHighlighter.registerLanguage("html", html)
-SyntaxHighlighter.registerLanguage("css", css)
-SyntaxHighlighter.registerLanguage("json", json)
-SyntaxHighlighter.registerLanguage("bash", bash)
-SyntaxHighlighter.registerLanguage("markdown", markdown)
+// Регистрируем языки для обоих компонентов
+const registerLanguages = (Highlighter: typeof SyntaxHighlighter) => {
+  Highlighter.registerLanguage("javascript", js)
+  Highlighter.registerLanguage("python", python)
+  Highlighter.registerLanguage("html", html)
+  Highlighter.registerLanguage("css", css)
+  Highlighter.registerLanguage("json", json)
+  Highlighter.registerLanguage("bash", bash)
+  Highlighter.registerLanguage("markdown", markdown)
+}
+
+registerLanguages(SyntaxHighlighter)
+registerLanguages(SyntaxHighlighterDark)
 
 interface EnhancedCodeBlockProps {
   code: string
@@ -34,6 +41,7 @@ export function EnhancedCodeBlock({
   className,
 }: EnhancedCodeBlockProps) {
   const [copied, setCopied] = useState(false)
+  const { resolvedTheme } = useTheme()
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code)
@@ -44,13 +52,16 @@ export function EnhancedCodeBlock({
 
   // Определяем язык для подсветки
   const highlightLanguage = language === "text" ? undefined : language
+  const isDark = resolvedTheme === 'dark'
+  const Highlighter = isDark ? SyntaxHighlighterDark : SyntaxHighlighter
+  const style = isDark ? githubDark : githubGist
 
   return (
-    <div className={`relative rounded-md overflow-hidden my-4 ${className}`}>
+    <div className={`relative my-4 ${className}`}>
       <div className="absolute top-2 right-2 z-10">
         <button
           onClick={handleCopy}
-          className="p-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded transition-colors"
+          className="p-1.5 bg-muted hover:bg-muted/80 text-muted-foreground rounded transition-colors"
           aria-label="Копировать код"
         >
           {copied ? (
@@ -60,13 +71,15 @@ export function EnhancedCodeBlock({
           )}
         </button>
       </div>
-      <SyntaxHighlighter
+      <Highlighter
         language={highlightLanguage}
-        style={githubGist}
+        style={style}
         customStyle={{
           margin: 0,
-          borderRadius: "0.375rem",
+          borderRadius: "0.75rem",
           fontSize: "0.875rem",
+          padding: "1.25rem",
+          width: "100%",
         }}
         codeTagProps={{
           className: "font-sans",
@@ -74,7 +87,7 @@ export function EnhancedCodeBlock({
         showLineNumbers={false}
       >
         {code}
-      </SyntaxHighlighter>
+      </Highlighter>
     </div>
   )
 }
