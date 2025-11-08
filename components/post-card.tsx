@@ -1,6 +1,7 @@
 "use client"
 
 import { DeletePostButton } from "@/components/delete-post-button"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -165,11 +166,7 @@ export function PostCard({ post }: PostCardProps) {
               {post.title}
             </h3>
             <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
-              <div className="prose dark:prose-invert prose-sm max-w-none">
-                {post.content.length > 150
-                  ? post.content.substring(0, 150) + "..."
-                  : post.content}
-              </div>
+              <MarkdownRenderer content={post.content.length > 150 ? post.content.substring(0, 150) + "..." : post.content} className="prose dark:prose-invert prose-sm max-w-none text-muted-foreground" />
             </div>
           </div>
           <div className="flex justify-between items-end mt-4 w-full">

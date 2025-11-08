@@ -115,8 +115,9 @@ export function MDXEditorWrapper({
     )
   }
 
-  // Используем тему для определения темы подсветки кода
-  const codeBlockTheme = theme === 'dark' ? 'github-dark' : 'github'
+  // Используем resolvedTheme из next-themes для правильного определения темы
+  const { resolvedTheme } = useTheme()
+  const codeBlockTheme = resolvedTheme === 'dark' ? 'github-dark' : 'github'
 
   return (
     <div

@@ -36,22 +36,34 @@ body {
 }
 
 /* Custom scrollbar styles */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.custom-scrollbar::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+.custom-scrollbar::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 5px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
   background: hsl(var(--primary) / 0.3);
-  border-radius: 4px;
+  border-radius: 5px;
+  transition: background 0.2s ease;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--primary) / 0.5);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--primary) / 0.3) hsl(var(--muted));
 }
 
 /* Typography styles */
@@ -112,11 +124,11 @@ a {
 }
 
 a:hover {
-  color: hsl(var(--primary-700));
+  color: hsl(var(--primary-600));
 }
 
 .dark a:hover {
-  color: hsl(var(--primary-300));
+  color: hsl(var(--primary-400));
 }
 
 /* SaaS Window styles */
@@ -176,15 +188,15 @@ a:hover {
 }
 
 .saas-window-dot-red {
-  background-color: hsl(var(--error-500));
+  background-color: hsl(var(--destructive));
 }
 
 .saas-window-dot-yellow {
-  background-color: hsl(var(--warning-500));
+  background-color: hsl(var(--saas-yellow));
 }
 
 .saas-window-dot-green {
-  background-color: hsl(var(--success-500));
+  background-color: hsl(var(--saas-green));
 }
 
 /* View toggle styles */
@@ -247,23 +259,70 @@ a:hover {
 .post-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--border-radius-lg);
-  transition: all 0.3s ease;
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.post-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--secondary)));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .post-card:hover {
   border-color: hsl(var(--primary) / 0.5);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+              0 4px 6px -4px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+}
+
+.post-card:hover::before {
+  opacity: 1;
 }
 
 .dark .post-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 }
 
 .dark .post-card:hover {
   border-color: hsl(var(--primary) / 0.5);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4),
+              0 4px 6px -4px rgba(0, 0, 0, 0.4);
+}
+
+/* Focus states для доступности */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Плавные переходы для всех элементов */
+* {
+  transition-property: color, background-color, border-color, 
+                       text-decoration-color, fill, stroke, 
+                       opacity, box-shadow, transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Быстрые переходы для интерактивных элементов */
+button, a, input, textarea, select {
+  transition-duration: 100ms;
+}
+
+/* Медленные переходы для сложных анимаций */
+.card, .post-card, .saas-window {
+  transition-duration: 300ms;
 }
