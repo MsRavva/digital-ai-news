@@ -5,7 +5,7 @@ import { Mulish, Ubuntu_Mono } from "next/font/google"
 import { AuthProvider } from "@/context/auth-context"
 import "./globals.css"
 import "@/styles/shake-animation.css"
-import "@/styles/code-blocks.css"
+import "@/styles/code.css"
 
 const mulish = Mulish({
   subsets: ["latin", "cyrillic"],

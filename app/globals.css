@@ -4,7 +4,7 @@
 
 /* Импорт новой системы стилей */
 @import '../styles/variables.css';
-@import '../styles/code-blocks.css';
+@import '../styles/code.css';
 @import '../styles/markdown.css';
 
 body {
