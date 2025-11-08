@@ -61,7 +61,7 @@ export function LinkPopover({ onLinkAdd }: LinkPopoverProps) {
             />
             <Button
               type="submit"
-              className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple))/0.9] text-white"
+              variant="default"
             >
               Добавить
             </Button>

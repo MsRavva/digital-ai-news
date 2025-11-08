@@ -95,7 +95,7 @@ export function PostCard({ post }: PostCardProps) {
               <div className="flex items-center gap-2 ml-1">
                 <Badge
                   variant="outline"
-                  className="bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)]"
+                  className="bg-card dark:bg-primary/10 text-primary border-primary/30 dark:border-primary/50 shadow-sm dark:shadow-primary/20"
                 >
                   {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
                 </Badge>
@@ -138,7 +138,7 @@ export function PostCard({ post }: PostCardProps) {
                     <Paperclip
                       className={cn(
                         "mr-2 h-4 w-4",
-                        post.pinned ? "text-primary" : "text-gray-400"
+                        post.pinned ? "text-primary" : "text-muted-foreground"
                       )}
                     />
                     {post.pinned ? "Открепить" : "Закрепить"}
@@ -175,7 +175,7 @@ export function PostCard({ post }: PostCardProps) {
                 <Badge 
                   key={tag} 
                   variant="outline"
-                  className="bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)]"
+                  className="bg-card dark:bg-primary/10 text-primary border-primary/30 dark:border-primary/50 shadow-sm dark:shadow-primary/20"
                 >
                   {tag}
                 </Badge>

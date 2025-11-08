@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import { CodeBlock } from './code-block'
+import { InlineCode } from './inline-code'
 import { cn } from '@/lib/utils'
 
 interface MarkdownContentProps {
@@ -21,7 +22,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
       'prose-h2:text-3xl prose-h2:mb-3 prose-h2:mt-8',
       'prose-h3:text-2xl prose-h3:mb-2 prose-h3:mt-6',
       'prose-p:leading-7 prose-p:mb-4',
-      'prose-a:text-[hsl(var(--saas-purple))] dark:prose-a:text-[hsl(var(--saas-purple-light))] prose-a:no-underline hover:prose-a:underline',
+      'prose-a:text-primary dark:prose-a:text-primary prose-a:no-underline hover:prose-a:underline',
       'prose-code:text-foreground dark:prose-code:text-foreground',
       'prose-code:bg-muted dark:prose-code:bg-muted',
       'prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm',
@@ -44,16 +45,12 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
         rehypePlugins={[rehypeRaw]}
         components={{
           code({ inline, className, children, ...props }) {
-            // Для inline кода просто возвращаем обычный code
+            // Для inline кода используем компонент с копированием
             if (inline) {
               return (
-                <code 
-                  className={className} 
-                  style={{ fontFamily: '"Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }}
-                  {...props}
-                >
-                  {children}
-                </code>
+                <InlineCode className={className}>
+                  {String(children)}
+                </InlineCode>
               )
             }
             // Для блочного кода возвращаем обычный code, он будет обработан в pre

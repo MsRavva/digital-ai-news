@@ -316,7 +316,7 @@ export default function ProfilePage() {
                         <div className="flex justify-end">
                           <Button
                             type="submit"
-                            className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+                            variant="default"
                           >
                             Сохранить изменения
                           </Button>
@@ -394,7 +394,7 @@ export default function ProfilePage() {
                           <p className="text-muted-foreground">
                             У вас пока нет публикаций
                           </p>
-                          <Button className="mt-4 bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
+                          <Button className="mt-4" variant="default">
                             <Link href="/create">Создать публикацию</Link>
                           </Button>
                         </div>

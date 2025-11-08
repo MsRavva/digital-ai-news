@@ -109,20 +109,13 @@ export default function ArchivePage() {
                     onViewChange={handleViewChange}
                     initialView={viewMode}
                   />
-                  <Button 
-                    variant="outline" 
-                    onClick={() => router.push("/")}
-                    className="border-[hsl(var(--saas-purple))] text-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
-                  >
-                    Вернуться на главную
-                  </Button>
                 </div>
               </div>
 
               {searchQuery && (
-                <div className="mb-4 p-2 bg-[hsl(var(--saas-purple)/0.1)] rounded-md text-sm flex items-center justify-between">
+                <div className="mb-4 p-2 bg-primary/10 rounded-md text-sm flex items-center justify-between">
                   <div className="flex items-center">
-                    <Search className="h-4 w-4 mr-2 text-[hsl(var(--saas-purple))]" />
+                    <Search className="h-4 w-4 mr-2 text-primary" />
                     <span>
                       Поиск: <span className="font-medium">{searchQuery}</span>
                     </span>

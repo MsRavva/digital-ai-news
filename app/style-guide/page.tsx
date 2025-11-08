@@ -56,7 +56,7 @@ const StyleGuidePage = () => {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-4 items-center">
           <Button 
-            className="bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))]"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Default
           </Button>
@@ -74,25 +74,25 @@ const StyleGuidePage = () => {
             Link
           </Button>
           <Button 
-            className="bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))]"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Purple
           </Button>
           <Button 
             size="sm"
-            className="bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))]"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Small
           </Button>
           <Button 
             size="lg"
-            className="bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))]"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Large
           </Button>
           <Button 
             disabled
-            className="bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))]"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Disabled
           </Button>
@@ -109,7 +109,7 @@ const StyleGuidePage = () => {
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2 items-center">
           <Badge 
-            className="bg-[hsl(var(--saas-purple))] text-white"
+            className="bg-primary text-primary-foreground"
           >
             Default
           </Badge>

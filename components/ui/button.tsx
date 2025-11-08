@@ -12,20 +12,24 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
         destructive:
-          "bg-error text-error-foreground hover:bg-error/90 shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
         ghost: "hover:bg-accent hover:text-accent-foreground active:translate-y-0 transition-all duration-200",
         link: "text-primary underline-offset-4 hover:underline active:translate-y-0 transition-all duration-200",
-        saas: "bg-[hsl(var(--saas-purple))] text-white hover:bg-[hsl(var(--saas-purple-dark))] shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
+        saas: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
         "saas-secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
         "saas-ghost": "hover:bg-accent hover:text-accent-foreground hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
         "saas-gradient":
           "bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
         "saas-outline":
           "border-2 border-primary text-primary bg-transparent hover:bg-primary/10 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200",
+        archive:
+          "bg-[var(--chart-4)] text-foreground hover:bg-[var(--chart-4)]/90 shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
+        restore:
+          "bg-[var(--chart-3)] text-foreground hover:bg-[var(--chart-3)]/90 shadow-sm hover:shadow-md active:translate-y-0 transition-all duration-200",
       },
       size: {
         default: "h-10 px-4 py-2",

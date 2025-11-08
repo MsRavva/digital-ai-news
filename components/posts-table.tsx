@@ -119,7 +119,7 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                   <div className="flex justify-center">
                     <Badge
                       variant="outline"
-                      className="text-xs bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)]"
+                      className="text-xs bg-primary/10 text-primary border-primary/20"
                     >
                       {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
                     </Badge>
@@ -127,7 +127,7 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                 </div>
               </td>
               <td className="py-3 px-4">
-                <div className="font-medium hover:text-[hsl(var(--saas-purple))] transition-colors">
+                <div className="font-medium hover:text-primary transition-colors">
                   {post.title}
                 </div>
                 <div className="text-muted-foreground text-sm line-clamp-1 mt-1">
@@ -177,7 +177,7 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-[hsl(var(--saas-purple))]"
+                        className="h-8 w-8 text-primary"
                         onClick={(e) => {
                           e.stopPropagation(); // Предотвращаем всплытие события
                           router.push(`/edit/${post.id}`);
@@ -190,14 +190,14 @@ export function PostsTable({ posts: initialPosts, loading = false, loadingMessag
                       <Button
                         variant="ghost"
                         size="icon"
-                        className={`h-8 w-8 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : ''}`}
+                        className={`h-8 w-8 ${post.pinned ? 'text-primary' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation(); // Предотвращаем всплытие события
                           handleTogglePin(post.id);
                         }}
                         title={post.pinned ? 'Открепить' : 'Закрепить'}
                       >
-                        <Paperclip className={`h-4 w-4 ${post.pinned ? 'text-[hsl(var(--saas-purple))]' : 'text-gray-400'}`} />
+                        <Paperclip className={`h-4 w-4 ${post.pinned ? 'text-primary' : 'text-muted-foreground'}`} />
                       </Button>
                     )}
                     <DeletePostButton

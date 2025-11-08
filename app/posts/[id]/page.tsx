@@ -379,7 +379,7 @@ export default function PostPage({ params }: Props) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-1 text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)]"
+                      className="flex items-center gap-1 text-primary hover:text-primary/80 hover:bg-primary/10"
                       onClick={() => router.push(`/edit/${post.id}`)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -405,7 +405,7 @@ export default function PostPage({ params }: Props) {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            className="flex items-center gap-1 text-[var(--chart-3)] hover:text-[var(--chart-3)] hover:bg-[var(--chart-3)]/10"
                           >
                             <ArchiveRestore className="h-4 w-4" />
                             Восстановить
@@ -423,7 +423,7 @@ export default function PostPage({ params }: Props) {
                             <AlertDialogAction
                               onClick={handleUnarchive}
                               disabled={isArchiving}
-                              className="bg-green-600 hover:bg-green-700"
+                              className="bg-[var(--chart-3)] hover:bg-[var(--chart-3)]/90"
                             >
                               {isArchiving ? "Восстановление..." : "Восстановить"}
                             </AlertDialogAction>
@@ -436,7 +436,7 @@ export default function PostPage({ params }: Props) {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="flex items-center gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                            className="flex items-center gap-1 text-[var(--chart-4)] hover:text-[var(--chart-4)] hover:bg-[var(--chart-4)]/10"
                           >
                             <Archive className="h-4 w-4" />
                             В архив
@@ -454,7 +454,7 @@ export default function PostPage({ params }: Props) {
                             <AlertDialogAction
                               onClick={handleArchive}
                               disabled={isArchiving}
-                              className="bg-amber-600 hover:bg-amber-700"
+                              className="bg-[var(--chart-4)] hover:bg-[var(--chart-4)]/90"
                             >
                               {isArchiving ? "Архивирование..." : "Архивировать"}
                             </AlertDialogAction>
@@ -468,7 +468,7 @@ export default function PostPage({ params }: Props) {
                     variant="ghost"
                     size="icon"
                     onClick={handleBookmark}
-                    className={isBookmarked ? 'text-[hsl(var(--saas-purple))]' : ''}
+                    className={isBookmarked ? 'text-primary' : ''}
                   >
                     <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
                   </Button>
@@ -482,7 +482,7 @@ export default function PostPage({ params }: Props) {
 
               <div className="flex flex-wrap gap-2 mt-4">
                 {post.tags?.map((tag) => (
-                  <Badge key={tag} variant="secondary">
+                  <Badge key={tag} variant="primary">
                     {tag}
                   </Badge>
                 ))}
@@ -519,11 +519,12 @@ export default function PostPage({ params }: Props) {
               <div className="flex items-center space-x-6 w-full">
                 <Button
                   variant="outline"
-                  className={`flex items-center gap-1 ${isLiked ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' : ''}`}
+                  size="sm"
+                  className={`flex items-center gap-1 ${isLiked ? 'bg-primary/10 text-primary border-primary/30 hover:bg-primary/20' : ''}`}
                   onClick={handleLike}
                 >
-                  <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-                  <span>{post.likesCount || 0}</span>
+                  <ThumbsUp className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
+                  <span className="text-sm">{post.likesCount || 0}</span>
                 </Button>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <MessageSquare className="h-4 w-4" />

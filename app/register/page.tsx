@@ -263,9 +263,9 @@ export default function Register() {
               AI News - Регистрация
             </div>
           </div>
-          <Card className="border-0 shadow-none bg-white dark:bg-[#0e1012]">
+          <Card className="border-0 shadow-none bg-card dark:bg-card">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
+              <CardTitle className="text-2xl font-bold text-center text-card-foreground dark:text-card-foreground">
                 Регистрация в AI News
               </CardTitle>
             </CardHeader>
@@ -281,7 +281,7 @@ export default function Register() {
                 <div className="space-y-1">
                   <Label
                     htmlFor="email"
-                    className="text-sm text-gray-600 dark:text-gray-400"
+                    className="text-sm text-muted-foreground dark:text-muted-foreground"
                   >
                     Email
                   </Label>
@@ -292,13 +292,13 @@ export default function Register() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1a1b23] rounded-md h-11 focus:border-saas-purple focus:ring-saas-purple text-gray-900 dark:text-white"
+                    className="border border-input dark:border-input bg-input dark:bg-input rounded-md h-11 focus:border-primary focus:ring-primary text-foreground dark:text-foreground"
                   />
                 </div>
                 <div className="space-y-1">
                   <Label
                     htmlFor="username"
-                    className="text-sm text-gray-600 dark:text-gray-400"
+                    className="text-sm text-muted-foreground dark:text-muted-foreground"
                   >
                     Имя пользователя
                   </Label>
@@ -308,12 +308,12 @@ export default function Register() {
                     value={username}
                     onChange={handleUsernameChange}
                     required
-                    className={`border ${usernameError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-gray-300 dark:border-gray-600 focus:border-saas-purple focus:ring-saas-purple"} bg-white dark:bg-[#1a1b23] rounded-md h-11 text-gray-900 dark:text-white`}
+                    className={`border ${usernameError ? "border-destructive focus:border-destructive focus:ring-destructive" : "border-input dark:border-input focus:border-primary focus:ring-primary"} bg-input dark:bg-input rounded-md h-11 text-foreground dark:text-foreground`}
                   />
                   {usernameError ? (
                     <p className="text-xs text-red-500 mt-1">{usernameError}</p>
                   ) : (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
                       Укажите имя и фамилию на русском языке, например: Иван
                       Иванов
                     </p>
@@ -322,7 +322,7 @@ export default function Register() {
                 <div className="space-y-1">
                   <Label
                     htmlFor="password"
-                    className="text-sm text-gray-600 dark:text-gray-400"
+                    className="text-sm text-muted-foreground dark:text-muted-foreground"
                   >
                     Пароль
                   </Label>
@@ -333,13 +333,13 @@ export default function Register() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1a1b23] rounded-md h-11 focus:border-saas-purple focus:ring-saas-purple text-gray-900 dark:text-white"
+                    className="border border-input dark:border-input bg-input dark:bg-input rounded-md h-11 focus:border-primary focus:ring-primary text-foreground dark:text-foreground"
                   />
                 </div>
                 <div className="space-y-1">
                   <Label
                     htmlFor="confirm-password"
-                    className="text-sm text-gray-600 dark:text-gray-400"
+                    className="text-sm text-muted-foreground dark:text-muted-foreground"
                   >
                     Подтверждение пароля
                   </Label>
@@ -350,7 +350,7 @@ export default function Register() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#1a1b23] rounded-md h-11 focus:border-saas-purple focus:ring-saas-purple text-gray-900 dark:text-white"
+                    className="border border-input dark:border-input bg-input dark:bg-input rounded-md h-11 focus:border-primary focus:ring-primary text-foreground dark:text-foreground"
                   />
                 </div>
                 {/* Блок выбора роли удален, всем пользователям присваивается роль student */}
@@ -362,10 +362,10 @@ export default function Register() {
 
                 <div className="relative my-2">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t-2 border-[hsl(var(--saas-purple)/0.3)] dark:border-gray-700"></span>
+                    <span className="w-full border-t-2 border-primary/30 dark:border-border"></span>
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="bg-white dark:bg-[#0e1012] px-2 text-gray-500">
+                    <span className="bg-card dark:bg-card px-2 text-muted-foreground">
                       или продолжить через
                     </span>
                   </div>
@@ -376,7 +376,7 @@ export default function Register() {
                   variant="outline"
                   onClick={handleGithubSignIn}
                   disabled={isGithubLoading}
-                  className="flex items-center justify-center gap-2 bg-transparent border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 h-11 rounded-md"
+                  className="flex items-center justify-center gap-2 bg-transparent border border-border dark:border-border text-foreground dark:text-foreground hover:bg-muted dark:hover:bg-muted h-11 rounded-md"
                 >
                   <Github className="h-4 w-4" />
                   Продолжить с GitHub
@@ -387,7 +387,7 @@ export default function Register() {
                   variant="outline"
                   onClick={handleGoogleSignIn}
                   disabled={isGoogleLoading}
-                  className="flex items-center justify-center gap-2 bg-transparent border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 h-11 rounded-md"
+                  className="flex items-center justify-center gap-2 bg-transparent border border-border dark:border-border text-foreground dark:text-foreground hover:bg-muted dark:hover:bg-muted h-11 rounded-md"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -417,11 +417,11 @@ export default function Register() {
                   Продолжить с Google
                 </Button>
 
-                <div className="text-center text-sm mt-4 text-gray-400">
+                <div className="text-center text-sm mt-4 text-muted-foreground">
                   Уже есть аккаунт?{" "}
                   <Link
                     href="/login"
-                    className="text-gray-400 hover:text-saas-purple"
+                    className="text-muted-foreground hover:text-primary"
                   >
                     Войти
                   </Link>

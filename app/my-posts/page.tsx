@@ -210,7 +210,7 @@ export default function MyPostsPage() {
                   Мои публикации
                 </h1>
                 <Link href="/create">
-                  <Button className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
+                  <Button variant="default">
                     <Plus className="mr-2 h-4 w-4" /> Создать публикацию
                   </Button>
                 </Link>

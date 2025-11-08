@@ -3,9 +3,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { Mulish } from "next/font/google"
 import { AuthProvider } from "@/context/auth-context"
+import { CodeCopyProvider } from "@/components/code-copy-provider"
 import "./globals.css"
-import "@/styles/shake-animation.css"
-import "@/styles/code.css"
 
 const mulish = Mulish({
   subsets: ["latin", "cyrillic"],
@@ -33,9 +32,11 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <body className={mulish.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <CodeCopyProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </CodeCopyProvider>
         </ThemeProvider>
         <Toaster />
       </body>

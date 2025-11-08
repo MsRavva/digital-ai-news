@@ -48,10 +48,10 @@ export function AuthHeader() {
               />
             </div>
             <div className="flex items-center">
-              <span className="bg-[radial-gradient(circle_at_center,_#3b82f6_0%,_hsl(var(--saas-purple))_100%)] bg-clip-text text-transparent font-extrabold">
+              <span className="text-accent font-extrabold">
                 AI
               </span>
-              <span className="ml-1.5 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+              <span className="ml-1.5 text-primary group-hover:text-primary transition-colors duration-200">
                 News
               </span>
             </div>
@@ -59,7 +59,7 @@ export function AuthHeader() {
           <nav className="hidden md:flex items-center space-x-6">
             <Link
               href="/"
-              className="text-base font-medium transition-all duration-200 hover:text-[hsl(var(--saas-purple))] relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-[hsl(var(--saas-purple))] after:transition-all after:duration-200"
+              className="text-base font-medium transition-all duration-200 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all after:duration-200"
             >
               Главная
             </Link>
@@ -71,7 +71,7 @@ export function AuthHeader() {
               variant="ghost"
               size="icon"
               aria-label="Toggle theme"
-              className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
+              className="text-primary hover:text-primary/80 hover:bg-primary/10 transition-all duration-200"
               onClick={toggleTheme}
             >
               {resolvedTheme === "dark" ? (
@@ -103,7 +103,7 @@ export function AuthHeader() {
                   className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-10 px-3 transition-all duration-200 flex items-center gap-2"
                 >
                   <SimpleAvatar username={profile.username} size="sm" />
-                  <span className="text-[hsl(var(--saas-purple))] font-bold">
+                  <span className="text-primary font-bold">
                     {profile.username}
                   </span>
                 </Button>
@@ -111,7 +111,7 @@ export function AuthHeader() {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+                    <p className="text-sm font-medium leading-none text-primary">
                       {profile.username}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
@@ -121,13 +121,13 @@ export function AuthHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                  <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
                     <Link href="/profile" className="w-full">
                       Профиль
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200"
+                    className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200"
                     onClick={() => signOut()}
                   >
                     Выйти

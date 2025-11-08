@@ -82,7 +82,10 @@ export function EnhancedCodeBlock({
           width: "100%",
         }}
         codeTagProps={{
-          className: "font-sans",
+          className: "font-mono",
+          style: {
+            fontFamily: 'var(--font-mono), "Ubuntu Mono", monospace',
+          },
         }}
         showLineNumbers={false}
       >

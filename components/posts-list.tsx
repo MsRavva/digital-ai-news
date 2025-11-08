@@ -57,7 +57,7 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
       {posts.map((post) => (
           <div key={post.id} className="relative">
             <Link href={`/posts/${post.id}`}>
-              <div className="post-card p-6 hover:border-[hsl(var(--saas-purple)/0.5)] transition-all duration-200 rounded-lg w-full">
+              <div className="post-card p-6 hover:border-primary/50 transition-all duration-200 rounded-lg w-full">
                 <div className="w-full">
                   <div className="flex items-center justify-between w-full mb-4">
                     <div className="flex flex-col gap-1">
@@ -65,14 +65,14 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                         <div className="flex-shrink-0 mr-1">
                           <SimpleAvatar username={post.author?.username} size="md" />
                         </div>
-                        <span className="font-medium text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))] whitespace-nowrap">
+                        <span className="font-medium text-primary dark:text-primary whitespace-nowrap">
                           {post.author?.username}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 ml-1">
                         <Badge
                           variant="outline"
-                          className="bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
+                          className="bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-primary dark:border-primary/30"
                         >
                           {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
                         </Badge>
@@ -83,7 +83,7 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-                        <button className="text-muted-foreground hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                        <button className="text-muted-foreground hover:text-primary transition-colors duration-200">
                           <MoreHorizontal className="h-5 w-5" />
                         </button>
                       </DropdownMenuTrigger>
@@ -95,7 +95,7 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                               e.stopPropagation();
                               router.push(`/edit/${post.id}`);
                             }}
-                            className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] focus:text-[hsl(var(--saas-purple-dark))] cursor-pointer"
+                            className="text-primary hover:text-primary/80 focus:text-primary/80 cursor-pointer"
                           >
                             <Pencil className="mr-2 h-4 w-4" />
                             Редактировать
@@ -123,7 +123,7 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                     </DropdownMenu>
                   </div>
                   <div className="w-full">
-                    <h3 className="text-xl font-semibold mt-3 group-hover:text-[hsl(var(--saas-purple))] transition-colors duration-200 w-full">
+                    <h3 className="text-xl font-semibold mt-3 group-hover:text-primary transition-colors duration-200 w-full">
                       {post.title}
                     </h3>
                     <div className="text-muted-foreground mt-2 line-clamp-2 w-full">
@@ -142,15 +142,15 @@ export function PostsList({ posts: initialPosts }: PostsListProps) {
                       ))}
                     </div>
                     <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground w-full">
-                      <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                      <div className="flex items-center gap-1.5 hover:text-primary transition-colors duration-200">
                         <MessageSquare className="h-4 w-4" />
                         <span>{post.commentsCount}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                      <div className="flex items-center gap-1.5 hover:text-primary transition-colors duration-200">
                         <ThumbsUp className="h-4 w-4" />
                         <span>{post.likesCount}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 hover:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+                      <div className="flex items-center gap-1.5 hover:text-primary transition-colors duration-200">
                         <Eye className="h-4 w-4" />
                         <span>{post.viewsCount}</span>
                       </div>

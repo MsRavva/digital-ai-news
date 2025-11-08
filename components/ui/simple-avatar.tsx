@@ -32,9 +32,9 @@ export function SimpleAvatar({
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded-full border-2 border-[#8952e0] flex items-center justify-center overflow-hidden aspect-square ${className}`}
+      className={`${sizeClasses[size]} rounded-full border-2 border-primary flex items-center justify-center overflow-hidden aspect-square ${className}`}
     >
-      <div className="flex h-full w-full items-center justify-center bg-white dark:bg-[#0e1012] text-[#8952e0] font-bold">
+      <div className="flex h-full w-full items-center justify-center bg-card text-primary font-bold">
         {getInitials()}
       </div>
     </div>

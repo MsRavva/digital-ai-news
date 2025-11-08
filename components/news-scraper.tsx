@@ -166,7 +166,7 @@ export function NewsScraper() {
                   onChange={(e) => setUrl(e.target.value)}
                 />
               </div>
-              <Button onClick={handleScrape} disabled={loading} className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white">
+              <Button onClick={handleScrape} disabled={loading} variant="default">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -201,7 +201,7 @@ export function NewsScraper() {
                   <Button
                     onClick={handlePublish}
                     disabled={loading}
-                    className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {loading ? (
                       <>
@@ -281,7 +281,7 @@ export function NewsScraper() {
                   <Button
                     onClick={handlePublish}
                     disabled={loading}
-                    className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     {loading ? (
                       <>

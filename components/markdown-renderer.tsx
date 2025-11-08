@@ -6,6 +6,8 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { codeToHtml } from "shiki"
 import { useTheme } from "next-themes"
+import { InlineCode } from "@/components/ui/inline-code"
+import { Check, Copy } from "lucide-react"
 
 interface CodeBlockProps {
   code: string
@@ -102,7 +104,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
         
         // Модифицируем HTML для переопределения фона только на pre элементе
         // Важно: не трогаем стили внутри span элементов, чтобы сохранить подсветку синтаксиса
-        const bgColor = currentTheme === 'dark' ? '#0d1117' : '#f6f8fa';
+        const bgColor = currentTheme === 'dark' ? 'hsl(var(--muted))' : 'oklch(0.88 0.018 264.5071)';
         
         // Обрабатываем только pre элемент, сохраняя все стили внутри (span элементы с подсветкой)
         let modifiedHtml = highlightedHtml
@@ -200,7 +202,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
           })
           
           // Модифицируем HTML для переопределения фона только на pre
-          const bgColor = currentTheme === 'dark' ? '#0d1117' : '#f6f8fa';
+          const bgColor = currentTheme === 'dark' ? 'hsl(var(--muted))' : 'oklch(0.88 0.018 264.5071)';
           const modifiedHtml = highlightedHtml
             .replace(
               /<pre([^>]*?)style="([^"]*)"/gi,
@@ -315,11 +317,11 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
         <pre
           className="overflow-x-auto"
           style={{
-            fontFamily: 'var(--font-ubuntu-mono), "Ubuntu Mono", monospace',
+            fontFamily: 'var(--font-mono), "Ubuntu Mono", monospace',
             fontSize: '0.875rem',
             lineHeight: '1.6',
             padding: '1.25rem',
-            borderRadius: '0.75rem',
+            borderRadius: '0.5rem',
             backgroundColor: 'hsl(var(--muted))',
             color: 'hsl(var(--foreground))',
             border: '1px solid hsl(var(--border))',
@@ -329,7 +331,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
           }}
         >
           <code style={{
-            fontFamily: 'var(--font-ubuntu-mono), "Ubuntu Mono", monospace',
+            fontFamily: 'var(--font-mono), "Ubuntu Mono", monospace',
             backgroundColor: 'transparent',
             padding: 0
           }}>{code}</code>
@@ -380,13 +382,13 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
 
   if (!html) {
     return (
-      <div className="my-4 rounded-lg border border-gray-200 bg-gray-50 p-2 w-1/2">
+      <div className="my-4 rounded-lg border border-border bg-muted p-2 w-1/2">
         <div className="flex items-center gap-2 mb-2">
-          <div className="h-5 w-5 bg-gray-200 rounded-full animate-pulse"></div>
-          <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+          <div className="h-5 w-5 bg-muted-foreground/20 rounded-full animate-pulse"></div>
+          <div className="h-4 bg-muted-foreground/20 rounded w-24 animate-pulse"></div>
         </div>
-        <pre className="mt-2 overflow-x-auto rounded bg-gray-100 dark:bg-gray-700 p-3">
-          <code className="text-gray-400 dark:text-gray-200">{code}</code>
+        <pre className="mt-2 overflow-x-auto rounded bg-muted dark:bg-muted p-3">
+          <code className="text-muted-foreground dark:text-foreground">{code}</code>
         </pre>
       </div>
     )
@@ -399,43 +401,14 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
         className="overflow-x-auto"
       />
       <button
-        className={`absolute top-2 right-2 p-1.5 rounded-md transition-all duration-200 ${
-          copied ? "bg-green-500 text-white" : "bg-muted hover:bg-muted/80 text-muted-foreground"
-        }`}
         onClick={handleCopy}
         title={copied ? "Скопировано!" : "Скопировать код"}
+        aria-label="Копировать код"
       >
         {copied ? (
-          <svg
-            className="h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+          <Check className="h-4 w-4" />
         ) : (
-          <svg
-            className="h-4 w-4"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-          </svg>
+          <Copy className="h-4 w-4" />
         )}
       </button>
     </div>
@@ -474,9 +447,9 @@ export function MarkdownRenderer({
     return (
       <div className={className}>
         <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+          <div className="h-4 bg-muted rounded w-3/4"></div>
+          <div className="h-4 bg-muted rounded"></div>
+          <div className="h-4 bg-muted rounded w-5/6"></div>
         </div>
       </div>
     )
@@ -542,45 +515,8 @@ export function MarkdownRenderer({
             const isInline = !match && !codeContent.includes('\n')
 
             if (isInline) {
-              const [copied, setCopied] = useState(false)
-              const handleCopy = async () => {
-                await navigator.clipboard.writeText(String(children))
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
-              }
-              return (
-                <code
-                  className="inline-flex items-center gap-1 rounded-md text-sm px-2 py-1 align-middle font-mono"
-                  onClick={handleCopy}
-                  title={copied ? "Скопировано!" : "Нажмите, чтобы скопировать"}
-                  style={{
-                    wordBreak: 'break-word',
-                    lineHeight: '1.4',
-                    fontFamily: 'var(--font-ubuntu-mono), "Ubuntu Mono", monospace',
-                    backgroundColor: 'hsl(var(--muted))',
-                    color: 'hsl(var(--foreground))',
-                    border: '1px solid hsl(var(--border))'
-                  }}
-                >
-                  <span>{children}</span>
-                  {copied && (
-                    <svg
-                      className="h-3 w-3 text-green-600"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </code>
-              )
+              // Используем отдельный компонент для инлайн кода с копированием
+              return <InlineCode>{String(children)}</InlineCode>
             }
 
             // Для многострочного кода без определенного языка используем тот же компонент CodeBlock, но без подсветки синтаксиса
@@ -653,7 +589,7 @@ export function MarkdownRenderer({
             return (
               <div className="overflow-x-auto my-4">
                 <table
-                  className="min-w-full border border-gray-200 dark:border-gray-700 rounded-lg"
+                  className="min-w-full border border-border dark:border-border rounded-lg"
                   {...props}
                 />
               </div>
@@ -662,7 +598,7 @@ export function MarkdownRenderer({
           th({ node, ...props }) {
             return (
               <th
-                className="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 text-left text-sm font-semibold text-gray-700 dark:text-gray-300"
+                className="px-4 py-2 bg-muted dark:bg-muted border-b border-border dark:border-border text-left text-sm font-semibold text-foreground dark:text-foreground"
                 {...props}
               />
             )
@@ -670,7 +606,7 @@ export function MarkdownRenderer({
           td({ node, ...props }) {
             return (
               <td
-                className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300"
+                className="px-4 py-2 border-b border-border dark:border-border text-sm text-foreground dark:text-foreground"
                 {...props}
               />
             )
@@ -679,7 +615,7 @@ export function MarkdownRenderer({
           blockquote({ node, ...props }) {
             return (
               <blockquote
-                className="border-l-4 border-gray-300 dark:border-gray-600 pl-4 py-1 my-4 italic text-gray-600 dark:text-gray-400"
+                className="border-l-4 border-border dark:border-border pl-4 py-1 my-4 italic text-muted-foreground dark:text-muted-foreground"
                 {...props}
               />
             )

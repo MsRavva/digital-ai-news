@@ -266,7 +266,7 @@ export function PaginatedPostsTable({
                     <div className="flex justify-center">
                       <Badge
                         variant="outline"
-                        className="text-xs bg-[hsl(var(--saas-purple)/0.1)] text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.2)] dark:bg-[hsl(var(--saas-purple)/0.2)] dark:text-[hsl(var(--saas-purple-light))] dark:border-[hsl(var(--saas-purple)/0.3)]"
+                        className="text-xs bg-primary/10 text-primary border-primary/20 dark:bg-primary/20 dark:text-primary dark:border-primary/30"
                       >
                         {post.author?.role === "teacher" ? "Учитель" : "Ученик"}
                       </Badge>
@@ -274,7 +274,7 @@ export function PaginatedPostsTable({
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <div className="font-medium hover:text-[hsl(var(--saas-purple))] transition-colors">
+                  <div className="font-medium hover:text-primary transition-colors">
                     {post.title}
                   </div>
                   <div className="text-muted-foreground text-sm line-clamp-1 mt-1">
@@ -294,7 +294,7 @@ export function PaginatedPostsTable({
                       <Badge 
                         key={tag} 
                         variant="outline"
-                        className="text-[hsl(var(--saas-purple))] border-[hsl(var(--saas-purple)/0.3)] dark:border-[hsl(var(--saas-purple)/0.5)] shadow-sm dark:shadow-[hsl(var(--saas-purple)/0.2)] bg-white dark:bg-[hsl(var(--saas-purple)/0.1)] text-xs py-0.5 px-2"
+                        className="text-primary border-primary/30 dark:border-primary/50 shadow-sm dark:shadow-primary/20 bg-card dark:bg-primary/10 text-xs py-0.5 px-2"
                       >
                         {tag}
                       </Badge>
@@ -329,7 +329,7 @@ export function PaginatedPostsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-[hsl(var(--saas-purple))]"
+                          className="h-8 w-8 text-primary"
                           onClick={(e) => {
                             e.stopPropagation()
                             router.push(`/edit/${post.id}`)
@@ -342,7 +342,7 @@ export function PaginatedPostsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`h-8 w-8 ${post.pinned ? "text-[hsl(var(--saas-purple))]" : ""}`}
+                          className={`h-8 w-8 ${post.pinned ? "text-primary" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation()
                             handleTogglePin(post.id)
@@ -350,7 +350,7 @@ export function PaginatedPostsTable({
                           title={post.pinned ? "Открепить" : "Закрепить"}
                         >
                           <Paperclip
-                            className={`h-4 w-4 ${post.pinned ? "text-[hsl(var(--saas-purple))]" : "text-gray-400"}`}
+                            className={`h-4 w-4 ${post.pinned ? "text-primary" : "text-muted-foreground"}`}
                           />
                         </Button>
                       )}
@@ -359,7 +359,7 @@ export function PaginatedPostsTable({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={`h-8 w-8 ${post.archived ? "text-green-600 dark:text-green-400" : "text-orange-500 dark:text-orange-400"} hover:text-green-700 dark:hover:text-green-300`}
+                          className={`h-8 w-8 ${post.archived ? "text-[var(--chart-3)]" : "text-[var(--chart-4)]"}`}
                           onClick={(e) => {
                             e.stopPropagation()
                             handleToggleArchive(post.id, !!post.archived)
@@ -440,9 +440,9 @@ export function PaginatedPostsTable({
       {loading && (
         <div className="flex justify-center py-4">
           <div className="animate-pulse flex space-x-2">
-            <div className="h-2 w-2 bg-[hsl(var(--saas-purple))] rounded-full"></div>
-            <div className="h-2 w-2 bg-[hsl(var(--saas-purple))] rounded-full"></div>
-            <div className="h-2 w-2 bg-[hsl(var(--saas-purple))] rounded-full"></div>
+            <div className="h-2 w-2 bg-primary rounded-full"></div>
+            <div className="h-2 w-2 bg-primary rounded-full"></div>
+            <div className="h-2 w-2 bg-primary rounded-full"></div>
           </div>
         </div>
       )}

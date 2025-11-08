@@ -39,7 +39,7 @@ export function UserNav() {
             variant="ghost"
             size="icon"
             aria-label="Toggle theme"
-            className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
+            className="text-primary hover:text-primary/80 hover:bg-primary/10 transition-all duration-200"
             onClick={toggleTheme}
           >
             {resolvedTheme === "dark" ? (
@@ -89,7 +89,7 @@ export function UserNav() {
             className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-12 px-3 transition-all duration-200 flex items-center gap-4"
           >
             <SimpleAvatar username={profile.username} size="xl" />
-            <span className="text-[hsl(var(--saas-purple))] font-bold text-lg">
+            <span className="text-primary font-bold text-lg transition-all duration-200 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all after:duration-200">
               {profile.username}
             </span>
           </Button>
@@ -97,7 +97,7 @@ export function UserNav() {
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal py-3">
             <div className="flex flex-col space-y-2">
-              <p className="text-lg font-medium leading-none text-[hsl(var(--saas-purple-dark))] dark:text-[hsl(var(--saas-purple-light))]">
+              <p className="text-lg font-medium leading-none text-primary">
                 {profile.username}
               </p>
               <p className="text-base leading-none text-muted-foreground">
@@ -107,20 +107,20 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+            <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
               <Link href="/profile" className="w-full flex items-center">
                 <User className="mr-2 h-4 w-4" />
                 Профиль
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+            <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
               <Link href="/my-posts" className="w-full flex items-center">
                 <FileText className="mr-2 h-4 w-4" />
                 Мои публикации
               </Link>
             </DropdownMenuItem>
 
-            <DropdownMenuItem className="cursor-pointer hover:bg-[hsl(var(--saas-purple)/0.1)] hover:text-[hsl(var(--saas-purple))] focus:bg-[hsl(var(--saas-purple)/0.1)] focus:text-[hsl(var(--saas-purple))] transition-colors duration-200">
+            <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
               <Link href="/create" className="w-full flex items-center">
                 <Plus className="mr-2 h-4 w-4" />
                 Создать публикацию

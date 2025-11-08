@@ -82,21 +82,27 @@ export function CommentForm({
         placeholder={placeholder}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        className="min-h-[100px] mb-2"
+        className="min-h-[100px] mb-3"
         disabled={isSubmitting}
       />
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 mt-2">
         {onCancel && (
           <Button
             type="button"
             variant="outline"
+            size="sm"
             onClick={onCancel}
             disabled={isSubmitting}
           >
             Отмена
           </Button>
         )}
-        <Button type="submit" disabled={!comment.trim() || isSubmitting}>
+        <Button 
+          type="submit" 
+          variant="default"
+          size="sm"
+          disabled={!comment.trim() || isSubmitting}
+        >
           {isSubmitting ? "Отправка..." : "Отправить"}
         </Button>
       </div>

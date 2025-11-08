@@ -27,10 +27,10 @@ export function MainNav() {
             />
           </div>
           <div className="flex items-center">
-            <span className="bg-[radial-gradient(circle_at_center,_#3b82f6_0%,_hsl(var(--primary))_100%)] bg-clip-text text-transparent font-extrabold">
+            <span className="text-accent font-extrabold">
               AI
             </span>
-            <span className="ml-1.5 group-hover:text-primary transition-colors duration-200">
+            <span className="ml-1.5 text-primary group-hover:text-primary transition-colors duration-200">
               News
             </span>
           </div>

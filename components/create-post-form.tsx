@@ -248,51 +248,52 @@ export function CreatePostForm() {
         </CardContent>
         <CardFooter>
           <div className="flex justify-between w-full">
-          <Button
-            variant="outline"
-            onClick={() => {
-              console.log('Back to editing clicked');
-              setTimeout(() => {
-                setShowPreview(false);
-                console.log('showPreview set to false');
-              }, 0);
-            }}
-          >
-            Вернуться к редактированию
-          </Button>
-          <div className="flex gap-2">
             <Button
-              type="button"
               variant="outline"
-              onClick={() => router.push('/')}
-            >
-              Отмена
-            </Button>
-            <Button
-              type="button"
               onClick={() => {
-                console.log('Publish from preview clicked');
-                // Здесь можно добавить логику публикации
+                console.log('Back to editing clicked');
                 setTimeout(() => {
                   setShowPreview(false);
                   console.log('showPreview set to false');
-
-                  // Имитируем отправку формы после небольшой задержки
-                  setTimeout(() => {
-                    const form = document.querySelector('form');
-                    if (form) {
-                      console.log('Submitting form');
-                      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                    } else {
-                      console.log('Form not found');
-                    }
-                  }, 100);
                 }, 0);
               }}
-              className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
             >
-              Опубликовать
+              Вернуться к редактированию
             </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push('/')}
+              >
+                Отмена
+              </Button>
+              <Button
+                type="button"
+                variant="default"
+                onClick={() => {
+                  console.log('Publish from preview clicked');
+                  // Здесь можно добавить логику публикации
+                  setTimeout(() => {
+                    setShowPreview(false);
+                    console.log('showPreview set to false');
+
+                    // Имитируем отправку формы после небольшой задержки
+                    setTimeout(() => {
+                      const form = document.querySelector('form');
+                      if (form) {
+                        console.log('Submitting form');
+                        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                      } else {
+                        console.log('Form not found');
+                      }
+                    }, 100);
+                  }, 0);
+                }}
+              >
+                Опубликовать
+              </Button>
+            </div>
           </div>
         </CardFooter>
       </Card>
@@ -371,8 +372,8 @@ export function CreatePostForm() {
             </Button>
             <Button
               type="submit"
+              variant="default"
               disabled={isLoading}
-              className="bg-[hsl(var(--saas-purple))] hover:bg-[hsl(var(--saas-purple-dark))] text-white"
             >
               {isLoading ? (
                 <>
