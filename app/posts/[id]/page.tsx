@@ -3,7 +3,7 @@
 import { SimpleAvatar } from "@/components/ui/simple-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { MainNav } from "@/components/main-nav"
 import { UserNav } from "@/components/user-nav"
@@ -312,8 +312,10 @@ export default function PostPage({ params }: Props) {
         </header>
         <main className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="mx-auto w-full">
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground">Загрузка публикации...</p>
+            <Card>
+              <CardContent className="text-center">
+                <p className="text-muted-foreground">Загрузка публикации...</p>
+              </CardContent>
             </Card>
           </div>
         </main>
@@ -334,8 +336,10 @@ export default function PostPage({ params }: Props) {
         </header>
         <main className="flex-1 p-4 sm:p-6 md:p-8">
           <div className="mx-auto w-full">
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground">Публикация не найдена</p>
+            <Card>
+              <CardContent className="text-center">
+                <p className="text-muted-foreground">Публикация не найдена</p>
+              </CardContent>
             </Card>
           </div>
         </main>
@@ -355,9 +359,9 @@ export default function PostPage({ params }: Props) {
       </header>
       <main className="flex-1 p-4 sm:p-6 md:p-8">
         <div className="mx-auto w-full">
-          <Card className="p-6">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <SimpleAvatar username={post.author?.username} size="lg" />
                   <div>
@@ -474,16 +478,18 @@ export default function PostPage({ params }: Props) {
                 </div>
               </div>
 
-              <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+              <h1 className="text-3xl font-bold">{post.title}</h1>
 
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mt-4">
                 {post.tags?.map((tag) => (
                   <Badge key={tag} variant="secondary">
                     {tag}
                   </Badge>
                 ))}
               </div>
+            </CardHeader>
 
+            <CardContent>
               <div className="markdown-content">
                 <MarkdownContent
                   content={post.content}
@@ -507,8 +513,10 @@ export default function PostPage({ params }: Props) {
                   height: auto !important;
                 }
               `}</style>
+            </CardContent>
 
-              <div className="flex items-center space-x-6 mt-6">
+            <CardFooter>
+              <div className="flex items-center space-x-6 w-full">
                 <Button
                   variant="outline"
                   className={`flex items-center gap-1 ${isLiked ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700' : ''}`}
@@ -526,13 +534,13 @@ export default function PostPage({ params }: Props) {
                   <span>{post.viewsCount || 0} просмотров</span>
                 </div>
               </div>
-            </div>
+            </CardFooter>
 
             <Separator className="my-6" />
 
-            <div>
+            <CardContent>
               <CommentsList postId={postId} />
-            </div>
+            </CardContent>
           </Card>
         </div>
       </main>

@@ -258,7 +258,7 @@ export default function ProfilePage() {
                 {/* Профиль пользователя */}
                 <div className="md:col-span-1">
                   <Card className="mb-6">
-                    <CardHeader className="pb-3">
+                    <CardHeader>
                       <div className="flex justify-between items-center">
                         <CardTitle>Редактирование профиля</CardTitle>
                       </div>

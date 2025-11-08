@@ -124,9 +124,6 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-  code, pre, .font-mono {
-    font-family: var(--font-ubuntu-mono), "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-  }
 }
 
 /* Enhanced gradient for light mode */
@@ -392,70 +389,6 @@ body {
   opacity: 1;
 }
 
-/* Code blocks */
-.prose pre {
-  width: auto !important;
-  display: inline-block !important;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
-/* Dark mode code blocks */
-.dark pre,
-.dark code {
-  background-color: #1e1e2d !important;
-  border: 1px solid #2d2d3d !important;
-  color: #e0e0e0 !important;
-}
-
-.dark pre code {
-  background-color: transparent !important;
-  border: none !important;
-  color: white !important;
-  padding: 0 !important;
-}
-
-.dark .code-block {
-  background-color: transparent !important;
-  border: none !important;
-  border-radius: 4px;
-  display: inline-block !important;
-  width: auto !important;
-}
-
-/* Стили для блоков кода в редакторе Markdown в темной теме */
-.dark .rc-md-editor .section-container .rc-md-editor-preview pre,
-.dark .rc-md-editor .custom-html-style pre {
-  background-color: #1e1e2d !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #2d2d3d !important;
-  border-radius: 0.375rem !important;
-  padding: 0.5rem 1rem 1rem 1rem !important;
-  margin: 1rem 0 !important;
-  overflow-x: auto !important;
-  display: inline-block !important;
-  width: auto !important;
-}
-
-.dark .rc-md-editor .section-container .rc-md-editor-preview pre code,
-.dark .rc-md-editor .custom-html-style pre code {
-  background-color: transparent !important;
-  color: white !important;
-  border: none !important;
-  padding: 0 !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-}
-
-.dark .rc-md-editor .section-container .rc-md-editor-preview code:not(pre code),
-.dark .rc-md-editor .custom-html-style code:not(pre code) {
-  background-color: #2d2d3d !important;
-  color: white !important;
-  border: 1px solid #3d3d4d !important;
-  border-radius: 0.25rem !important;
-  padding: 0.1rem 0.3rem !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-}
-
 /* Post card styles */
 .post-card {
   border-radius: 0.375rem;
@@ -669,30 +602,7 @@ body {
   color: hsl(var(--muted-foreground));
 }
 
-.prose code {
-  background-color: hsl(var(--muted) / 0.5);
-  padding: 0.2em 0.4em;
-  border-radius: 0.25em;
-  font-size: 0.9em;
-}
-
-.prose pre {
-  background-color: hsl(var(--muted) / 0.7);
-  padding: 0.5em 1em 1em 1em;
-  border-radius: 0.5em;
-  overflow-x: auto;
-  margin-top: 1em;
-  margin-bottom: 1em;
-  display: inline-block;
-  width: auto;
-}
-
-.prose pre code {
-  background-color: transparent;
-  padding: 0;
-  border-radius: 0;
-  font-size: 0.9em;
-}
+/* Стили для кода в prose удалены - используются из code.css */
 
 .prose a {
   color: hsl(var(--saas-purple));
@@ -718,16 +628,7 @@ body {
   margin-bottom: 2em;
 }
 
-.dark .prose code {
-  background-color: hsl(var(--muted) / 0.3);
-}
-
-.dark .prose pre {
-  background-color: hsl(var(--muted) / 0.5);
-  padding: 0.5em 1em 1em 1em;
-  display: inline-block;
-  width: auto;
-}
+/* Стили для кода в prose в темной теме удалены - используются из code.css */
 
 .dark .prose a {
   color: #9259F7;
@@ -835,4 +736,149 @@ body {
 .dark .filter-inactive {
   background-color: #F87171;
   color: white;
+}
+
+/* Стили для Novel Editor */
+.novel-editor .ProseMirror {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+.novel-editor .ProseMirror:focus {
+  outline: none;
+}
+
+.novel-editor .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.novel-editor .ProseMirror h1,
+.novel-editor .ProseMirror h2,
+.novel-editor .ProseMirror h3 {
+  margin: 1em 0 0.5em 0;
+  font-weight: 600;
+}
+
+.dark .novel-editor .ProseMirror {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+}
+
+/* Стили для режима предпросмотра Novel */
+.novel-preview-container,
+.novel-editor .preview-container,
+.novel-editor .ai-selector-panel,
+.novel-editor .slash-menu {
+  color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--background)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.novel-preview-container a,
+.novel-editor .preview-container a,
+.novel-editor .ai-selector-panel a,
+.novel-editor .slash-menu a {
+  color: hsl(var(--primary)) !important;
+}
+
+.novel-preview-container a:hover,
+.novel-editor .preview-container a:hover,
+.novel-editor .ai-selector-panel a:hover,
+.novel-editor .slash-menu a:hover {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+.novel-preview-container code,
+.novel-preview-container pre,
+.novel-editor .preview-container code,
+.novel-editor .preview-container pre {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .novel-preview-container code,
+.dark .novel-preview-container pre,
+.dark .novel-editor .preview-container code,
+.dark .novel-editor .preview-container pre {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Дополнительные стили для контейнера предварительного просмотра Novel Editor */
+.novel-editor .preview-container {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  border: 1px solid hsl(var(--border));
+}
+
+.dark .novel-editor .preview-container {
+  border: 1px solid hsl(var(--border));
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+thead {
+  background-color: hsl(var(--muted));
+}
+
+thead th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+tbody tr {
+  border-bottom: 1px solid hsl(var(--border));
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  color: hsl(var(--foreground));
+}
+
+.dark thead {
+  background-color: hsl(var(--muted));
+}
+
+.dark thead th {
+  color: hsl(var(--foreground));
+  border-bottom-color: hsl(var(--border));
+}
+
+.dark tbody tr {
+  border-bottom-color: hsl(var(--border));
+}
+
+.dark tbody tr:hover {
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.dark td {
+  color: hsl(var(--foreground));
+}
+
+/* Badge styles for dark theme - override bg-white in dark mode */
+.dark [class*="badge"][class*="bg-white"],
+.dark .badge.bg-white {
+  background-color: hsl(var(--saas-purple) / 0.1) !important;
+  color: hsl(var(--saas-purple-light)) !important;
+  border-color: hsl(var(--saas-purple) / 0.5) !important;
+}
+
+/* Ensure badges with inline bg-white style get dark theme colors */
+.dark [style*="background-color"][style*="white"] {
+  background-color: hsl(var(--saas-purple) / 0.1) !important;
 }

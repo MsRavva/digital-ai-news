@@ -7,9 +7,8 @@
 
 /* Базовые стили для Markdown */
 .markdown-content {
-  color: hsl(var(--foreground));
-  line-height: 1.7;
-  max-width: 100%;
+  color: var(--text-primary);
+  line-height: 1.6;
 }
 
 /* Заголовки */
@@ -19,151 +18,71 @@
 .markdown-content h4,
 .markdown-content h5,
 .markdown-content h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
   font-weight: 600;
-  color: hsl(var(--heading-color));
-  line-height: 1.2;
-  letter-spacing: -0.025em;
+  color: var(--heading-color);
 }
 
-.markdown-content h1 {
-  font-size: clamp(1.875rem, 4vw, 2.5rem);
-  font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid hsl(var(--border));
-}
-
-.markdown-content h2 {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 600;
-  margin-top: 1.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.markdown-content h3 {
-  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-  font-weight: 600;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.markdown-content h4 {
-  font-size: clamp(1.125rem, 2vw, 1.25rem);
-  font-weight: 500;
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.markdown-content h5,
-.markdown-content h6 {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
+.markdown-content h1 { font-size: var(--font-size-xl); }
+.markdown-content h2 { font-size: var(--font-size-lg); }
+.markdown-content h3 { font-size: var(--font-size-md); }
 
 /* Параграфы */
 .markdown-content p {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.7;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 /* Списки */
 .markdown-content ul,
 .markdown-content ol {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
-  padding-left: 2rem;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
 }
 
 .markdown-content li {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.7;
-}
-
-/* Кастомные маркеры для неупорядоченных списков */
-.markdown-content ul li::marker {
-  color: hsl(var(--primary));
-}
-
-.markdown-content ol {
-  counter-reset: list-counter;
-}
-
-.markdown-content ol li {
-  counter-increment: list-counter;
-}
-
-.markdown-content ol li::marker {
-  color: hsl(var(--primary));
-  font-weight: 600;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 /* Цитаты */
 .markdown-content blockquote {
-  border-left: 4px solid hsl(var(--primary));
-  padding: 1rem 1.5rem;
-  margin: 1.5rem 0;
-  background: hsl(var(--muted));
-  border-radius: 0 0.5rem 0.5rem 0;
+  border-left: 3px solid var(--primary);
+  padding-left: 1em;
+  margin-left: 0;
+  margin-right: 0;
   font-style: italic;
-  color: hsl(var(--muted-foreground));
-  position: relative;
-}
-
-.markdown-content blockquote::before {
-  content: '"';
-  font-size: 4rem;
-  position: absolute;
-  left: 0.5rem;
-  top: -0.5rem;
-  color: hsl(var(--primary) / 0.2);
-  font-family: serif;
-  line-height: 1;
-  opacity: 0.5;
+  color: var(--text-muted);
 }
 
 /* Ссылки */
 .markdown-content a {
-  color: hsl(var(--primary));
+  color: var(--primary);
   text-decoration: none;
-  border-bottom: 1px solid hsl(var(--primary) / 0.3);
-  transition: all 0.2s ease;
-  font-weight: 500;
+  transition: color 0.2s ease;
 }
 
 .markdown-content a:hover {
-  color: hsl(var(--primary-700));
-  border-bottom-color: hsl(var(--primary));
+  color: var(--primary-dark);
+  text-decoration: underline;
 }
 
 /* Изображения */
 .markdown-content img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.75rem;
-  margin: 2rem 0;
+  border-radius: var(--radius-md);
+  margin: 1rem 0;
   display: block;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.markdown-content img:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-              0 4px 6px -4px rgba(0, 0, 0, 0.1);
-}
-
+/* Встроенный код - стили исключены, используются из code.css */
 
 /* Темная тема */
 .dark .markdown-content {
-  color: hsl(var(--foreground));
+  color: var(--text-primary-dark);
 }
 
 .dark .markdown-content h1,
@@ -172,88 +91,40 @@
 .dark .markdown-content h4,
 .dark .markdown-content h5,
 .dark .markdown-content h6 {
-  color: hsl(var(--heading-color-dark));
-}
-
-.dark .markdown-content h1 {
-  border-bottom-color: hsl(var(--border));
+  color: var(--heading-color-dark);
 }
 
 .dark .markdown-content blockquote {
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted));
-}
-
-.dark .markdown-content blockquote::before {
-  color: hsl(var(--primary) / 0.3);
+  color: var(--text-muted-dark);
 }
 
 .dark .markdown-content a {
-  color: hsl(var(--primary-300));
-  border-bottom-color: hsl(var(--primary) / 0.3);
+  color: var(--primary-light);
 }
 
 .dark .markdown-content a:hover {
-  color: hsl(var(--primary));
-  border-bottom-color: hsl(var(--primary));
+  color: var(--primary);
 }
 
-.dark .markdown-content img {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25),
-              0 4px 6px -4px rgba(0, 0, 0, 0.25);
+/* Убираем backticks у встроенного кода в темной теме */
+.dark .markdown-content code:not(pre code)::before,
+.dark .markdown-content code:not(pre code)::after {
+  content: "" !important;
 }
 
-.dark .markdown-content img:hover {
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4),
-              0 10px 10px -6px rgba(0, 0, 0, 0.4);
+/* Убираем backticks у встроенного кода */
+.markdown-content code:not(pre code)::before,
+.markdown-content code:not(pre code)::after {
+  content: "" !important;
 }
 
-/* Таблицы */
-.markdown-content table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin: 1.5rem 0;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  border: 1px solid hsl(var(--border));
+/* Еще более специфичные правила для удаления backticks */
+code:not(pre code)::before,
+code:not(pre code)::after {
+  content: "" !important;
 }
 
-.markdown-content th {
-  background: hsl(var(--muted));
-  padding: 0.75rem 1rem;
-  text-align: left;
-  font-weight: 600;
-  border-bottom: 2px solid hsl(var(--border));
-  color: hsl(var(--foreground));
+.prose code:not(pre code)::before,
+.prose code:not(pre code)::after {
+  content: "" !important;
 }
-
-.markdown-content td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid hsl(var(--border));
-  color: hsl(var(--foreground));
-}
-
-.markdown-content tr:last-child td {
-  border-bottom: none;
-}
-
-.markdown-content tr:hover {
-  background: hsl(var(--muted) / 0.5);
-  transition: background-color 0.2s ease;
-}
-
-.dark .markdown-content th {
-  background: hsl(var(--muted));
-  border-bottom-color: hsl(var(--border));
-}
-
-.dark .markdown-content td {
-  border-bottom-color: hsl(var(--border));
-}
-
-.dark .markdown-content tr:hover {
-  background: hsl(var(--muted) / 0.3);
-}
-

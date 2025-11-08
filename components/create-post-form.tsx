@@ -199,8 +199,8 @@ export function CreatePostForm() {
     });
 
     return (
-      <Card className="p-6 mb-6">
-        <div className="mb-6">
+      <Card className="mb-6">
+        <CardHeader>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
               <SimpleAvatar username={previewData.author.username} size="md" />
@@ -211,7 +211,9 @@ export function CreatePostForm() {
             </div>
             <Badge variant="outline">{categoryName}</Badge>
           </div>
-          <h2 className="text-2xl font-bold mb-4">{previewData.title}</h2>
+          <h2 className="text-2xl font-bold">{previewData.title}</h2>
+        </CardHeader>
+        <CardContent>
           <div className="markdown-content">
             <MarkdownContent
               content={fullContent}
@@ -236,15 +238,16 @@ export function CreatePostForm() {
               height: auto !important;
             }
           `}</style>
-        </div>
-        {previewData.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {previewData.tags.map((tag, index) => (
-              <Badge key={index} variant="secondary">{tag}</Badge>
-            ))}
-          </div>
-        )}
-        <div className="flex justify-between mt-6">
+          {previewData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {previewData.tags.map((tag, index) => (
+                <Badge key={index} variant="secondary">{tag}</Badge>
+              ))}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter>
+          <div className="flex justify-between w-full">
           <Button
             variant="outline"
             onClick={() => {
@@ -291,7 +294,7 @@ export function CreatePostForm() {
               Опубликовать
             </Button>
           </div>
-        </div>
+        </CardFooter>
       </Card>
     );
   };

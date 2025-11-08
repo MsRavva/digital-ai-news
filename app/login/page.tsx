@@ -225,7 +225,7 @@ export default function Login() {
             </div>
           </div>
           <Card className="border-0 shadow-none bg-white dark:bg-[#0e1012]">
-            <CardHeader className="space-y-1 pb-2">
+            <CardHeader className="space-y-1">
               <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-white">
                 Вход в AI News
               </CardTitle>
@@ -295,7 +295,7 @@ export default function Login() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-4 pt-2">
+              <CardFooter className="flex flex-col space-y-4">
                 <Button className="w-full" type="submit" disabled={isLoading}>
                   {isLoading ? "Вход..." : "Войти с Email"}
                 </Button>

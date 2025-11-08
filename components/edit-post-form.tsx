@@ -308,22 +308,22 @@ export function EditPostForm({ postId }: EditPostFormProps) {
 
   if (isLoadingPost) {
     return (
-      <Card className="p-6">
-        <div className="flex justify-center items-center h-40">
+      <Card>
+        <CardContent className="flex justify-center items-center h-40">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           <span className="ml-2 text-muted-foreground">Загрузка публикации...</span>
-        </div>
+        </CardContent>
       </Card>
     );
   }
 
   if (error || !canEdit) {
     return (
-      <Card className="p-6">
-        <div className="text-center">
+      <Card>
+        <CardContent className="text-center">
           <p className="text-red-500 mb-4">{error || "У вас нет прав на редактирование этой публикации"}</p>
           <Button onClick={() => router.push('/')}>Вернуться на главную</Button>
-        </div>
+        </CardContent>
       </Card>
     );
   }
