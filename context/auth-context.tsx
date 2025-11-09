@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 import {
   signIn as firebaseSignIn,
   signInWithGithub as firebaseSignInWithGithub,
@@ -17,8 +17,10 @@ import {
 import { validateUsername } from "@/lib/validation"
 import type { Profile } from "@/types/database"
 import type { User as FirebaseUser } from "firebase/auth"
+import { onIdTokenChanged } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 import { useRouter } from "next/navigation"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react"
 
 // Проверка, что код выполняется в браузере
 const isBrowser = typeof window !== "undefined"
@@ -58,20 +60,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false)
   const router = useRouter()
-  const { toast } = useToast()
+  const routerRef = useRef(router)
+  const hasRefreshedRef = useRef(false)
+  const checkRedirectResultCalledRef = useRef(false)
+  const isSubscribedRef = useRef(false)
+
+  // Обновляем ref при изменении router
+  useEffect(() => {
+    routerRef.current = router
+  }, [router])
 
   // Проверка имени пользователя и перенаправление на страницу профиля при необходимости
   useEffect(() => {
     if (needsProfileUpdate && profile && !isLoading) {
-      toast({
-        title: "Пожалуйста, обновите ваш профиль",
+      toast.info("Пожалуйста, обновите ваш профиль", {
         description: "Пожалуйста, введите корректные Имя и Фамилию",
-        duration: 5000,
       })
       router.push("/profile?update=username")
       setNeedsProfileUpdate(false)
     }
-  }, [needsProfileUpdate, profile, isLoading, router, toast])
+  }, [needsProfileUpdate, profile, isLoading, router])
+
+  // Функция для обновления токена в cookie - используем useRef для стабильной ссылки
+  const updateTokenInCookieRef = useRef(async (firebaseUser: FirebaseUser) => {
+    try {
+      const idToken = await firebaseUser.getIdToken()
+      // Устанавливаем cookie через API route для безопасности (httpOnly)
+      try {
+        await fetch("/api/auth/set-token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token: idToken }),
+        })
+      } catch (apiError) {
+        // Fallback на document.cookie если API недоступен
+        console.warn("Failed to set token via API, using fallback:", apiError)
+        document.cookie = `auth-token=${idToken}; path=/; max-age=3600; SameSite=Lax`
+      }
+    } catch (error) {
+      console.error("Error getting ID token:", error)
+    }
+  })
 
   useEffect(() => {
     // Выполняем только на клиенте
@@ -79,8 +110,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    // Защита от повторных подписок
+    if (isSubscribedRef.current) {
+      return
+    }
+    isSubscribedRef.current = true
+
     // Проверяем результат редиректа после аутентификации
     const checkRedirectResult = async () => {
+      // Не проверяем редирект если уже проверяли
+      if (checkRedirectResultCalledRef.current) {
+        return
+      }
+
+      // Не проверяем редирект на странице 404
+      const currentPath = isBrowser ? window.location.pathname : ""
+      if (currentPath.includes("not-found")) {
+        return
+      }
+
+      checkRedirectResultCalledRef.current = true
+
       try {
         const { user, error } = await getRedirectResult()
 
@@ -98,19 +148,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const usernameError = validateUsername(userProfile.username)
             if (usernameError) {
               // Если имя пользователя не соответствует требованиям, перенаправляем на страницу профиля
-              toast({
-                title: "Пожалуйста, обновите ваш профиль",
+              toast.info("Пожалуйста, обновите ваш профиль", {
                 description: "Пожалуйста, введите корректные Имя и Фамилию",
-                duration: 5000,
               })
-              router.push("/profile?update=username")
+              routerRef.current.push("/profile?update=username")
             } else {
               // Если имя пользователя соответствует требованиям, перенаправляем на главную страницу
-              router.push("/")
+              routerRef.current.push("/")
             }
           } else {
             // Если профиля нет, перенаправляем на главную страницу
-            router.push("/")
+            routerRef.current.push("/")
           }
         }
       } catch (error) {
@@ -118,14 +166,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Проверяем результат редиректа
+    // Проверяем результат редиректа только один раз при монтировании
     checkRedirectResult()
 
     // Подписываемся на изменения состояния аутентификации
-    const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
+    const unsubscribeAuth = subscribeToAuthChanges(async (firebaseUser) => {
       setUser(firebaseUser)
 
       if (firebaseUser) {
+        // Обновляем токен в cookie
+        await updateTokenInCookieRef.current(firebaseUser)
+
         // Получаем профиль пользователя из Firestore
         const userProfile = await getUserProfile(firebaseUser.uid)
         setProfile(userProfile)
@@ -138,18 +189,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } else {
+        // Удаляем cookie при выходе
+        try {
+          await fetch("/api/auth/set-token", {
+            method: "DELETE",
+          })
+        } catch (apiError) {
+          // Fallback на document.cookie если API недоступен
+          console.warn("Failed to delete token via API, using fallback:", apiError)
+          document.cookie = "auth-token=; path=/; max-age=0"
+        }
         setProfile(null)
         setNeedsProfileUpdate(false)
       }
 
       setIsLoading(false)
-      router.refresh()
     })
 
-    return () => {
-      unsubscribe()
+    // Подписываемся на обновление токена (срабатывает каждые ~55 минут)
+    let unsubscribeToken: (() => void) | null = null
+    if (isBrowser && auth) {
+      try {
+        unsubscribeToken = onIdTokenChanged(auth, async (firebaseUser) => {
+          if (firebaseUser) {
+            // Обновляем токен в cookie при его обновлении
+            await updateTokenInCookieRef.current(firebaseUser)
+          }
+        })
+      } catch (error) {
+        console.error("Error setting up token refresh listener:", error)
+      }
     }
-  }, [router, toast])
+
+    return () => {
+      isSubscribedRef.current = false
+      unsubscribeAuth()
+      if (unsubscribeToken) {
+        unsubscribeToken()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const signIn = async (email: string, password: string) => {
     const { user, error } = await firebaseSignIn(email, password)
@@ -191,8 +271,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Сначала удаляем cookie
+    try {
+      await fetch("/api/auth/set-token", {
+        method: "DELETE",
+      })
+    } catch (apiError) {
+      // Fallback на document.cookie если API недоступен
+      console.warn("Failed to delete token via API, using fallback:", apiError)
+      document.cookie = "auth-token=; path=/; max-age=0; SameSite=Lax"
+    }
+    
+    // Затем выходим из Firebase
     await firebaseSignOut()
-    router.push("/")
+    
+    // Используем window.location для полного редиректа, чтобы серверный layout проверил отсутствие cookie
+    // Это гарантирует, что сервер увидит удаленный cookie
+    if (isBrowser) {
+      window.location.href = "/login"
+    } else {
+      router.push("/login")
+      router.refresh()
+    }
   }
 
   const updateProfile = async (profileData: Partial<Profile>) => {
@@ -236,3 +336,4 @@ export function useAuth() {
   }
   return context
 }
+

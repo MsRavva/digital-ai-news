@@ -100,3 +100,4 @@ export function getFirebaseErrorMessage(error: any): string {
   // В крайнем случае возвращаем исходное сообщение или общую ошибку
   return error.message || "Произошла неизвестная ошибка"
 }
+

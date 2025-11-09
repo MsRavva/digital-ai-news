@@ -10,135 +10,82 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
+import { SimpleAvatar } from "@/components/simple-avatar"
 import { useAuth } from "@/context/auth-context"
-import { FileText, LogOut, Moon, Plus, Settings, Sun, User } from "lucide-react"
-import { useTheme } from "next-themes"
+import { FileText, LogOut, Plus, User } from "lucide-react"
 import Link from "next/link"
-import { useEffect, useState } from "react"
 
 export function UserNav() {
   const { user, profile, signOut } = useAuth()
-  const { setTheme, resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  // Only show the toggle after mounting to avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark")
-  }
 
   if (!user || !profile) {
     return (
-      <div className="flex items-center space-x-4">
-        {mounted && (
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Toggle theme"
-            className="text-primary hover:text-primary/80 hover:bg-primary/10 transition-all duration-200"
-            onClick={toggleTheme}
-          >
-            {resolvedTheme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
-        )}
-        <div className="flex items-center space-x-2">
-          <Link href="/login">
-            <Button variant="saas" size="sm">
-              Войти
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="saas-secondary" size="sm">
-              Регистрация
-            </Button>
-          </Link>
-        </div>
+      <div className="flex items-center gap-3">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/login">Войти</Link>
+        </Button>
+        <Button asChild size="sm">
+          <Link href="/register">Регистрация</Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center gap-0">
-      {mounted && (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          aria-label="Toggle theme"
-          className="text-[hsl(var(--saas-purple))] hover:text-[hsl(var(--saas-purple-dark))] hover:bg-[hsl(var(--saas-purple)/0.1)] transition-all duration-200"
-          onClick={toggleTheme}
+          className="relative h-auto p-2 gap-2 hover:bg-accent"
         >
-          {resolvedTheme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
+          <SimpleAvatar username={profile.username} size="sm" />
+          <span className="hidden sm:inline-block font-medium">
+            {profile.username}
+          </span>
         </Button>
-      )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="relative p-0 bg-transparent hover:bg-transparent rounded-md h-12 px-3 transition-all duration-200 flex items-center gap-4"
-          >
-            <SimpleAvatar username={profile.username} size="xl" />
-            <span className="text-primary font-bold text-lg transition-all duration-200 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-primary after:transition-all after:duration-200">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
               {profile.username}
-            </span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal py-3">
-            <div className="flex flex-col space-y-2">
-              <p className="text-lg font-medium leading-none text-primary">
-                {profile.username}
-              </p>
-              <p className="text-base leading-none text-muted-foreground">
-                {user.email}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
-              <Link href="/profile" className="w-full flex items-center">
-                <User className="mr-2 h-4 w-4" />
-                Профиль
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
-              <Link href="/my-posts" className="w-full flex items-center">
-                <FileText className="mr-2 h-4 w-4" />
-                Мои публикации
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem className="cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-200">
-              <Link href="/create" className="w-full flex items-center">
-                <Plus className="mr-2 h-4 w-4" />
-                Создать публикацию
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => signOut()}
-            className="cursor-pointer hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 dark:hover:bg-red-950/50 dark:hover:text-red-400 dark:focus:bg-red-950/50 dark:focus:text-red-400 transition-colors duration-200"
-          >
-            <div className="flex items-center w-full">
-              <LogOut className="mr-2 h-4 w-4" />
-              Выйти
-            </div>
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user.email}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/profile" className="flex items-center w-full">
+              <User className="mr-2 h-4 w-4" />
+              Профиль
+            </Link>
           </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+          <DropdownMenuItem asChild>
+            <Link href="/my-posts" className="flex items-center w-full">
+              <FileText className="mr-2 h-4 w-4" />
+              Мои публикации
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/create" className="flex items-center w-full">
+              <Plus className="mr-2 h-4 w-4" />
+              Создать публикацию
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => signOut()}
+          className="text-destructive focus:text-destructive cursor-pointer"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Выйти
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
+

@@ -12,6 +12,7 @@ export interface Profile {
     vk?: string
   }
   avatar_url?: string
+  preferredCategory?: string // Предпочтительная категория публикаций
 }
 
 export interface Post {
@@ -55,3 +56,4 @@ export interface PostStats {
   commentsCount: number
   viewsCount: number
 }
+

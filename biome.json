@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.4/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -7,15 +7,18 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": [
-      "node_modules/**",
-      ".next/**",
-      "dist/**",
-      "build/**",
-      "*.min.js",
-      "pnpm-lock.yaml",
-      "package-lock.json",
-      "yarn.lock"
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/.next/**",
+      "!**/dist/**",
+      "!**/build/**",
+      "!**/*.min.js",
+      "!**/pnpm-lock.yaml",
+      "!**/package-lock.json",
+      "!**/yarn.lock",
+      "!**/backup/**",
+      "!.cursor/**"
     ]
   },
   "formatter": {
@@ -25,9 +28,7 @@
     "lineEnding": "lf",
     "lineWidth": 100
   },
-  "organizeImports": {
-    "enabled": true
-  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
@@ -35,7 +36,7 @@
       "complexity": {
         "noBannedTypes": "error",
         "noUselessTypeConstraint": "error"
-  },
+      },
       "correctness": {
         "noUnusedVariables": "warn"
       },
@@ -50,7 +51,7 @@
   },
   "javascript": {
     "formatter": {
-      "semicolons": "asNeeded",
+      "semicolons": "always",
       "quoteStyle": "double",
       "trailingCommas": "es5"
     }
@@ -58,6 +59,11 @@
   "json": {
     "formatter": {
       "enabled": true
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   }
 }

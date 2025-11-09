@@ -1,108 +1,67 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PublicationCategoryTabs } from "@/components/publication-category-tabs"
 import { Badge } from "@/components/ui/badge"
-import { X, Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { X, Loader2, Plus } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
-import { useRouter } from "next/navigation"
-import { createPost } from "@/lib/firebase-db"
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { MarkdownContent } from "@/components/ui/markdown-content"
+import { toast } from "sonner"
+import { createPost } from "@/lib/firebase-posts-api"
 import { MarkdownEditor } from "@/components/ui/markdown-editor"
-
-interface Attachment {
-  type: 'link';
-  name: string;
-  url?: string;
-}
-
-interface PreviewData {
-  title: string;
-  content: string;
-  category: string;
-  tags: string[];
-  attachments: Attachment[];
-  author: {
-    username: string;
-    role: string;
-  };
-  created_at: string;
-}
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/utils"
 
 export function CreatePostForm() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [category, setCategory] = useState<string>("")
+  const [category, setCategory] = useState<string>("news")
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [showPreview, setShowPreview] = useState(false)
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null)
   const { user, profile } = useAuth()
-  const { toast } = useToast()
   const router = useRouter()
 
-  // Отслеживаем изменения в showPreview и previewData
-  useEffect(() => {
-    console.log('useEffect: showPreview changed to', showPreview);
-    console.log('useEffect: previewData is', previewData ? 'available' : 'null');
-  }, [showPreview, previewData])
-
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim() !== "") {
-      e.preventDefault()
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()])
-      }
+  const handleAddTag = () => {
+    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()])
       setTagInput("")
     }
   }
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove))
+  const handleRemoveTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag))
   }
 
-
-
-  const handleAttachmentRemove = (name: string) => {
-    setAttachments(prev => prev.filter(a => a.name !== name));
-  };
-
-  const handleLinkAdd = (url: string, name: string) => {
-    if (url) {
-      setAttachments(prev => [...prev, {
-        type: 'link',
-        name: name || url,
-        url
-      }]);
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      handleAddTag()
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!user) {
-      toast({
-        title: "Ошибка",
-        description: "Вы должны войти в систему, чтобы создать публикацию",
-        variant: "destructive",
+      toast.error("Ошибка", {
+        description: "Необходимо авторизоваться для создания публикации.",
       })
       return
     }
 
     if (!title || !content || !category) {
-      toast({
-        title: "Ошибка",
-        description: "Пожалуйста, заполните все обязательные поля",
-        variant: "destructive",
+      toast.error("Ошибка", {
+        description: "Заполните все обязательные поля.",
       })
       return
     }
@@ -110,285 +69,158 @@ export function CreatePostForm() {
     setIsLoading(true)
 
     try {
-      // Подготавливаем данные для создания поста
       const postData = {
         title,
         content,
         category,
         author_id: user.uid,
         tags,
-      };
-
-      // Если есть прикрепленные ссылки, добавляем их в содержимое
-      if (attachments.length > 0) {
-        const attachmentsContent = attachments.map(a => {
-          return `[Ссылка: ${a.name}](${a.url})`;
-        }).filter(Boolean).join('\n\n');
-
-        postData.content = `${content}\n\n${attachmentsContent}`;
       }
 
-      // Создаем пост в Firebase
-      const postId = await createPost(postData);
+      const postId = await createPost(postData)
 
       if (!postId) {
-        throw new Error("Не удалось создать публикацию");
+        throw new Error("Не удалось создать публикацию.")
       }
 
-      toast({
-        title: "Успех",
-        description: "Публикация успешно создана",
+      toast.success("Успех", {
+        description: "Публикация успешно создана.",
       })
 
-      router.push("/")
+      router.push(`/posts/${postId}`)
       router.refresh()
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: error.message || "Произошла ошибка при создании публикации",
-        variant: "destructive",
+    } catch (err: any) {
+      toast.error("Ошибка", {
+        description: err.message || "Произошла ошибка при создании публикации.",
       })
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Функция для отображения предпросмотра
-  const renderPreview = () => {
-    console.log('renderPreview called, previewData:', previewData);
-    if (!previewData) {
-      console.log('No preview data available');
-      return null;
-    }
+  return (
+    <Card className={cn(
+      "rounded-3xl border-border/50 dark:border-white/[0.1] transition-all duration-300",
+      "shadow-[0_2px_15px_rgba(0,0,0,0.08),0_8px_25px_rgba(0,0,0,0.05)]",
+      "dark:shadow-[0_2px_20px_rgba(98,51,255,0.12),0_8px_35px_rgba(98,51,255,0.08),0_0_0_1px_rgba(255,255,255,0.03)]",
+      "hover:shadow-[0_4px_25px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)]",
+      "dark:hover:shadow-[0_4px_30px_rgba(98,51,255,0.18),0_12px_50px_rgba(98,51,255,0.12),0_0_0_1px_rgba(255,255,255,0.05)]"
+    )}>
+      <CardHeader>
+        <CardTitle>Создание публикации</CardTitle>
+        <CardDescription>Создайте новую публикацию для обмена информацией</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-6">
+            <div className="grid gap-3">
+              <Label htmlFor="title">Заголовок</Label>
+              <Input
+                id="title"
+                placeholder="Введите заголовок"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="content">Содержание</Label>
+              <MarkdownEditor
+                value={content}
+                onChange={(val) => setContent(val)}
+                height={500}
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="category">Категория</Label>
+              <Tabs
+                value={category}
+                onValueChange={setCategory}
+                className="w-auto"
+              >
+                <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                  <TabsTrigger
+                    value="news"
+                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                  >
+                    Новости
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="materials"
+                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                  >
+                    Учебные материалы
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="project-ideas"
+                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                  >
+                    Идеи проектов
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="tags">Теги</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="tags"
+                  placeholder="Добавьте тег"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                />
+                <Button type="button" onClick={handleAddTag} variant="outline">
+                  Добавить
+                </Button>
+              </div>
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center gap-1"
+                    >
+                      {tag}
+                      <X
+                        className="h-3 w-3 cursor-pointer"
+                        onClick={() => handleRemoveTag(tag)}
+                      />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
 
-    // Функция для обрезки длинных строк
-    const truncateString = (str: string, maxLength: number) => {
-      if (str.length <= maxLength) return str;
-      return str.substring(0, maxLength) + '...';
-    };
-
-    // Преобразуем содержимое с прикрепленными файлами
-    let fullContent = previewData.content;
-
-    if (previewData.attachments.length > 0) {
-      const attachmentsContent = previewData.attachments.map(a => {
-        // Обрезаем длинные ссылки
-        const displayName = truncateString(a.name, 60);
-        return `[Ссылка: ${displayName}](${a.url})`;
-      }).filter(Boolean).join('\n\n');
-
-      fullContent = `${previewData.content}\n\n${attachmentsContent}`;
-    }
-
-    // Используем ReactMarkdown для преобразования Markdown в HTML
-
-    // Определяем название категории
-    const categoryName = {
-      'news': 'Новости',
-      'materials': 'Учебные материалы',
-      'project-ideas': 'Идеи для проектов'
-    }[previewData.category] || previewData.category;
-
-    // Форматируем дату
-    const formattedDate = new Date(previewData.created_at).toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-
-    return (
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <SimpleAvatar username={previewData.author.username} size="md" />
-              <div>
-                <div className="font-medium">{previewData.author.username}</div>
-                <div className="text-sm text-muted-foreground">{formattedDate}</div>
+            <div className="flex justify-end">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push("/")}
+                >
+                  Отмена
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Создание...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Создать публикацию
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
-            <Badge variant="outline">{categoryName}</Badge>
           </div>
-          <h2 className="text-2xl font-bold">{previewData.title}</h2>
-        </CardHeader>
-        <CardContent>
-          <div className="markdown-content">
-            <MarkdownContent
-              content={fullContent}
-              className="preview-markdown-content"
-            />
-          </div>
-
-          {/* Добавляем стили для обработки изображений */}
-          <style jsx global>{`
-            .preview-markdown-content img {
-              display: block;
-              max-width: 100%;
-              height: auto;
-              margin: 1rem 0;
-              border-radius: 0.375rem;
-              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            }
-
-            .preview-markdown-content .base64-image {
-              display: block !important;
-              max-width: 100% !important;
-              height: auto !important;
-            }
-          `}</style>
-          {previewData.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {previewData.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary">{tag}</Badge>
-              ))}
-            </div>
-          )}
-        </CardContent>
-        <CardFooter>
-          <div className="flex justify-between w-full">
-            <Button
-              variant="outline"
-              onClick={() => {
-                console.log('Back to editing clicked');
-                setTimeout(() => {
-                  setShowPreview(false);
-                  console.log('showPreview set to false');
-                }, 0);
-              }}
-            >
-              Вернуться к редактированию
-            </Button>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push('/')}
-              >
-                Отмена
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                onClick={() => {
-                  console.log('Publish from preview clicked');
-                  // Здесь можно добавить логику публикации
-                  setTimeout(() => {
-                    setShowPreview(false);
-                    console.log('showPreview set to false');
-
-                    // Имитируем отправку формы после небольшой задержки
-                    setTimeout(() => {
-                      const form = document.querySelector('form');
-                      if (form) {
-                        console.log('Submitting form');
-                        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                      } else {
-                        console.log('Form not found');
-                      }
-                    }, 100);
-                  }, 0);
-                }}
-              >
-                Опубликовать
-              </Button>
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
-    );
-  };
-
-  return (
-    <>
-      {console.log('Rendering component, showPreview:', showPreview)}
-      {showPreview ? (
-        <>
-          {console.log('Showing preview')}
-          {renderPreview()}
-        </>
-      ) : (
-        <Card>
-          <form onSubmit={handleSubmit}>
-        <CardHeader>
-          <CardTitle>Новая публикация</CardTitle>
-          <CardDescription>Создайте новую публикацию для обмена новостями, ссылками или файлами.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Заголовок</Label>
-            <Input
-              id="title"
-              placeholder="Введите заголовок публикации"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">Категория</Label>
-            <PublicationCategoryTabs
-              onCategoryChange={setCategory}
-              initialCategory={category || 'news'}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="content">Содержание</Label>
-            <MarkdownEditor value={content} onChange={(val) => setContent(val || '')} />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="tags">Теги</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                  {tag}
-                  <X className="h-3 w-3 cursor-pointer" onClick={() => handleRemoveTag(tag)} />
-                </Badge>
-              ))}
-            </div>
-            <Input
-              id="tags"
-              placeholder="Добавьте теги и нажмите Enter"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleAddTag}
-            />
-          </div>
-
-
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push('/')}
-            >
-              Отмена
-            </Button>
-            <Button
-              type="submit"
-              variant="default"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Публикация...
-                </>
-              ) : (
-                "Опубликовать"
-              )}
-            </Button>
-          </div>
-        </CardFooter>
-      </form>
+        </form>
+      </CardContent>
     </Card>
-      )}
-    </>
   )
 }
+

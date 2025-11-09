@@ -1,181 +1,117 @@
 @import "tailwindcss";
 
+@plugin "tailwindcss-animate";
+
 @custom-variant dark (&:is(.dark *));
 
+/* Импорт стилей react-markdown-editor-lite ПЕРЕД нашими стилями */
+@import "react-markdown-editor-lite/lib/index.css";
+
 @theme inline {
-  --font-sans: Montserrat, sans-serif;
-  --font-mono: "Ubuntu Mono", monospace;
-  --font-serif: Georgia, serif;
-  --radius: 0.35rem;
-  --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
-  --tracking-tight: calc(var(--tracking-normal) - 0.025em);
-  --tracking-wide: calc(var(--tracking-normal) + 0.025em);
-  --tracking-wider: calc(var(--tracking-normal) + 0.05em);
-  --tracking-widest: calc(var(--tracking-normal) + 0.1em);
-  --tracking-normal: var(--tracking-normal);
-  --shadow-2xl: var(--shadow-2xl);
-  --shadow-xl: var(--shadow-xl);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-md: var(--shadow-md);
-  --shadow: var(--shadow);
-  --shadow-sm: var(--shadow-sm);
-  --shadow-xs: var(--shadow-xs);
-  --shadow-2xs: var(--shadow-2xs);
-  --spacing: var(--spacing);
-  --letter-spacing: var(--letter-spacing);
-  --shadow-offset-y: var(--shadow-offset-y);
-  --shadow-offset-x: var(--shadow-offset-x);
-  --shadow-spread: var(--shadow-spread);
-  --shadow-blur: var(--shadow-blur);
-  --shadow-opacity: var(--shadow-opacity);
-  --color-shadow-color: var(--shadow-color);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
-  --background: oklch(0.94 0.008 264.5321);
-  --foreground: oklch(0.38 0.045 279.3250);
-  --card: oklch(0.98 0.003 264.5321);
-  --card-foreground: oklch(0.38 0.045 279.3250);
-  --popover: oklch(0.96 0.006 268.4756);
-  --popover-foreground: oklch(0.38 0.045 279.3250);
-  --primary: oklch(0.58 0.22 297.0156);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.82 0.018 268.4756);
-  --secondary-foreground: oklch(0.38 0.045 279.3250);
-  --muted: oklch(0.85 0.015 264.5071);
-  --muted-foreground: oklch(0.50 0.038 279.0837);
-  --accent: oklch(0.70 0.16 235.3822);
-  --accent-foreground: oklch(1.0000 0 0);
-  --destructive: oklch(0.58 0.22 19.8095);
-  --destructive-foreground: oklch(1.0000 0 0);
-  --border: oklch(0.75 0.022 271.1982);
-  --input: oklch(0.90 0.012 268.4756);
-  --ring: oklch(0.58 0.22 297.0156);
-  --chart-1: oklch(0.58 0.22 297.0156);
-  --chart-2: oklch(0.70 0.16 235.3822);
-  --chart-3: oklch(0.65 0.18 140.4448);
-  --chart-4: oklch(0.70 0.20 42.4293);
-  --chart-5: oklch(0.72 0.12 33.0967);
-  --radius: 0.35rem;
-  --sidebar: oklch(0.92 0.010 264.5206);
-  --sidebar-foreground: oklch(0.4355 0.0430 279.3250);
-  --sidebar-primary: oklch(0.58 0.22 297.0156);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.70 0.16 235.3822);
-  --sidebar-accent-foreground: oklch(1.0000 0 0);
-  --sidebar-border: oklch(0.75 0.022 271.1982);
-  --sidebar-ring: oklch(0.58 0.22 297.0156);
-  --font-sans: Montserrat, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: "Ubuntu Mono", monospace;
-  --shadow-color: hsl(240 35% 20%);
-  --shadow-opacity: 0.18;
-  --shadow-blur: 8px;
-  --shadow-spread: 0px;
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 4px;
-  --letter-spacing: 0em;
-  --spacing: 0.25rem;
-  --shadow-2xs: 0px 2px 4px 0px hsl(240 35% 20% / 0.08);
-  --shadow-xs: 0px 2px 4px 0px hsl(240 35% 20% / 0.10);
-  --shadow-sm: 0px 4px 6px 0px hsl(240 35% 20% / 0.15), 0px 1px 2px -1px hsl(240 35% 20% / 0.12);
-  --shadow: 0px 4px 6px 0px hsl(240 35% 20% / 0.18), 0px 1px 2px -1px hsl(240 35% 20% / 0.15);
-  --shadow-md: 0px 6px 8px 0px hsl(240 35% 20% / 0.18), 0px 2px 4px -1px hsl(240 35% 20% / 0.15);
-  --shadow-lg: 0px 8px 12px 0px hsl(240 35% 20% / 0.20), 0px 4px 6px -1px hsl(240 35% 20% / 0.18);
-  --shadow-xl: 0px 12px 16px 0px hsl(240 35% 20% / 0.22), 0px 8px 10px -1px hsl(240 35% 20% / 0.20);
-  --shadow-2xl: 0px 16px 24px 0px hsl(240 35% 20% / 0.35);
-  --tracking-normal: 0em;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .dark {
-  --background: oklch(0.2155 0.0254 284.0647);
-  --foreground: oklch(0.8787 0.0426 272.2767);
-  --card: oklch(0.2429 0.0304 283.9110);
-  --card-foreground: oklch(0.8787 0.0426 272.2767);
-  --popover: oklch(0.4037 0.0320 280.1520);
-  --popover-foreground: oklch(0.8787 0.0426 272.2767);
-  --primary: oklch(0.7871 0.1187 304.7693);
-  --primary-foreground: oklch(0.2429 0.0304 283.9110);
-  --secondary: oklch(0.4765 0.0340 278.6430);
-  --secondary-foreground: oklch(0.8787 0.0426 272.2767);
-  --muted: oklch(0.2973 0.0294 276.2144);
-  --muted-foreground: oklch(0.7510 0.0396 273.9320);
-  --accent: oklch(0.8467 0.0833 210.2545);
-  --accent-foreground: oklch(0.2429 0.0304 283.9110);
-  --destructive: oklch(0.7556 0.1297 2.7642);
-  --destructive-foreground: oklch(0.2429 0.0304 283.9110);
-  --border: oklch(0.3240 0.0319 281.9784);
-  --input: oklch(0.3240 0.0319 281.9784);
-  --ring: oklch(0.7871 0.1187 304.7693);
-  --chart-1: oklch(0.7871 0.1187 304.7693);
-  --chart-2: oklch(0.8467 0.0833 210.2545);
-  --chart-3: oklch(0.8577 0.1092 142.7153);
-  --chart-4: oklch(0.8237 0.1015 52.6294);
-  --chart-5: oklch(0.9226 0.0238 30.4919);
-  --radius: 0.35rem;
-  --sidebar: oklch(0.1828 0.0204 284.2039);
-  --sidebar-foreground: oklch(0.8787 0.0426 272.2767);
-  --sidebar-primary: oklch(0.7871 0.1187 304.7693);
-  --sidebar-primary-foreground: oklch(0.2429 0.0304 283.9110);
-  --sidebar-accent: oklch(0.8467 0.0833 210.2545);
-  --sidebar-accent-foreground: oklch(0.2429 0.0304 283.9110);
-  --sidebar-border: oklch(0.4037 0.0320 280.1520);
-  --sidebar-ring: oklch(0.7871 0.1187 304.7693);
-  --font-sans: Montserrat, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: "Ubuntu Mono", monospace;
-  --shadow-color: hsl(240 30% 25%);
-  --shadow-opacity: 0.12;
-  --shadow-blur: 6px;
-  --shadow-spread: 0px;
-  --shadow-offset-x: 0px;
-  --shadow-offset-y: 4px;
-  --letter-spacing: 0em;
-  --spacing: 0.25rem;
-  --shadow-2xs: 0px 4px 6px 0px hsl(240 30% 25% / 0.06);
-  --shadow-xs: 0px 4px 6px 0px hsl(240 30% 25% / 0.06);
-  --shadow-sm: 0px 4px 6px 0px hsl(240 30% 25% / 0.12), 0px 1px 2px -1px hsl(240 30% 25% / 0.12);
-  --shadow: 0px 4px 6px 0px hsl(240 30% 25% / 0.12), 0px 1px 2px -1px hsl(240 30% 25% / 0.12);
-  --shadow-md: 0px 4px 6px 0px hsl(240 30% 25% / 0.12), 0px 2px 4px -1px hsl(240 30% 25% / 0.12);
-  --shadow-lg: 0px 4px 6px 0px hsl(240 30% 25% / 0.12), 0px 4px 6px -1px hsl(240 30% 25% / 0.12);
-  --shadow-xl: 0px 4px 6px 0px hsl(240 30% 25% / 0.12), 0px 8px 10px -1px hsl(240 30% 25% / 0.12);
-  --shadow-2xl: 0px 4px 6px 0px hsl(240 30% 25% / 0.30);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
@@ -184,297 +120,314 @@
   }
   body {
     @apply bg-background text-foreground;
-    letter-spacing: var(--tracking-normal);
-  }
-  
-  /* Стили для элементов кода */
-  code {
-    font-family: var(--font-mono), "Ubuntu Mono", monospace;
-  }
-  
-  pre {
-    font-family: var(--font-mono), "Ubuntu Mono", monospace;
-  }
-  
-  pre code {
-    font-family: var(--font-mono), "Ubuntu Mono", monospace;
-  }
-  
-  /* Инлайн код */
-  :not(pre) > code {
-    background-color: oklch(0.88 0.018 264.5071);
-    color: hsl(var(--foreground));
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    font-size: 0.875rem;
-    border: 1px solid hsl(var(--border));
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  :not(pre) > code:hover {
-    background-color: oklch(0.85 0.020 264.5071);
-  }
-  
-  /* Блоки кода */
-  pre {
-    background-color: oklch(0.88 0.018 264.5071);
-    color: hsl(var(--foreground));
-    padding: 1rem;
-    padding-right: 3rem;
-    padding-top: 2.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid hsl(var(--border));
-    overflow-x: auto;
-    font-size: 0.875rem;
-    line-height: 1.6;
-    box-shadow: 0 4px 6px -1px hsl(240 35% 20% / 0.15), 0 2px 4px -2px hsl(240 35% 20% / 0.12);
-    cursor: pointer;
-    position: relative;
-    transition: all 0.2s ease;
-    display: inline-block;
-    width: fit-content;
-    max-width: 100%;
-  }
-  
-  pre:hover {
-    box-shadow: 0 6px 8px -1px hsl(240 35% 20% / 0.18), 0 4px 6px -2px hsl(240 35% 20% / 0.15);
-  }
-  
-  pre code {
-    background-color: transparent;
-    padding: 0;
-    border: none;
-    font-size: inherit;
-  }
-  
-  /* Темная тема для элементов кода */
-  .dark :not(pre) > code {
-    background-color: hsl(var(--muted));
-    color: hsl(var(--foreground));
-    border-color: hsl(var(--border));
-  }
-  
-  .dark pre {
-    background-color: hsl(var(--muted));
-    color: hsl(var(--foreground));
-    border-color: hsl(var(--border));
-  }
-  
-  /* Стили для markdown редактора - более агрессивные переопределения */
-  .markdown-editor-wrapper .w-md-editor-text-textarea textarea,
-  .markdown-editor-wrapper .w-md-editor-text-textarea pre,
-  .markdown-editor-wrapper .w-md-editor-text-textarea pre code,
-  .markdown-editor-wrapper .w-md-editor-text-textarea pre span {
-    color: oklch(0.35 0.048 279.3250) !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-  
-  /* Превью редактора */
-  .markdown-editor-wrapper .w-md-editor-preview {
-    color: oklch(0.35 0.048 279.3250) !important;
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-  
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown p,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h1,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h2,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h3,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h4,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h5,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h6,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown li,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown span,
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown div {
-    color: oklch(0.35 0.048 279.3250) !important;
-  }
-  
-  .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown pre {
-    background-color: oklch(0.88 0.018 264.5071) !important;
-    color: oklch(0.35 0.048 279.3250) !important;
-    padding: 1rem !important;
-  }
-  
-  .markdown-editor-wrapper .w-md-editor-toolbar {
-    background-color: oklch(0.88 0.020 264.5071) !important;
-  }
-  
-  .markdown-editor-wrapper .w-md-editor-toolbar button,
-  .markdown-editor-wrapper .w-md-editor-toolbar button svg {
-    color: oklch(0.35 0.048 279.3250) !important;
-  }
-  
-  /* Темная тема для редактора */
-  .dark .markdown-editor-wrapper .w-md-editor-text-textarea textarea,
-  .dark .markdown-editor-wrapper .w-md-editor-text-textarea pre,
-  .dark .markdown-editor-wrapper .w-md-editor-text-textarea pre code {
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  .dark .markdown-editor-wrapper .w-md-editor-preview,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown p,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h1,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h2,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h3,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h4,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h5,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown h6,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown li,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown span,
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown div {
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  .dark .markdown-editor-wrapper .w-md-editor-preview .wmde-markdown pre {
-    background-color: hsl(var(--muted)) !important;
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  .dark .markdown-editor-wrapper .w-md-editor-toolbar {
-    background-color: hsl(var(--muted)) !important;
-  }
-  
-  .dark .markdown-editor-wrapper .w-md-editor-toolbar button {
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  /* Стили для блоков кода с кнопками копирования */
-  .code-block {
-    position: relative;
-    margin: 1rem 0;
-    display: inline-block;
-    width: fit-content;
-    max-width: 100%;
-  }
-  
-  .code-block pre {
-    position: relative;
-    padding: 1rem;
-    padding-right: 3rem;
-    padding-top: 2.5rem;
-    display: inline-block;
-    width: fit-content;
-    max-width: 100%;
-  }
-  
-  .code-block .copy-button {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    padding: 0.375rem;
-    background: hsl(var(--muted));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.375rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: hsl(var(--foreground));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-  
-  .code-block .copy-button:hover {
-    background: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
-    transform: scale(1.05);
-  }
-  
-  .code-block .copy-button:active {
-    transform: scale(0.95);
-  }
-  
-  .code-block .language-label {
-    position: absolute;
-    top: 0.5rem;
-    left: 0.75rem;
-    padding: 0.25rem 0.5rem;
-    background: hsl(var(--muted));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    color: hsl(var(--muted-foreground));
-    z-index: 10;
-    font-family: var(--font-mono);
-  }
-  
-  /* Инлайн код - ширина по содержимому */
-  :not(pre) > code {
-    width: fit-content;
-    display: inline-block;
-  }
-  
-  /* Стили для shiki-wrapper (используется в markdown-renderer) */
-  .shiki-wrapper {
-    position: relative;
-    margin: 1rem 0;
-    display: inline-block;
-    width: fit-content;
-    max-width: 100%;
-  }
-  
-  .shiki-wrapper > div {
-    position: relative;
-    display: inline-block;
-    width: fit-content;
-    max-width: 100%;
-  }
-  
-  .shiki-wrapper pre {
-    padding-top: 2.5rem !important;
-    position: relative !important;
-  }
-  
-  .shiki-wrapper button {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    padding: 0.375rem;
-    background: hsl(var(--muted));
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.375rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: hsl(var(--foreground));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-  }
-  
-  .shiki-wrapper button:hover {
-    background: hsl(var(--accent));
-    color: hsl(var(--accent-foreground));
-    transform: scale(1.05);
-  }
-  
-  .shiki-wrapper button:active {
-    transform: scale(0.95);
-  }
-  
-  /* Переопределение стилей для блоков кода внутри prose */
-  .prose pre,
-  .prose .code-block,
-  .prose .shiki-wrapper,
-  .markdown-content pre,
-  .markdown-content .code-block,
-  .markdown-content .shiki-wrapper {
-    display: inline-block !important;
-    width: fit-content !important;
-    max-width: 100% !important;
-    min-width: auto !important;
-  }
-  
-  .prose .code-block pre,
-  .prose .shiki-wrapper pre,
-  .markdown-content .code-block pre,
-  .markdown-content .shiki-wrapper pre {
-    display: inline-block !important;
-    width: fit-content !important;
-    max-width: 100% !important;
-    min-width: auto !important;
   }
 }
+
+/* ============================================
+   react-markdown-editor-lite стили
+   Более специфичные селекторы без !important
+   ============================================ */
+
+/* Основной контейнер - рамка как у input field */
+.markdown-editor > .rc-md-editor.rc-md-editor {
+  border: 1px solid hsl(var(--input));
+  background-color: hsl(var(--background));
+  border-radius: calc(var(--radius));
+}
+
+/* Тулбар - разделитель как у input field */
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation {
+  background-color: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--input));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button {
+  color: hsl(var(--foreground));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button:hover {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--accent));
+}
+
+/* Область редактирования (левая панель) */
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-md {
+  background-color: hsl(var(--background));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-md .input {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: inherit;
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-md .input::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Область превью (правая панель) */
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html {
+  background-color: hsl(var(--background));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Разделитель между панелями - как у input field */
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.section {
+  border-right: 1px solid hsl(var(--input));
+}
+
+/* Код в превью - Ubuntu Mono */
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap code,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre code {
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Стили для элементов в превью */
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap {
+  color: hsl(var(--foreground));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap p,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap h1,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap h2,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap h3,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap h4,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap h5,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap h6,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap li,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap span,
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap div {
+  color: hsl(var(--foreground));
+}
+
+/* Блоки кода в превью */
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--input));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap code {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre code {
+  background-color: transparent;
+}
+
+/* ============================================
+   Темная тема
+   ============================================ */
+.dark .markdown-editor > .rc-md-editor.rc-md-editor {
+  border: 1px solid hsl(var(--input));
+  background-color: hsl(var(--background));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation {
+  background-color: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--input));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button {
+  color: hsl(var(--foreground));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button:hover {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--accent));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-md {
+  background-color: hsl(var(--background));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-md .input {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html {
+  background-color: hsl(var(--background));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.section {
+  border-right: 1px solid hsl(var(--input));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap code,
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre,
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre code {
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--input));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap code {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container > .section.sec-html .html-wrap pre code {
+  background-color: transparent;
+}
+
+/* ============================================
+   Стили для компонентов кода (shiki)
+   ============================================ */
+
+/* Стили для HTML от shiki */
+pre > div[class*="shiki"] {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+pre > div[class*="shiki"] > pre {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+pre > div[class*="shiki"] code {
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  background-color: transparent !important;
+}
+
+/* Убираем встроенные стили фона от shiki и используем наш серый фон */
+pre[class*="shiki"],
+pre > div[class*="shiki"] {
+  background-color: hsl(var(--muted)) !important;
+}
+
+/* Стили для inline кода */
+code:not(pre code) {
+  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+}
+
+
+/* ============================================
+   Стили для ссылок в markdown (фиолетовый цвет)
+   ============================================ */
+
+/* Ссылки в основном контенте - фиолетовый цвет */
+.prose a,
+.markdown-content a {
+  color: oklch(0.5 0.25 303.9) !important; /* Фиолетовый для светлой темы */
+  text-decoration: none;
+}
+
+.dark .prose a,
+.dark .markdown-content a {
+  color: oklch(0.627 0.265 303.9) !important; /* Фиолетовый для темной темы (как chart-4) */
+}
+
+.prose a:hover,
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+/* Ссылки в превью редактора - фиолетовый цвет */
+.markdown-editor .rc-md-editor .section.sec-html .html-wrap a {
+  color: oklch(0.5 0.25 303.9) !important; /* Фиолетовый для светлой темы */
+  text-decoration: none;
+}
+
+.dark .markdown-editor .rc-md-editor .section.sec-html .html-wrap a {
+  color: oklch(0.627 0.265 303.9) !important; /* Фиолетовый для темной темы (как chart-4) */
+}
+
+.markdown-editor .rc-md-editor .section.sec-html .html-wrap a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   Градиенты затухания для карточек бенто-сетки
+   ============================================ */
+
+.fade-gradient-light {
+  background: linear-gradient(
+    to top,
+    hsl(var(--background)) 0%,
+    hsl(var(--background)) 50%,
+    oklch(0.5 0.25 303.9 / 0.05) 75%,
+    transparent 100%
+  );
+}
+
+.fade-gradient-dark {
+  display: none;
+}
+
+.dark .fade-gradient-light {
+  display: none;
+}
+
+.dark .fade-gradient-dark {
+  display: block;
+  background: linear-gradient(
+    to top,
+    hsl(var(--background)) 0%,
+    hsl(var(--background)) 50%,
+    oklch(0.627 0.265 303.9 / 0.08) 75%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   Кастомные скроллбары для карточек бенто-сетки
+   ============================================ */
+
+/* Скроллбары для контента внутри карточек */
+.bento-card-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bento-card-content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.bento-card-content::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0.25 303.9 / 0.2);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.bento-card-content::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0.25 303.9 / 0.35);
+}
+
+.dark .bento-card-content::-webkit-scrollbar-thumb {
+  background: oklch(0.627 0.265 303.9 / 0.25);
+}
+
+.dark .bento-card-content::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.627 0.265 303.9 / 0.4);
+}
+
+/* Firefox */
+.bento-card-content {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.5 0.25 303.9 / 0.2) transparent;
+}
+
+.dark .bento-card-content {
+  scrollbar-color: oklch(0.627 0.265 303.9 / 0.25) transparent;
+}
+

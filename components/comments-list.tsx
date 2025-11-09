@@ -12,20 +12,21 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { SimpleAvatar } from "@/components/ui/simple-avatar"
-import { useToast } from "@/components/ui/use-toast"
+import { SimpleAvatar } from "@/components/simple-avatar"
 import { useAuth } from "@/context/auth-context"
-import { deleteComment } from "@/lib/client-api"
 import {
   getCommentsByPostId,
   likeComment,
   unlikeComment,
-} from "@/lib/firebase-db"
+  deleteComment,
+  hasUserLikedComment,
+} from "@/lib/firebase-comments"
 import type { Comment } from "@/types/database"
-import { AnimatePresence, motion } from "framer-motion"
 import { Reply, ThumbsUp, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { CommentForm } from "./comment-form"
+import { toast } from "sonner"
+import { Spinner } from "@/components/ui/spinner"
 
 interface CommentsListProps {
   postId: string
@@ -38,26 +39,37 @@ export function CommentsList({ postId }: CommentsListProps) {
   const [likedComments, setLikedComments] = useState<Set<string>>(new Set())
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [deletingComments, setDeletingComments] = useState<Set<string>>(
-    new Set(),
-  )
   const { user, profile } = useAuth()
-  const { toast } = useToast()
-
-  // Константы для анимации
-  const animationDuration = 0.9 // в секундах
 
   const fetchComments = async () => {
     try {
       setLoading(true)
       const fetchedComments = await getCommentsByPostId(postId)
       setComments(fetchedComments)
+
+      // Загружаем информацию о лайках пользователя
+      if (user) {
+        const likedSet = new Set<string>()
+        for (const comment of fetchedComments) {
+          const checkLiked = async (c: Comment) => {
+            const isLiked = await hasUserLikedComment(c.id, user.uid)
+            if (isLiked) {
+              likedSet.add(c.id)
+            }
+            if (c.replies) {
+              for (const reply of c.replies) {
+                await checkLiked(reply)
+              }
+            }
+          }
+          await checkLiked(comment)
+        }
+        setLikedComments(likedSet)
+      }
     } catch (error) {
       console.error("Error fetching comments:", error)
-      toast({
-        title: "Ошибка",
+      toast.error("Ошибка", {
         description: "Не удалось загрузить комментарии",
-        variant: "destructive",
       })
     } finally {
       setLoading(false)
@@ -66,7 +78,7 @@ export function CommentsList({ postId }: CommentsListProps) {
 
   useEffect(() => {
     fetchComments()
-  }, [postId])
+  }, [postId, user])
 
   // Проверка прав на удаление комментария
   const canDeleteComment = (comment: Comment) => {
@@ -82,151 +94,40 @@ export function CommentsList({ postId }: CommentsListProps) {
     return isAuthor || isTeacherOrAdmin
   }
 
-  // Обработчик удаления комментария
-  const handleDeleteClick = (commentId: string) => {
-    setCommentToDelete(commentId)
-  }
-
   // Подтверждение удаления комментария
   const confirmDelete = async () => {
     if (!commentToDelete) return
 
     setIsDeleting(true)
 
-    // Находим все дочерние комментарии для анимации
-    const childComments = findAllChildComments(commentToDelete, comments)
-    const allCommentsToAnimate = [commentToDelete, ...childComments]
+    try {
+      const success = await deleteComment(commentToDelete)
 
-    // Закрываем диалог подтверждения
-    setCommentToDelete(null)
-
-    // Добавляем эффект дрожания перед удалением
-    const applyShakeEffect = (commentId: string) => {
-      const element = document.getElementById(`comment-${commentId}`)
-      if (element) {
-        element.style.animation =
-          "shake 0.4s cubic-bezier(.36,.07,.19,.97) both"
+      if (success) {
+        toast.success("Успешно", {
+          description: "Комментарий был удален",
+        })
+        fetchComments()
+      } else {
+        toast.error("Ошибка", {
+          description: "Не удалось удалить комментарий",
+        })
       }
-    }
-
-    // Последовательно применяем эффект дрожания к каждому комментарию
-    // Сначала родительский комментарий, затем дочерние
-    setTimeout(() => applyShakeEffect(commentToDelete), 0)
-
-    // Добавляем дочерние комментарии в список удаляемых с задержкой
-    childComments.forEach((id, index) => {
-      setTimeout(() => applyShakeEffect(id), 100 + index * 50)
-    })
-
-    // Плавно добавляем комментарии в список удаляемых
-    // Сначала родительский комментарий
-    setTimeout(() => {
-      setDeletingComments((prev) => {
-        const newSet = new Set(prev)
-        newSet.add(commentToDelete)
-        return newSet
+    } catch (error) {
+      console.error("Error deleting comment:", error)
+      toast.error("Ошибка", {
+        description: "Произошла ошибка при удалении комментария",
       })
-
-      // Затем дочерние комментарии последовательно
-      childComments.forEach((id, index) => {
-        setTimeout(
-          () => {
-            setDeletingComments((prev) => {
-              const newSet = new Set(prev)
-              newSet.add(id)
-              return newSet
-            })
-          },
-          100 + index * 50,
-        ) // Последовательное добавление с задержкой
-      })
-    }, 400)
-
-    // Ждем завершения анимации с небольшим запасом
-    setTimeout(
-      async () => {
-        try {
-          const success = await deleteComment(commentToDelete)
-
-          if (success) {
-            toast({
-              title: "Успешно",
-              description: "Комментарий был удален",
-              variant: "default",
-            })
-
-            // Обновляем список комментариев
-            fetchComments()
-          } else {
-            toast({
-              title: "Ошибка",
-              description: "Не удалось удалить комментарий",
-              variant: "destructive",
-            })
-
-            // Убираем комментарии из списка удаляемых
-            setDeletingComments((prev) => {
-              const newSet = new Set(prev)
-              allCommentsToAnimate.forEach((id) => newSet.delete(id))
-              return newSet
-            })
-          }
-        } catch (error) {
-          console.error("Error deleting comment:", error)
-          toast({
-            title: "Ошибка",
-            description: "Произошла ошибка при удалении комментария",
-            variant: "destructive",
-          })
-
-          // Убираем комментарии из списка удаляемых
-          setDeletingComments((prev) => {
-            const newSet = new Set(prev)
-            allCommentsToAnimate.forEach((id) => newSet.delete(id))
-            return newSet
-          })
-        } finally {
-          setIsDeleting(false)
-        }
-      },
-      (animationDuration + 0.3) * 1000,
-    ) // Добавляем запас времени для завершения анимации
-  }
-
-  // Функция для поиска всех дочерних комментариев
-  const findAllChildComments = (
-    commentId: string,
-    commentsList: Comment[],
-  ): string[] => {
-    const childIds: string[] = []
-
-    // Рекурсивная функция для поиска дочерних комментариев
-    const findChildren = (parentId: string, comments: Comment[]) => {
-      for (const comment of comments) {
-        if (comment.parent_id === parentId) {
-          childIds.push(comment.id)
-          // Рекурсивно ищем дочерние комментарии для текущего комментария
-          findChildren(comment.id, comments)
-        }
-        // Также проверяем вложенные ответы
-        if (comment.replies && comment.replies.length > 0) {
-          findChildren(parentId, comment.replies)
-        }
-      }
+    } finally {
+      setIsDeleting(false)
+      setCommentToDelete(null)
     }
-
-    // Начинаем поиск с корневых комментариев
-    findChildren(commentId, commentsList)
-
-    return childIds
   }
 
   const handleLike = async (commentId: string) => {
     if (!user) {
-      toast({
-        title: "Ошибка",
+      toast.error("Ошибка", {
         description: "Вы должны быть авторизованы для отправки лайков",
-        variant: "destructive",
       })
       return
     }
@@ -250,92 +151,47 @@ export function CommentsList({ postId }: CommentsListProps) {
       fetchComments()
     } catch (error) {
       console.error("Error liking/unliking comment:", error)
-      toast({
-        title: "Ошибка",
+      toast.error("Ошибка", {
         description: "Не удалось обработать лайк",
-        variant: "destructive",
       })
     }
   }
 
   const renderComment = (comment: Comment, isReply = false) => {
-    // Проверяем, находится ли комментарий в процессе удаления
-    const isDeleting = deletingComments.has(comment.id)
-
-    // Анимация для комментария
-    const variants = {
-      visible: {
-        opacity: 1,
-        y: 0,
-        marginBottom: isReply ? 0 : 24,
-        x: 0,
-        backgroundColor: "transparent",
-        boxShadow: "0 0 0px rgba(255, 0, 0, 0)",
-        scale: 1,
-        rotateX: 0,
-        position: "relative",
-        zIndex: 1,
-      },
-      hidden: {
-        opacity: 0,
-        y: -20,
-        marginBottom: isReply ? 0 : 24, // Сохраняем маржин для плавного скролла
-        x: -10,
-        backgroundColor: "rgba(255, 0, 0, 0.08)",
-        boxShadow:
-          "0 0 15px rgba(255, 0, 0, 0.5), inset 0 0 10px rgba(255, 0, 0, 0.2)",
-        scale: 0.9,
-        rotateX: -10,
-        position: "relative",
-        zIndex: 0,
-      },
-    }
-
     return (
-      <motion.div
+      <div
         key={comment.id}
-        id={`comment-${comment.id}`}
-        className={`${isReply ? "ml-12 mt-4" : "mb-6"} rounded-lg p-3 transition-colors`}
-        initial="visible"
-        animate={isDeleting ? "hidden" : "visible"}
-        exit="hidden"
-        variants={variants}
-        transition={{
-          duration: animationDuration,
-          ease: [0.25, 0.1, 0.25, 1], // Более выразительная кривая
-          opacity: { duration: animationDuration * 0.8 },
-          backgroundColor: {
-            duration: animationDuration * 0.5,
-            ease: "easeOut",
-          },
-          boxShadow: { duration: animationDuration * 0.6, ease: "easeOut" },
-          x: { duration: animationDuration * 0.7, ease: "easeIn" },
-          y: { duration: animationDuration * 0.8, ease: "easeInOut" }, // Плавное движение вверх
-          scale: { duration: animationDuration, ease: "anticipate" },
-          rotateX: { duration: animationDuration * 0.7, ease: "easeIn" },
-          zIndex: { duration: 0 }, // Мгновенное изменение z-index
-        }}
+        className={`${isReply ? "ml-12 mt-4" : "mb-6"} rounded-lg p-3`}
       >
         <div className="flex items-start gap-4">
           <SimpleAvatar username={comment.author.username} size="md" />
           <div className="flex-1">
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <span className="font-medium">{comment.author.username}</span>
-              <Badge variant="outline" className="ml-2 text-xs">
-                {comment.author.role === "teacher" ? "Учитель" : "Ученик"}
+              <Badge variant="outline" className="text-xs">
+                {comment.author.role === "teacher"
+                  ? "Учитель"
+                  : comment.author.role === "admin"
+                    ? "Администратор"
+                    : "Ученик"}
               </Badge>
-              <span className="text-xs text-muted-foreground ml-2">
-                {new Date(comment.created_at).toLocaleDateString("ru-RU")}
+              <span className="text-xs text-muted-foreground">
+                {new Date(comment.created_at).toLocaleDateString("ru-RU", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "2-digit",
+                })}
               </span>
             </div>
-            <p className="mt-1">{comment.content}</p>
+            <p className="mt-1 text-sm whitespace-pre-wrap break-words">{comment.content}</p>
             <div className="flex items-center gap-4 mt-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-2 ${likedComments.has(comment.id) ? "text-[hsl(var(--saas-purple))]" : ""}`}
+                className={`h-8 px-2 ${
+                  likedComments.has(comment.id) ? "text-primary" : ""
+                }`}
                 onClick={() => handleLike(comment.id)}
-                disabled={isDeleting}
               >
                 <ThumbsUp className="h-3 w-3 mr-1" />
                 <span className="text-xs">{comment.likesCount || 0}</span>
@@ -343,11 +199,10 @@ export function CommentsList({ postId }: CommentsListProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-2 ${likedComments.has(comment.id) ? "text-[hsl(var(--saas-purple))]" : "text-muted-foreground hover:text-[hsl(var(--saas-purple))]"}`}
+                className="h-8 px-2 text-muted-foreground hover:text-foreground"
                 onClick={() =>
                   setReplyingTo(replyingTo === comment.id ? null : comment.id)
                 }
-                disabled={isDeleting}
               >
                 <Reply className="h-3 w-3 mr-1" />
                 <span className="text-xs">Ответить</span>
@@ -356,9 +211,8 @@ export function CommentsList({ postId }: CommentsListProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-100/10"
-                  onClick={() => handleDeleteClick(comment.id)}
-                  disabled={isDeleting}
+                  className="h-8 px-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                  onClick={() => setCommentToDelete(comment.id)}
                 >
                   <Trash2 className="h-3 w-3 mr-1" />
                   <span className="text-xs">Удалить</span>
@@ -383,19 +237,20 @@ export function CommentsList({ postId }: CommentsListProps) {
           </div>
         </div>
 
-        <div className="relative">
-          <AnimatePresence>
-            {comment.replies?.map((reply) => renderComment(reply, true))}
-          </AnimatePresence>
-        </div>
-      </motion.div>
+        {comment.replies && comment.replies.length > 0 && (
+          <div className="mt-4">
+            {comment.replies.map((reply) => renderComment(reply, true))}
+          </div>
+        )}
+      </div>
     )
   }
 
   if (loading) {
     return (
-      <div className="py-4 text-center text-muted-foreground">
-        Загрузка комментариев...
+      <div className="py-4 text-center">
+        <Spinner className="h-5 w-5 mx-auto" />
+        <p className="text-muted-foreground mt-2">Загрузка комментариев...</p>
       </div>
     )
   }
@@ -419,7 +274,7 @@ export function CommentsList({ postId }: CommentsListProps) {
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "Удаление..." : "Удалить"}
             </AlertDialogAction>
@@ -433,39 +288,17 @@ export function CommentsList({ postId }: CommentsListProps) {
           <CommentForm postId={postId} onCommentAdded={fetchComments} />
         </div>
 
-        <AnimatePresence mode="wait">
-          {comments.length > 0 ? (
-            <motion.div
-              key="comments-list"
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="relative"
-            >
-              <div className="comments-container relative">
-                <AnimatePresence>
-                  {comments.map((comment) => renderComment(comment))}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="no-comments"
-              className="text-center py-4 text-muted-foreground"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{
-                duration: 0.5,
-                ease: "easeOut",
-                delay: comments.length === 0 ? 0 : 0.3, // Задержка появления после удаления последнего комментария
-              }}
-            >
-              Комментариев пока нет. Будьте первым, кто оставит комментарий!
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {comments.length > 0 ? (
+          <div className="space-y-4">
+            {comments.map((comment) => renderComment(comment))}
+          </div>
+        ) : (
+          <div className="text-center py-4 text-muted-foreground">
+            Комментариев пока нет. Будьте первым, кто оставит комментарий!
+          </div>
+        )}
       </div>
     </>
   )
 }
+

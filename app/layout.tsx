@@ -1,45 +1,32 @@
-import type React from "react"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/sonner"
-import { Mulish } from "next/font/google"
-import { AuthProvider } from "@/context/auth-context"
-import { CodeCopyProvider } from "@/components/code-copy-provider"
-import "./globals.css"
+import type { Metadata } from "next";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/context/auth-context";
+import { Toaster } from "@/components/ui/sonner";
+import { GlobalBackground } from "@/components/global-background";
 
-const mulish = Mulish({
-  subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap"
-})
-
-export const metadata = {
-  title: "AI News",
-  description: "Платформа для публикации новостей и обсуждения веб-разработки с ИИ",
-  generator: 'v0.dev',
-  icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
-  }
-}
+export const metadata: Metadata = {
+  title: "Digital AI News",
+  description: "Digital AI News Platform",
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={mulish.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <CodeCopyProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </CodeCopyProvider>
+      <body>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <GlobalBackground />
+            {children}
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
-        <Toaster />
       </body>
     </html>
-  )
+  );
 }
+

@@ -3,7 +3,6 @@ import {
   type User as FirebaseUser,
   GithubAuthProvider,
   GoogleAuthProvider,
-  OAuthProvider,
   type UserCredential,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -51,13 +50,12 @@ export const signUp = async (
       }
     }
 
-    // Добавляем логирование для отладки
-    console.log("Starting registration process", {
-      email,
-      username,
-      role,
-      isMobile: isMobile(),
-    })
+    if (!auth || !db) {
+      return {
+        user: null,
+        error: { message: "Firebase is not initialized" },
+      }
+    }
 
     // Создаем пользователя в Firebase Auth
     const userCredential: UserCredential = await createUserWithEmailAndPassword(
@@ -66,8 +64,6 @@ export const signUp = async (
       password,
     )
 
-    console.log("User created in Firebase Auth", userCredential.user.uid)
-
     // Создаем профиль пользователя в Firestore
     await setDoc(doc(db, "profiles", userCredential.user.uid), {
       id: userCredential.user.uid,
@@ -75,8 +71,6 @@ export const signUp = async (
       role,
       created_at: new Date().toISOString(),
     })
-
-    console.log("User profile created in Firestore")
 
     return { user: userCredential.user, error: null }
   } catch (error) {
@@ -99,6 +93,13 @@ export const signIn = async (
   }
 
   try {
+    if (!auth) {
+      return {
+        user: null,
+        error: { message: "Firebase is not initialized" },
+      }
+    }
+
     const userCredential = await signInWithEmailAndPassword(
       auth,
       email,
@@ -117,6 +118,9 @@ export const signOut = async (): Promise<void> => {
     return
   }
 
+  if (!auth) {
+    return
+  }
   await firebaseSignOut(auth)
 }
 
@@ -130,6 +134,9 @@ export const getUserProfile = async (
   }
 
   try {
+    if (!db) {
+      return null
+    }
     const profileDoc = await getDoc(doc(db, "profiles", userId))
 
     if (profileDoc.exists()) {
@@ -157,6 +164,12 @@ export const updateUserProfile = async (
   }
 
   try {
+    if (!db) {
+      return {
+        success: false,
+        error: { message: "Firebase is not initialized" },
+      }
+    }
     // Обновляем профиль пользователя в Firestore
     await updateDoc(doc(db, "profiles", userId), {
       ...profileData,
@@ -179,7 +192,18 @@ export const subscribeToAuthChanges = (
     return () => {}
   }
 
+  if (!auth) {
+    return () => {}
+  }
   return onAuthStateChanged(auth, callback)
+}
+
+// Проверка, является ли устройство мобильным
+const isMobile = (): boolean => {
+  if (!isBrowser) return false
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent,
+  )
 }
 
 // Аутентификация через Google
@@ -204,6 +228,13 @@ export const signInWithGoogle = async (): Promise<{
           message:
             "Нет подключения к интернету. Пожалуйста, проверьте ваше соединение и попробуйте снова.",
         },
+      }
+    }
+
+    if (!auth || !db) {
+      return {
+        user: null,
+        error: { message: "Firebase is not initialized" },
       }
     }
 
@@ -252,14 +283,6 @@ export const signInWithGoogle = async (): Promise<{
   }
 }
 
-// Проверка, является ли устройство мобильным
-const isMobile = (): boolean => {
-  if (!isBrowser) return false
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-    navigator.userAgent,
-  )
-}
-
 // Аутентификация через GitHub
 export const signInWithGithub = async (): Promise<{
   user: FirebaseUser | null
@@ -282,6 +305,13 @@ export const signInWithGithub = async (): Promise<{
           message:
             "Нет подключения к интернету. Пожалуйста, проверьте ваше соединение и попробуйте снова.",
         },
+      }
+    }
+
+    if (!auth || !db) {
+      return {
+        user: null,
+        error: { message: "Firebase is not initialized" },
       }
     }
 
@@ -343,6 +373,12 @@ export const getRedirectResult = async (): Promise<{
   }
 
   try {
+    if (!auth || !db) {
+      return {
+        user: null,
+        error: { message: "Firebase is not initialized" },
+      }
+    }
     const result = await getRedirectResultFirebase(auth)
 
     if (result) {
@@ -370,3 +406,4 @@ export const getRedirectResult = async (): Promise<{
     return { user: null, error }
   }
 }
+
