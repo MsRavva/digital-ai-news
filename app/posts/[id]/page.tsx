@@ -113,7 +113,7 @@ export default function PostPage({ params }: Props) {
     return (
       <>
         <HeroHeader />
-        <div className="container mx-auto w-[60%] pt-24 pb-8 px-4">
+        <div className="container mx-auto w-full lg:w-[60%] pt-24 pb-8 px-4">
           <Card className={cn(
         "rounded-3xl border-border/50 dark:border-white/[0.1] transition-all duration-300",
         "shadow-[0_2px_15px_rgba(0,0,0,0.08),0_8px_25px_rgba(0,0,0,0.05)]",
@@ -135,7 +135,7 @@ export default function PostPage({ params }: Props) {
     return (
       <>
         <HeroHeader />
-        <div className="container mx-auto w-[60%] pt-24 pb-8 px-4">
+        <div className="container mx-auto w-full lg:w-[60%] pt-24 pb-8 px-4">
           <Card className={cn(
         "rounded-3xl border-border/50 dark:border-white/[0.1] transition-all duration-300",
         "shadow-[0_2px_15px_rgba(0,0,0,0.08),0_8px_25px_rgba(0,0,0,0.05)]",

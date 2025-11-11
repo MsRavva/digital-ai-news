@@ -9,6 +9,13 @@ import { HeroHeader } from './header'
 import { PostsDataTable } from './posts-data-table'
 import { PostsBentoGrid } from './posts-bento-grid'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Grid2X2, Table } from 'lucide-react'
 import {
   getCategoryFromCookie,
@@ -180,7 +187,7 @@ export default function HeroSection() {
             <main className="overflow-hidden">
                 <section>
                     <div className="relative pt-12">
-                        <div className="relative z-10 mx-auto w-[60%] px-6">
+                        <div className="relative z-10 mx-auto w-full lg:w-[60%] px-6">
                             <div className="sm:mx-auto lg:mr-auto lg:mt-0">
                                 <div className="mt-8 flex items-center justify-between gap-4 lg:mt-16">
                                     <TextEffect
@@ -225,40 +232,60 @@ export default function HeroSection() {
                                 ...transitionVariants,
                             }}>
                             <div className="relative mt-6 sm:mt-8 md:mt-10">
-                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto w-[60%] overflow-hidden rounded-2xl border p-6 shadow-lg shadow-zinc-950/15 ring-1">
+                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto w-full lg:w-[60%] overflow-hidden rounded-2xl border p-6 shadow-lg shadow-zinc-950/15 ring-1">
                                     <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                        <Tabs
-                                            value={selectedCategory}
-                                            onValueChange={setSelectedCategory}
-                                            className="w-auto"
-                                        >
-                                            <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
-                                                <TabsTrigger
-                                                    value="all"
-                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                >
-                                                    Все категории
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="news"
-                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                >
-                                                    Новости
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="materials"
-                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                >
-                                                    Учебные материалы
-                                                </TabsTrigger>
-                                                <TabsTrigger
-                                                    value="project-ideas"
-                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                >
-                                                    Идеи проектов
-                                                </TabsTrigger>
-                                            </TabsList>
-                                        </Tabs>
+                                        {/* Дропдаун для мобильных и планшетов */}
+                                        <div className="lg:hidden">
+                                            <Select
+                                                value={selectedCategory}
+                                                onValueChange={setSelectedCategory}
+                                            >
+                                                <SelectTrigger className="w-full sm:w-[200px]">
+                                                    <SelectValue placeholder="Выберите категорию" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="all">Все категории</SelectItem>
+                                                    <SelectItem value="news">Новости</SelectItem>
+                                                    <SelectItem value="materials">Учебные материалы</SelectItem>
+                                                    <SelectItem value="project-ideas">Идеи проектов</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        {/* Табы для десктопа */}
+                                        <div className="hidden lg:block">
+                                            <Tabs
+                                                value={selectedCategory}
+                                                onValueChange={setSelectedCategory}
+                                                className="w-auto"
+                                            >
+                                                <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                                                    <TabsTrigger
+                                                        value="all"
+                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                    >
+                                                        Все категории
+                                                    </TabsTrigger>
+                                                    <TabsTrigger
+                                                        value="news"
+                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                    >
+                                                        Новости
+                                                    </TabsTrigger>
+                                                    <TabsTrigger
+                                                        value="materials"
+                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                    >
+                                                        Учебные материалы
+                                                    </TabsTrigger>
+                                                    <TabsTrigger
+                                                        value="project-ideas"
+                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                    >
+                                                        Идеи проектов
+                                                    </TabsTrigger>
+                                                </TabsList>
+                                            </Tabs>
+                                        </div>
                                         <div className="flex items-center gap-2">
                                             <Button
                                                 variant={viewMode === "table" ? "default" : "outline"}
@@ -267,7 +294,7 @@ export default function HeroSection() {
                                                 className="flex items-center gap-2"
                                             >
                                                 <Table className="h-4 w-4" />
-                                                Таблица
+                                                <span className="hidden lg:inline">Таблица</span>
                                             </Button>
                                             <Button
                                                 variant={viewMode === "bento" ? "default" : "outline"}
@@ -276,7 +303,7 @@ export default function HeroSection() {
                                                 className="flex items-center gap-2"
                                             >
                                                 <Grid2X2 className="h-4 w-4" />
-                                                Bento Grid
+                                                <span className="hidden lg:inline">Bento Grid</span>
                                             </Button>
                                         </div>
                                     </div>
