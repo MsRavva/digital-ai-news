@@ -8,6 +8,9 @@ import { GlobalBackground } from "@/components/global-background";
 export const metadata: Metadata = {
   title: "Digital AI News",
   description: "Digital AI News Platform",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

@@ -27,7 +27,7 @@ export default function ArchivePage() {
     return (
       <>
         <HeroHeader />
-        <div className="container mx-auto w-full lg:w-[60%] pt-24 pb-8 px-4">
+        <div className="container mx-auto w-full pt-24 pb-8 px-4">
           <Card>
             <div className="p-8 text-center text-muted-foreground">
               Загрузка...
@@ -46,7 +46,7 @@ export default function ArchivePage() {
   return (
     <>
       <HeroHeader />
-      <div className="container mx-auto w-[60%] pt-24 pb-8 px-4">
+      <div className="container mx-auto w-full pt-24 pb-8 px-4">
         <Card className="p-6">
           <div className="mb-6">
             <h1 className="text-2xl font-bold mb-2">Архив публикаций</h1>

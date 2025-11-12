@@ -187,7 +187,7 @@ export default function HeroSection() {
             <main className="overflow-hidden">
                 <section>
                     <div className="relative pt-12">
-                        <div className="relative z-10 mx-auto w-full lg:w-[60%] px-6">
+                        <div className="relative z-10 mx-auto w-[90%] px-6">
                             <div className="sm:mx-auto lg:mr-auto lg:mt-0">
                                 <div className="mt-8 flex items-center justify-between gap-4 lg:mt-16">
                                     <TextEffect
@@ -232,7 +232,7 @@ export default function HeroSection() {
                                 ...transitionVariants,
                             }}>
                             <div className="relative mt-6 sm:mt-8 md:mt-10">
-                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto w-full lg:w-[60%] overflow-hidden rounded-2xl border p-6 shadow-lg shadow-zinc-950/15 ring-1">
+                                <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto w-[90%] overflow-hidden rounded-2xl border p-6 shadow-lg shadow-zinc-950/15 ring-1">
                                     <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                         {/* Дропдаун для мобильных и планшетов */}
                                         <div className="lg:hidden">
@@ -320,11 +320,11 @@ export default function HeroSection() {
                     </div>
                 </section>
                 <section className="bg-background pb-8 pt-8 md:pb-16">
-                    <div className="group relative m-auto max-w-5xl px-6">
+                    <div className="group relative m-auto w-full px-6">
                         <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
                             <span className="text-sm">Используй сам и посоветуй другу</span>
                         </div>
-                        <div className="group-hover:blur-xs mx-auto mt-12 grid max-w-2xl grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14 items-center">
+                        <div className="group-hover:blur-xs mx-auto mt-12 grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14 items-center">
                             <div className="flex items-center justify-center">
                                 <img
                                     className="mx-auto h-8 w-fit dark:invert"

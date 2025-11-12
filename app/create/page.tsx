@@ -5,7 +5,7 @@ export default function CreatePostPage() {
   return (
     <>
       <HeroHeader />
-      <div className="container mx-auto w-full lg:w-[60%] pt-24 pb-8 px-4">
+      <div className="container mx-auto w-[90%] pt-24 pb-8 px-4">
         <CreatePostForm />
       </div>
     </>

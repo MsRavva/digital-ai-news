@@ -151,7 +151,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl py-8 px-4">
+    <div className="container mx-auto w-full py-8 px-4">
       <Card>
         <CardHeader>
           <CardTitle>Профиль пользователя</CardTitle>
