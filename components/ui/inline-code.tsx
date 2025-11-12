@@ -34,7 +34,11 @@ export function InlineCode({ children, className }: InlineCodeProps) {
         "cursor-pointer hover:bg-muted/80 transition-colors",
         className,
       )}
-      onClick={handleCopy}
+      onClick={(e) => {
+        e.stopPropagation()
+        handleCopy()
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
       title={copied ? "Скопировано!" : "Нажмите, чтобы скопировать"}
     >
       <span>{children}</span>

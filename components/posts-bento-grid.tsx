@@ -26,9 +26,11 @@ import { MarkdownContent } from "@/components/ui/markdown-content"
 interface PostsBentoGridProps {
   category?: string
   archivedOnly?: boolean
+  searchQuery?: string
+  onSearchChange?: (query: string) => void
 }
 
-export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGridProps) {
+export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "", onSearchChange }: PostsBentoGridProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -63,10 +65,32 @@ export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGri
     loadPosts()
   }, [category, archivedOnly])
 
+  // Фильтрация постов по searchQuery
+  const filteredPosts = searchQuery
+    ? posts.filter((post) => {
+        const query = searchQuery.toLowerCase().trim()
+        if (!query) return true
+        
+        // Поиск в заголовке
+        const titleMatch = post.title.toLowerCase().includes(query)
+        
+        // Поиск в содержимом
+        const contentMatch = post.content.toLowerCase().includes(query)
+        
+        // Поиск по тегам - точное совпадение или подстрока
+        const tagsMatch = post.tags?.some((tag) => {
+          const tagLower = tag.toLowerCase()
+          return tagLower === query || tagLower.includes(query)
+        }) || false
+        
+        return titleMatch || contentMatch || tagsMatch
+      })
+    : posts
+
   // Группируем посты по 2 в строке
   const groupedPosts: Post[][] = []
-  for (let i = 0; i < posts.length; i += 2) {
-    groupedPosts.push(posts.slice(i, i + 2))
+  for (let i = 0; i < filteredPosts.length; i += 2) {
+    groupedPosts.push(filteredPosts.slice(i, i + 2))
   }
 
   if (loading) {
@@ -133,17 +157,19 @@ export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGri
     )
   }
 
-  if (posts.length === 0) {
-    return (
-      <div className="w-full p-8 text-center">
-        <p className="text-muted-foreground">Публикации не найдены</p>
-      </div>
-    )
+  const handleTagClick = (tag: string) => {
+    onSearchChange?.(tag)
   }
 
   return (
     <div className="w-full space-y-4">
-      {groupedPosts.map((rowPosts, rowIndex) => {
+      {filteredPosts.length === 0 ? (
+        <div className="w-full p-8 text-center">
+          <p className="text-muted-foreground">Публикации не найдены</p>
+        </div>
+      ) : (
+        <>
+          {groupedPosts.map((rowPosts, rowIndex) => {
         const pattern = rowIndex % 3
         
         return (
@@ -328,7 +354,6 @@ export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGri
                   title={
                     <h3 
                       className="font-bold text-xl mb-0 mt-0 line-clamp-3 group-hover/bento:text-primary transition-colors"
-                      onClick={(e) => e.stopPropagation()}
                     >
                       {post.title}
                     </h3>
@@ -338,12 +363,31 @@ export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGri
                       <div className="flex-1 min-h-0 relative overflow-hidden">
                         <div 
                           className="absolute inset-0 overflow-y-auto overflow-x-hidden pb-4 bento-card-content bento-card-content-wrapper"
-                          onClick={(e) => e.stopPropagation()}
-                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            // Останавливаем propagation только для обычного текста (p, li, и т.д.)
+                            // Код и ссылки уже останавливают propagation сами
+                            const target = e.target as HTMLElement
+                            if (
+                              target.tagName === 'P' ||
+                              target.tagName === 'LI' ||
+                              target.tagName === 'UL' ||
+                              target.tagName === 'OL' ||
+                              target.tagName === 'H1' ||
+                              target.tagName === 'H2' ||
+                              target.tagName === 'H3' ||
+                              target.tagName === 'H4' ||
+                              target.tagName === 'H5' ||
+                              target.tagName === 'H6' ||
+                              (target.tagName === 'SPAN' && !target.closest('code') && !target.closest('a')) ||
+                              (target.tagName === 'DIV' && !target.closest('pre') && !target.closest('code') && !target.closest('a'))
+                            ) {
+                              e.stopPropagation()
+                            }
+                          }}
                         >
                           <MarkdownContent
                             content={post.content}
-                            disableLinks={true}
+                            disableLinks={false}
                             className="prose-sm prose-p:text-sm prose-p:mb-2 prose-headings:text-sm prose-headings:mb-0 prose-headings:mt-0 prose-h1:text-sm prose-h2:text-sm prose-h3:text-sm prose-ul:text-sm prose-ol:text-sm prose-li:text-sm"
                           />
                         </div>
@@ -358,7 +402,15 @@ export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGri
                         {post.tags && post.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {post.tags.slice(0, 3).map((tag, tagIndex) => (
-                              <Badge key={tagIndex} variant="secondary" className="text-xs">
+                              <Badge 
+                                key={tagIndex} 
+                                variant="secondary" 
+                                className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleTagClick(tag)
+                                }}
+                              >
                                 {tag}
                               </Badge>
                             ))}
@@ -392,6 +444,8 @@ export function PostsBentoGrid({ category, archivedOnly = false }: PostsBentoGri
           </div>
         )
       })}
+        </>
+      )}
     </div>
   )
 }

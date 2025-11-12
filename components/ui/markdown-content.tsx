@@ -79,7 +79,15 @@ export function MarkdownContent({ content, className, disableLinks = false }: Ma
               )
             }
             return (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300" {...props}>
+              <a 
+                href={href} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300" 
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                {...props}
+              >
                 {children}
               </a>
             )

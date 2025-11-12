@@ -62,6 +62,7 @@ const createColumns = (
   handleTogglePin: (postId: string) => void,
   handleToggleArchive: (postId: string, archived: boolean) => void,
   handleDelete: (postId: string) => void,
+  onTagClick?: (tag: string) => void,
 ): ColumnDef<Post>[] => [
   {
     header: "Автор",
@@ -121,7 +122,15 @@ const createColumns = (
       return (
         <div className="flex flex-wrap gap-1">
           {tags.slice(0, 3).map((tag, index) => (
-            <Badge key={index} variant="secondary" className="text-xs">
+            <Badge 
+              key={index} 
+              variant="secondary" 
+              className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation()
+                onTagClick?.(tag)
+              }}
+            >
               {tag}
             </Badge>
           ))}
@@ -236,7 +245,7 @@ const createColumns = (
   },
 ]
 
-function SearchFilter({ column }: { column: Column<any, unknown> }) {
+function SearchFilter({ column, onTagClick }: { column: Column<any, unknown>, onTagClick?: (tag: string) => void }) {
   const id = useId()
   const columnFilterValue = column.getFilterValue()
 
@@ -247,11 +256,12 @@ function SearchFilter({ column }: { column: Column<any, unknown> }) {
         className="peer pl-9"
         value={(columnFilterValue ?? "") as string}
         onChange={(e) => column.setFilterValue(e.target.value)}
-        placeholder="Поиск по заголовку..."
+        placeholder=""
         type="text"
       />
-      <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
+      <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 left-0 flex items-center gap-2 pl-3 peer-disabled:opacity-50">
         <SearchIcon size={16} />
+        <span className="text-sm">Поиск</span>
       </div>
     </div>
   )
@@ -260,9 +270,11 @@ function SearchFilter({ column }: { column: Column<any, unknown> }) {
 interface PostsDataTableProps {
   archivedOnly?: boolean
   category?: string
+  searchQuery?: string
+  onSearchChange?: (query: string) => void
 }
 
-export function PostsDataTable({ archivedOnly = false, category }: PostsDataTableProps) {
+export function PostsDataTable({ archivedOnly = false, category, searchQuery = "", onSearchChange }: PostsDataTableProps) {
   const { profile, user } = useAuth()
   const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
@@ -281,6 +293,16 @@ export function PostsDataTable({ archivedOnly = false, category }: PostsDataTabl
   })
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
+
+  // Синхронизация searchQuery с фильтрами
+  useEffect(() => {
+    if (searchQuery !== undefined) {
+      setColumnFilters(prev => {
+        const filtered = prev.filter(f => f.id !== "title")
+        return searchQuery ? [...filtered, { id: "title", value: searchQuery }] : filtered
+      })
+    }
+  }, [searchQuery])
 
   // Проверка прав доступа
   const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin"
@@ -430,6 +452,10 @@ export function PostsDataTable({ archivedOnly = false, category }: PostsDataTabl
     loadPosts()
   }, [selectedCategory, archivedOnly])
 
+  const handleTagClick = (tag: string) => {
+    onSearchChange?.(tag)
+  }
+
   const columns = createColumns(
     canEdit,
     isTeacherOrAdmin,
@@ -438,6 +464,7 @@ export function PostsDataTable({ archivedOnly = false, category }: PostsDataTabl
     handleTogglePin,
     handleToggleArchive,
     handleDelete,
+    handleTagClick,
   )
 
   const table = useReactTable({
@@ -456,6 +483,7 @@ export function PostsDataTable({ archivedOnly = false, category }: PostsDataTabl
     onSortingChange: setSorting,
     enableSortingRemoval: false,
   })
+
 
   if (loading) {
     return (
@@ -504,13 +532,6 @@ export function PostsDataTable({ archivedOnly = false, category }: PostsDataTabl
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="w-full sm:w-64">
-            <SearchFilter column={table.getColumn("title")!} />
-          </div>
-        </div>
-      )}
-      {category && (
-        <div className="mb-4">
           <div className="w-full sm:w-64">
             <SearchFilter column={table.getColumn("title")!} />
           </div>

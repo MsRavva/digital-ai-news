@@ -16,7 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Grid2X2, Table } from 'lucide-react'
+import { Grid2X2, Table, Search, X } from 'lucide-react'
+import { Input } from '@/components/ui/input'
 import {
   getCategoryFromCookie,
   saveCategoryToCookie,
@@ -56,6 +57,7 @@ const transitionVariants = {
 export default function HeroSection() {
     const [viewMode, setViewMode] = useState<"table" | "bento">("table")
     const [selectedCategory, setSelectedCategory] = useState<string>("all")
+    const [searchQuery, setSearchQuery] = useState<string>("")
     const [isMounted, setIsMounted] = useState(false)
     const { user, profile } = useAuth()
 
@@ -233,85 +235,206 @@ export default function HeroSection() {
                             }}>
                             <div className="relative mt-6 sm:mt-8 md:mt-10">
                                 <div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto w-[90%] overflow-hidden rounded-2xl border p-6 shadow-lg shadow-zinc-950/15 ring-1">
-                                    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                        {/* Дропдаун для мобильных и планшетов */}
-                                        <div className="lg:hidden">
-                                            <Select
-                                                value={selectedCategory}
-                                                onValueChange={setSelectedCategory}
-                                            >
-                                                <SelectTrigger className="w-full sm:w-[200px]">
-                                                    <SelectValue placeholder="Выберите категорию" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">Все категории</SelectItem>
-                                                    <SelectItem value="news">Новости</SelectItem>
-                                                    <SelectItem value="materials">Учебные материалы</SelectItem>
-                                                    <SelectItem value="project-ideas">Идеи проектов</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        {/* Табы для десктопа */}
-                                        <div className="hidden lg:block">
-                                            <Tabs
-                                                value={selectedCategory}
-                                                onValueChange={setSelectedCategory}
-                                                className="w-auto"
-                                            >
-                                                <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
-                                                    <TabsTrigger
-                                                        value="all"
-                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                    <div className="mb-4 flex flex-col gap-4">
+                                        {viewMode === "table" ? (
+                                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                {/* Дропдаун для мобильных и планшетов */}
+                                                <div className="lg:hidden flex-1">
+                                                    <Select
+                                                        value={selectedCategory}
+                                                        onValueChange={setSelectedCategory}
                                                     >
-                                                        Все категории
-                                                    </TabsTrigger>
-                                                    <TabsTrigger
-                                                        value="news"
-                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                        <SelectTrigger className="w-full sm:w-[200px]">
+                                                            <SelectValue placeholder="Выберите категорию" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="all">Все категории</SelectItem>
+                                                            <SelectItem value="news">Новости</SelectItem>
+                                                            <SelectItem value="materials">Учебные материалы</SelectItem>
+                                                            <SelectItem value="project-ideas">Идеи проектов</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                {/* Табы для десктопа */}
+                                                <div className="hidden lg:block">
+                                                    <Tabs
+                                                        value={selectedCategory}
+                                                        onValueChange={setSelectedCategory}
+                                                        className="w-auto"
                                                     >
-                                                        Новости
-                                                    </TabsTrigger>
-                                                    <TabsTrigger
-                                                        value="materials"
-                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                        <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                                                            <TabsTrigger
+                                                                value="all"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Все категории
+                                                            </TabsTrigger>
+                                                            <TabsTrigger
+                                                                value="news"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Новости
+                                                            </TabsTrigger>
+                                                            <TabsTrigger
+                                                                value="materials"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Учебные материалы
+                                                            </TabsTrigger>
+                                                            <TabsTrigger
+                                                                value="project-ideas"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Идеи проектов
+                                                            </TabsTrigger>
+                                                        </TabsList>
+                                                    </Tabs>
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-1 sm:flex-initial sm:justify-end">
+                                                    <div className="relative flex-1 sm:flex-initial sm:w-64">
+                                                        <Input
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            className="pl-9 pr-9"
+                                                            placeholder=""
+                                                        />
+                                                        <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 left-0 flex items-center gap-2 pl-3">
+                                                            <Search size={16} />
+                                                            {!searchQuery && <span className="text-sm">Поиск</span>}
+                                                        </div>
+                                                        {searchQuery && (
+                                                            <button
+                                                                onClick={() => setSearchQuery("")}
+                                                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
+                                                                aria-label="Очистить поиск"
+                                                            >
+                                                                <X size={16} className="cursor-pointer" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        variant={viewMode === "table" ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => handleViewChange("table")}
+                                                        className="flex items-center gap-2"
                                                     >
-                                                        Учебные материалы
-                                                    </TabsTrigger>
-                                                    <TabsTrigger
-                                                        value="project-ideas"
-                                                        className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                        <Table className="h-4 w-4" />
+                                                        <span className="hidden lg:inline">Таблица</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant={viewMode === "bento" ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => handleViewChange("bento")}
+                                                        className="flex items-center gap-2"
                                                     >
-                                                        Идеи проектов
-                                                    </TabsTrigger>
-                                                </TabsList>
-                                            </Tabs>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button
-                                                variant={viewMode === "table" ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => handleViewChange("table")}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Table className="h-4 w-4" />
-                                                <span className="hidden lg:inline">Таблица</span>
-                                            </Button>
-                                            <Button
-                                                variant={viewMode === "bento" ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => handleViewChange("bento")}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <Grid2X2 className="h-4 w-4" />
-                                                <span className="hidden lg:inline">Bento Grid</span>
-                                            </Button>
-                                        </div>
+                                                        <Grid2X2 className="h-4 w-4" />
+                                                        <span className="hidden lg:inline">Bento Grid</span>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                                {/* Дропдаун для мобильных и планшетов */}
+                                                <div className="lg:hidden">
+                                                    <Select
+                                                        value={selectedCategory}
+                                                        onValueChange={setSelectedCategory}
+                                                    >
+                                                        <SelectTrigger className="w-full sm:w-[200px]">
+                                                            <SelectValue placeholder="Выберите категорию" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="all">Все категории</SelectItem>
+                                                            <SelectItem value="news">Новости</SelectItem>
+                                                            <SelectItem value="materials">Учебные материалы</SelectItem>
+                                                            <SelectItem value="project-ideas">Идеи проектов</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                {/* Табы для десктопа */}
+                                                <div className="hidden lg:block">
+                                                    <Tabs
+                                                        value={selectedCategory}
+                                                        onValueChange={setSelectedCategory}
+                                                        className="w-auto"
+                                                    >
+                                                        <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                                                            <TabsTrigger
+                                                                value="all"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Все категории
+                                                            </TabsTrigger>
+                                                            <TabsTrigger
+                                                                value="news"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Новости
+                                                            </TabsTrigger>
+                                                            <TabsTrigger
+                                                                value="materials"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Учебные материалы
+                                                            </TabsTrigger>
+                                                            <TabsTrigger
+                                                                value="project-ideas"
+                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                                                            >
+                                                                Идеи проектов
+                                                            </TabsTrigger>
+                                                        </TabsList>
+                                                    </Tabs>
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-1 sm:flex-initial sm:justify-end">
+                                                    <div className="relative flex-1 sm:flex-initial sm:w-64">
+                                                        <Input
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            className="pl-9 pr-9"
+                                                            placeholder=""
+                                                        />
+                                                        <div className="text-muted-foreground/80 pointer-events-none absolute inset-y-0 left-0 flex items-center gap-2 pl-3">
+                                                            <Search size={16} />
+                                                            {!searchQuery && <span className="text-sm">Поиск</span>}
+                                                        </div>
+                                                        {searchQuery && (
+                                                            <button
+                                                                onClick={() => setSearchQuery("")}
+                                                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
+                                                                aria-label="Очистить поиск"
+                                                            >
+                                                                <X size={16} className="cursor-pointer" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        variant={viewMode === "table" ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => handleViewChange("table")}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <Table className="h-4 w-4" />
+                                                        <span className="hidden lg:inline">Таблица</span>
+                                                    </Button>
+                                                    <Button
+                                                        variant={viewMode === "bento" ? "default" : "outline"}
+                                                        size="sm"
+                                                        onClick={() => handleViewChange("bento")}
+                                                        className="flex items-center gap-2"
+                                                    >
+                                                        <Grid2X2 className="h-4 w-4" />
+                                                        <span className="hidden lg:inline">Bento Grid</span>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                     {viewMode === "table" ? (
-                                        <PostsDataTable category={selectedCategory} />
+                                        <PostsDataTable category={selectedCategory} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
                                     ) : (
                                         <div className="w-full">
-                                            <PostsBentoGrid category={selectedCategory} />
+                                            <PostsBentoGrid category={selectedCategory} searchQuery={searchQuery} onSearchChange={setSearchQuery} />
                                         </div>
                                     )}
                                 </div>

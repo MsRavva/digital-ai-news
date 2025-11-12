@@ -135,10 +135,17 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
 
   if (!mounted) {
     return (
-      <div className="relative group my-4">
+      <div 
+        className="relative group my-4"
+        onClick={(e) => {
+          e.stopPropagation()
+          handleCopy()
+        }}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <pre
           className={cn(
-            "relative rounded-lg bg-muted p-4 overflow-x-auto",
+            "relative rounded-lg bg-muted p-4 overflow-x-auto cursor-pointer",
             "font-['Ubuntu_Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace]",
             className,
           )}
@@ -155,7 +162,10 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
             "flex items-center justify-center",
             "text-primary",
           )}
-          onClick={handleCopy}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleCopy()
+          }}
           aria-label="Скопировать код"
         >
           {copied ? (
@@ -169,10 +179,17 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
   }
 
   return (
-    <div className="relative group my-4">
+    <div 
+      className="relative group my-4"
+      onClick={(e) => {
+        e.stopPropagation()
+        handleCopy()
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <pre
         className={cn(
-          "relative rounded-lg bg-muted p-4 overflow-x-auto",
+          "relative rounded-lg bg-muted p-4 overflow-x-auto cursor-pointer",
           "font-['Ubuntu_Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace]",
           className,
         )}
@@ -196,7 +213,10 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
           "flex items-center justify-center",
           "text-primary",
         )}
-        onClick={handleCopy}
+        onClick={(e) => {
+          e.stopPropagation()
+          handleCopy()
+        }}
         aria-label="Скопировать код"
       >
         {copied ? (
