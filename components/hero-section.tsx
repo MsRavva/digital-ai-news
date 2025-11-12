@@ -313,7 +313,7 @@ export default function HeroSection() {
                                                         )}
                                                     </div>
                                                     <Button
-                                                        variant={viewMode === "table" ? "default" : "outline"}
+                                                        variant="default"
                                                         size="sm"
                                                         onClick={() => handleViewChange("table")}
                                                         className="flex items-center gap-2"
@@ -322,7 +322,7 @@ export default function HeroSection() {
                                                         <span className="hidden lg:inline">Таблица</span>
                                                     </Button>
                                                     <Button
-                                                        variant={viewMode === "bento" ? "default" : "outline"}
+                                                        variant="outline"
                                                         size="sm"
                                                         onClick={() => handleViewChange("bento")}
                                                         className="flex items-center gap-2"
@@ -409,7 +409,7 @@ export default function HeroSection() {
                                                         )}
                                                     </div>
                                                     <Button
-                                                        variant={viewMode === "table" ? "default" : "outline"}
+                                                        variant="outline"
                                                         size="sm"
                                                         onClick={() => handleViewChange("table")}
                                                         className="flex items-center gap-2"
@@ -418,7 +418,7 @@ export default function HeroSection() {
                                                         <span className="hidden lg:inline">Таблица</span>
                                                     </Button>
                                                     <Button
-                                                        variant={viewMode === "bento" ? "default" : "outline"}
+                                                        variant="default"
                                                         size="sm"
                                                         onClick={() => handleViewChange("bento")}
                                                         className="flex items-center gap-2"
