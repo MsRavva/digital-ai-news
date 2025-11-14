@@ -11,8 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SimpleAvatar } from "@/components/simple-avatar"
-import { useAuth } from "@/context/auth-context"
-import { FileText, LogOut, Plus, User } from "lucide-react"
+import { useAuth } from "@/context/auth-context-supabase"
+import { LogOut, User } from "lucide-react"
 import Link from "next/link"
 
 export function UserNav() {
@@ -61,18 +61,6 @@ export function UserNav() {
             <Link href="/profile" className="flex items-center w-full">
               <User className="mr-2 h-4 w-4" />
               Профиль
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/my-posts" className="flex items-center w-full">
-              <FileText className="mr-2 h-4 w-4" />
-              Мои публикации
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/create" className="flex items-center w-full">
-              <Plus className="mr-2 h-4 w-4" />
-              Создать публикацию
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

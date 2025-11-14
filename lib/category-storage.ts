@@ -66,26 +66,28 @@ export async function saveCategoryToCookieServer(category: string): Promise<void
 }
 
 /**
- * Сохранение категории в профиль пользователя (Firestore)
+ * Сохранение категории в профиль пользователя (Supabase)
  */
 export async function saveCategoryToProfile(
   userId: string,
   category: string,
 ): Promise<boolean> {
   try {
-    const { db } = await import("./firebase")
-    const { doc, updateDoc } = await import("firebase/firestore")
+    // Используем динамический импорт обычного клиента для избежания проблем с SSR
+    const { supabase } = await import("./supabase")
 
-    if (!db) {
-      console.error("Firestore is not initialized")
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        preferred_category: category,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId)
+
+    if (error) {
+      console.error("Error saving category to profile:", error)
       return false
     }
-
-    const profileRef = doc(db, "profiles", userId)
-    await updateDoc(profileRef, {
-      preferredCategory: category,
-      updated_at: new Date().toISOString(),
-    })
 
     return true
   } catch (error) {
@@ -95,27 +97,31 @@ export async function saveCategoryToProfile(
 }
 
 /**
- * Получение категории из профиля пользователя (Firestore)
+ * Получение категории из профиля пользователя (Supabase)
  */
 export async function getCategoryFromProfile(
   userId: string,
 ): Promise<string | null> {
   try {
-    const { db } = await import("./firebase")
-    const { doc, getDoc } = await import("firebase/firestore")
+    // Используем динамический импорт обычного клиента для избежания проблем с SSR
+    const { supabase } = await import("./supabase")
 
-    if (!db) {
-      console.error("Firestore is not initialized")
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("preferred_category")
+      .eq("id", userId)
+      .single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return null
+      }
+      console.error("Error getting category from profile:", error)
       return null
     }
 
-    const profileDoc = await getDoc(doc(db, "profiles", userId))
-    if (profileDoc.exists()) {
-      const data = profileDoc.data()
-      return data.preferredCategory || null
-    }
-
-    return null
+    return data?.preferred_category || null
   } catch (error) {
     console.error("Error getting category from profile:", error)
     return null
@@ -238,26 +244,28 @@ export async function saveViewModeToCookieServer(viewMode: "table" | "bento"): P
 // ==================== ViewMode Profile ====================
 
 /**
- * Сохранение режима просмотра в профиль пользователя (Firestore)
+ * Сохранение режима просмотра в профиль пользователя (Supabase)
  */
 export async function saveViewModeToProfile(
   userId: string,
   viewMode: "table" | "bento",
 ): Promise<boolean> {
   try {
-    const { db } = await import("./firebase")
-    const { doc, updateDoc } = await import("firebase/firestore")
+    // Используем динамический импорт обычного клиента для избежания проблем с SSR
+    const { supabase } = await import("./supabase")
 
-    if (!db) {
-      console.error("Firestore is not initialized")
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        preferred_view_mode: viewMode,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId)
+
+    if (error) {
+      console.error("Error saving viewMode to profile:", error)
       return false
     }
-
-    const profileRef = doc(db, "profiles", userId)
-    await updateDoc(profileRef, {
-      preferredViewMode: viewMode,
-      updated_at: new Date().toISOString(),
-    })
 
     return true
   } catch (error) {
@@ -267,27 +275,33 @@ export async function saveViewModeToProfile(
 }
 
 /**
- * Получение режима просмотра из профиля пользователя (Firestore)
+ * Получение режима просмотра из профиля пользователя (Supabase)
  */
 export async function getViewModeFromProfile(
   userId: string,
 ): Promise<"table" | "bento" | null> {
   try {
-    const { db } = await import("./firebase")
-    const { doc, getDoc } = await import("firebase/firestore")
+    // Используем динамический импорт обычного клиента для избежания проблем с SSR
+    const { supabase } = await import("./supabase")
 
-    if (!db) {
-      console.error("Firestore is not initialized")
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("preferred_view_mode")
+      .eq("id", userId)
+      .single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return null
+      }
+      console.error("Error getting viewMode from profile:", error)
       return null
     }
 
-    const profileDoc = await getDoc(doc(db, "profiles", userId))
-    if (profileDoc.exists()) {
-      const data = profileDoc.data()
-      const viewMode = data.preferredViewMode
-      if (viewMode === "table" || viewMode === "bento") {
-        return viewMode
-      }
+    const viewMode = data?.preferred_view_mode
+    if (viewMode === "table" || viewMode === "bento") {
+      return viewMode
     }
 
     return null
@@ -388,26 +402,28 @@ export async function saveThemeToCookieServer(theme: "light" | "dark" | "system"
 // ==================== Theme Profile ====================
 
 /**
- * Сохранение темы в профиль пользователя (Firestore)
+ * Сохранение темы в профиль пользователя (Supabase)
  */
 export async function saveThemeToProfile(
   userId: string,
   theme: "light" | "dark" | "system",
 ): Promise<boolean> {
   try {
-    const { db } = await import("./firebase")
-    const { doc, updateDoc } = await import("firebase/firestore")
+    // Используем динамический импорт обычного клиента для избежания проблем с SSR
+    const { supabase } = await import("./supabase")
 
-    if (!db) {
-      console.error("Firestore is not initialized")
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        preferred_theme: theme,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", userId)
+
+    if (error) {
+      console.error("Error saving theme to profile:", error)
       return false
     }
-
-    const profileRef = doc(db, "profiles", userId)
-    await updateDoc(profileRef, {
-      preferredTheme: theme,
-      updated_at: new Date().toISOString(),
-    })
 
     return true
   } catch (error) {
@@ -417,27 +433,33 @@ export async function saveThemeToProfile(
 }
 
 /**
- * Получение темы из профиля пользователя (Firestore)
+ * Получение темы из профиля пользователя (Supabase)
  */
 export async function getThemeFromProfile(
   userId: string,
 ): Promise<"light" | "dark" | "system" | null> {
   try {
-    const { db } = await import("./firebase")
-    const { doc, getDoc } = await import("firebase/firestore")
+    // Используем динамический импорт обычного клиента для избежания проблем с SSR
+    const { supabase } = await import("./supabase")
 
-    if (!db) {
-      console.error("Firestore is not initialized")
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("preferred_theme")
+      .eq("id", userId)
+      .single()
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return null
+      }
+      console.error("Error getting theme from profile:", error)
       return null
     }
 
-    const profileDoc = await getDoc(doc(db, "profiles", userId))
-    if (profileDoc.exists()) {
-      const data = profileDoc.data()
-      const theme = data.preferredTheme
-      if (theme === "light" || theme === "dark" || theme === "system") {
-        return theme
-      }
+    const theme = data?.preferred_theme
+    if (theme === "light" || theme === "dark" || theme === "system") {
+      return theme
     }
 
     return null

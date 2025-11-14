@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useState, useEffect } from "react"
+import { useId, useState, useEffect, useCallback } from "react"
 import { SearchIcon, MessageSquare, ThumbsUp, Eye, Pencil, Paperclip, Archive, ArchiveRestore, Trash2 } from "lucide-react"
 import type {
   Column,
@@ -34,9 +34,9 @@ import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/ui/spinner"
 import { cn } from "@/lib/utils"
 import type { Post } from "@/types/database"
-import { getPosts } from "@/lib/firebase-posts"
-import { togglePinPost, archivePost, unarchivePost, deletePost } from "@/lib/firebase-post-actions"
-import { useAuth } from "@/context/auth-context"
+import { getPosts } from "@/lib/supabase-posts"
+import { togglePinPost, archivePost, unarchivePost, deletePost } from "@/lib/supabase-post-actions"
+import { useAuth } from "@/context/auth-context-supabase"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Link from "next/link"
@@ -46,6 +46,16 @@ import {
   saveCategoryToProfile,
   getCategoryFromProfile,
 } from "@/lib/category-storage"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,7 +67,7 @@ declare module "@tanstack/react-table" {
 const createColumns = (
   canEdit: (post: Post) => boolean,
   isTeacherOrAdmin: boolean,
-  canDelete: boolean,
+  canDelete: (post: Post) => boolean,
   handleEdit: (postId: string) => void,
   handleTogglePin: (postId: string) => void,
   handleToggleArchive: (postId: string, archived: boolean) => void,
@@ -224,7 +234,7 @@ const createColumns = (
               </Button>
             </>
           )}
-          {canDelete && (
+          {canDelete(post) && (
             <Button
               variant="ghost"
               size="icon"
@@ -275,22 +285,26 @@ interface PostsDataTableProps {
 }
 
 export function PostsDataTable({ archivedOnly = false, category, searchQuery = "", onSearchChange }: PostsDataTableProps) {
-  const { profile, user } = useAuth()
+  const { profile, user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
-    // Если категория передана как проп, используем её
-    if (category) {
-      return category
+  const [postIdToDelete, setPostIdToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  // Используем проп category как основной источник, с fallback на внутреннее состояние
+  const [internalCategory, setInternalCategory] = useState<string>(() => {
+    // Пытаемся получить из cookie только если проп не передан
+    if (!category) {
+      const cookieCategory = getCategoryFromCookie()
+      if (cookieCategory) {
+        return cookieCategory
+      }
     }
-    // Пытаемся получить из cookie
-    const cookieCategory = getCategoryFromCookie()
-    if (cookieCategory) {
-      return cookieCategory
-    }
-    return "all"
+    return category || "all"
   })
+  
+  // Используем проп category, если он передан, иначе используем внутреннее состояние
+  const selectedCategory = category || internalCategory
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -305,16 +319,22 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
   }, [searchQuery])
 
   // Проверка прав доступа
-  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin"
-  const canDelete = isTeacherOrAdmin
+  const isTeacherOrAdmin = !authLoading && (profile?.role === "teacher" || profile?.role === "admin")
 
   const canEdit = (post: Post) => {
-    if (!profile) return false
+    if (authLoading || !profile) return false
     return (
       profile.role === "teacher" ||
       profile.role === "admin" ||
       post.author?.username === profile.username
     )
+  }
+
+  const canDelete = (post: Post) => {
+    if (authLoading || !profile) {
+      return false
+    }
+    return profile.role === "admin" || profile.role === "teacher"
   }
 
   // Обработчики действий
@@ -351,16 +371,13 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
         ? await unarchivePost(postId)
         : await archivePost(postId)
       if (success) {
-        setPosts(
-          posts.map((post) =>
-            post.id === postId ? { ...post, archived: !post.archived } : post,
-          ),
-        )
         toast.success(
           archived
             ? "Публикация восстановлена из архива"
             : "Публикация архивирована",
         )
+        // Перезагружаем посты после успешного архивирования
+        await loadPosts()
       } else {
         toast.error("Не удалось изменить статус архивации")
       }
@@ -370,15 +387,19 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
     }
   }
 
-  const handleDelete = async (postId: string) => {
-    if (!confirm("Вы уверены, что хотите удалить эту публикацию?")) {
-      return
-    }
+  const handleDelete = (postId: string) => {
+    setPostIdToDelete(postId)
+  }
+
+  const confirmDelete = async () => {
+    if (!postIdToDelete) return
+
+    setIsDeleting(true)
 
     try {
-      const success = await deletePost(postId)
+      const success = await deletePost(postIdToDelete)
       if (success) {
-        setPosts(posts.filter((post) => post.id !== postId))
+        setPosts(posts.filter((post) => post.id !== postIdToDelete))
         toast.success("Публикация удалена")
       } else {
         toast.error("Не удалось удалить публикацию")
@@ -386,71 +407,44 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
     } catch (error) {
       console.error("Error deleting post:", error)
       toast.error("Произошла ошибка")
+    } finally {
+      setIsDeleting(false)
+      setPostIdToDelete(null)
     }
   }
 
-  // Инициализация категории из профиля пользователя при монтировании
+  // Синхронизация внутреннего состояния с пропом category
   useEffect(() => {
-    const initializeCategory = async () => {
-      if (user && profile) {
-        // Пытаемся получить из профиля
-        const profileCategory = await getCategoryFromProfile(user.uid)
-        if (profileCategory && profileCategory !== selectedCategory) {
-          setSelectedCategory(profileCategory)
-          saveCategoryToCookie(profileCategory)
-        } else {
-          // Если в профиле нет, но есть в cookie, сохраняем в профиль
-          const cookieCategory = getCategoryFromCookie()
-          if (cookieCategory && cookieCategory !== "all") {
-            await saveCategoryToProfile(user.uid, cookieCategory)
-          }
-        }
-      }
+    if (category && category !== internalCategory) {
+      setInternalCategory(category)
+    }
+  }, [category, internalCategory])
+
+  // Функция загрузки публикаций
+  const loadPosts = useCallback(async () => {
+    // Не загружаем посты, если пользователь не авторизован
+    if (!user || authLoading) {
+      return
     }
 
-    initializeCategory()
-  }, [user, profile])
-
-  // Сохранение категории при изменении
-  useEffect(() => {
-    if (selectedCategory) {
-      // Сохраняем в cookie
-      saveCategoryToCookie(selectedCategory)
-
-      // Сохраняем в профиль пользователя (асинхронно, не блокируем UI)
-      if (user) {
-        saveCategoryToProfile(user.uid, selectedCategory).catch((error) => {
-          console.error("Error saving category to profile:", error)
-        })
-      }
+    setLoading(true)
+    try {
+      // Используем category из пропа напрямую, если он передан, иначе internalCategory
+      const categoryToUse = (category || internalCategory) === "all" ? undefined : (category || internalCategory)
+      const fetchedPosts = await getPosts(categoryToUse, archivedOnly, archivedOnly)
+      // Посты уже отсортированы из Firestore (pinned desc, created_at desc)
+      setPosts(fetchedPosts)
+    } catch (error) {
+      console.error("Error loading posts:", error)
+    } finally {
+      setLoading(false)
     }
-  }, [selectedCategory, user])
+  }, [category, internalCategory, archivedOnly, user?.id, authLoading])
 
-  // Обновление категории при изменении пропа
+  // Загрузка публикаций (только для авторизованных пользователей)
   useEffect(() => {
-    if (category && category !== selectedCategory) {
-      setSelectedCategory(category)
-    }
-  }, [category])
-
-  // Загрузка публикаций
-  useEffect(() => {
-    const loadPosts = async () => {
-      setLoading(true)
-      try {
-        const categoryToUse = selectedCategory === "all" ? undefined : selectedCategory
-        const fetchedPosts = await getPosts(categoryToUse, archivedOnly, archivedOnly)
-        // Посты уже отсортированы из Firestore (pinned desc, created_at desc)
-        setPosts(fetchedPosts)
-      } catch (error) {
-        console.error("Error loading posts:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadPosts()
-  }, [selectedCategory, archivedOnly])
+  }, [loadPosts])
 
   const handleTagClick = (tag: string) => {
     onSearchChange?.(tag)
@@ -497,12 +491,43 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
   }
 
   return (
-    <div className="w-full">
-      {!category && (
+    <>
+      <AlertDialog open={postIdToDelete !== null} onOpenChange={(open) => !open && setPostIdToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удаление публикации</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить эту публикацию? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="w-full">
+        {!category && (
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Tabs
             value={selectedCategory}
-            onValueChange={setSelectedCategory}
+            onValueChange={(newCategory) => {
+              setInternalCategory(newCategory)
+              // Если проп category не передан, сохраняем в куки
+              if (!category) {
+                saveCategoryToCookie(newCategory)
+                if (user) {
+                  saveCategoryToProfile(user.id, newCategory).catch(console.error)
+                }
+              }
+            }}
             className="w-auto"
           >
             <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
@@ -599,6 +624,7 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
         </Table>
       </div>
     </div>
+    </>
   )
 }
 

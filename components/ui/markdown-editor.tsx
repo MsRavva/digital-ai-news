@@ -68,7 +68,7 @@ export function MarkdownEditor({
         onChange={handleEditorChange}
         placeholder={placeholder}
         view={{ menu: true, md: true, html: false }}
-        canView={{ menu: true, md: true, html: false, both: false, fullScreen: true, hideMenu: false }}
+        canView={{ menu: true, md: true, html: false, both: true, fullScreen: false, hideMenu: false }}
       />
     </div>
   )

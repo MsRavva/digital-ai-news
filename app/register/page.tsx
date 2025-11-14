@@ -13,13 +13,13 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/auth-context"
-import { getFirebaseErrorMessage } from "@/lib/firebase-error-handler"
+import { useAuth } from "@/context/auth-context-supabase"
+import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
 import { validateUsername } from "@/lib/validation"
 import { Github } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 export default function Register() {
@@ -36,11 +36,11 @@ export default function Register() {
   const router = useRouter()
 
   // Редирект если уже авторизован
-  useEffect(() => {
-    if (!authLoading && user) {
-      router.push("/")
-    }
-  }, [user, authLoading, router])
+  // useEffect(() => {
+  //   if (!authLoading && user) {
+  //     router.push("/")
+  //   }
+  // }, [user, authLoading, router])
 
   // Проверка имени пользователя при вводе
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +81,7 @@ export default function Register() {
 
       if (error) {
         console.error("Registration error:", error)
-        const errorMessage = getFirebaseErrorMessage(error)
+        const errorMessage = getSupabaseErrorMessage(error)
         setFormError(errorMessage)
         setIsLoading(false)
         return
@@ -94,7 +94,7 @@ export default function Register() {
       router.push("/")
     } catch (error) {
       console.error("Unexpected error during registration:", error)
-      const errorMessage = getFirebaseErrorMessage(error as any)
+      const errorMessage = getSupabaseErrorMessage(error as any)
       setFormError(errorMessage)
       setIsLoading(false)
     } finally {
@@ -107,38 +107,21 @@ export default function Register() {
     setIsGoogleLoading(true)
 
     try {
-      const { error, user, profile } = await signInWithGoogle()
+      const { error } = await signInWithGoogle()
 
       if (error) {
         console.error("Google sign in error:", error)
-        const errorMessage = getFirebaseErrorMessage(error)
+        const errorMessage = getSupabaseErrorMessage(error)
         setFormError(errorMessage)
         setIsGoogleLoading(false)
         return
       }
 
-      toast.success("Успешный вход", {
-        description: "Вы успешно вошли в систему через Google",
-      })
-
-      if (profile && profile.username) {
-        const usernameError = validateUsername(profile.username)
-        if (usernameError) {
-          toast.info("Пожалуйста, обновите ваш профиль", {
-            description: "Пожалуйста, введите корректные Имя и Фамилию",
-          })
-          router.push("/profile?update=username")
-          return
-        }
-      }
-
-      router.push("/")
+      // OAuth редиректит на callback, который обработает вход
     } catch (error) {
       console.error("Unexpected Google sign in error:", error)
-      const errorMessage = getFirebaseErrorMessage(error as any)
+      const errorMessage = getSupabaseErrorMessage(error as any)
       setFormError(errorMessage)
-      setIsGoogleLoading(false)
-    } finally {
       setIsGoogleLoading(false)
     }
   }
@@ -148,38 +131,21 @@ export default function Register() {
     setIsGithubLoading(true)
 
     try {
-      const { error, user, profile } = await signInWithGithub()
+      const { error } = await signInWithGithub()
 
       if (error) {
         console.error("GitHub sign in error:", error)
-        const errorMessage = getFirebaseErrorMessage(error)
+        const errorMessage = getSupabaseErrorMessage(error)
         setFormError(errorMessage)
         setIsGithubLoading(false)
         return
       }
 
-      toast.success("Успешный вход", {
-        description: "Вы успешно вошли в систему через GitHub",
-      })
-
-      if (profile && profile.username) {
-        const usernameError = validateUsername(profile.username)
-        if (usernameError) {
-          toast.info("Пожалуйста, обновите ваш профиль", {
-            description: "Пожалуйста, введите корректные Имя и Фамилию",
-          })
-          router.push("/profile?update=username")
-          return
-        }
-      }
-
-      router.push("/")
+      // OAuth редиректит на callback, который обработает вход
     } catch (error) {
       console.error("Unexpected GitHub sign in error:", error)
-      const errorMessage = getFirebaseErrorMessage(error as any)
+      const errorMessage = getSupabaseErrorMessage(error as any)
       setFormError(errorMessage)
-      setIsGithubLoading(false)
-    } finally {
       setIsGithubLoading(false)
     }
   }
@@ -193,10 +159,10 @@ export default function Register() {
     )
   }
 
-  // Если уже авторизован, не показываем форму (редирект произойдет через useEffect)
-  if (user) {
-    return null
-  }
+  // Не скрываем форму для авторизованных пользователей
+  // if (user) {
+  //   return null
+  // }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -230,10 +196,10 @@ export default function Register() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="username">Имя пользователя</Label>
+                <Label htmlFor="username">Имя Фамилия</Label>
                 <Input
                   id="username"
-                  placeholder="Имя Фамилия"
+                  placeholder="Иван Иванов"
                   value={username}
                   onChange={handleUsernameChange}
                   required

@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/auth-context"
-import { getFirebaseErrorMessage } from "@/lib/firebase-error-handler"
+import { useAuth } from "@/context/auth-context-supabase"
+import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
 import { Eye, EyeOff, Github } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -34,12 +34,12 @@ function LoginForm() {
   const searchParams = useSearchParams()
 
   // Редирект если уже авторизован
-  useEffect(() => {
-    if (!authLoading && user) {
-      const redirect = searchParams.get("redirect")
-      router.push(redirect || "/")
-    }
-  }, [user, authLoading, router, searchParams])
+  // useEffect(() => {
+  //   if (!authLoading && user) {
+  //     const redirect = searchParams.get("redirect")
+  //     router.push(redirect || "/")
+  //   }
+  // }, [user, authLoading, router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,7 +51,7 @@ function LoginForm() {
 
       if (error) {
         console.error("Login error:", error)
-        const errorMessage = getFirebaseErrorMessage(error)
+        const errorMessage = getSupabaseErrorMessage(error)
         setFormError(errorMessage)
         setIsLoading(false)
         return
@@ -64,7 +64,7 @@ function LoginForm() {
       router.push("/")
     } catch (error) {
       console.error("Unexpected login error:", error)
-      const errorMessage = getFirebaseErrorMessage(error as any)
+      const errorMessage = getSupabaseErrorMessage(error as any)
       setFormError(errorMessage)
       setIsLoading(false)
     } finally {
@@ -77,40 +77,22 @@ function LoginForm() {
     setIsGoogleLoading(true)
 
     try {
-      const { error, user, profile } = await signInWithGoogle()
+      const { error } = await signInWithGoogle()
 
       if (error) {
         console.error("Google sign in error:", error)
-        const errorMessage = getFirebaseErrorMessage(error)
+        const errorMessage = getSupabaseErrorMessage(error)
         setFormError(errorMessage)
         setIsGoogleLoading(false)
         return
       }
 
-      toast.success("Успешный вход", {
-        description: "Вы успешно вошли в систему через Google",
-      })
-
-      if (profile && profile.username) {
-        const { validateUsername } = await import("@/lib/validation")
-        const usernameError = validateUsername(profile.username)
-        if (usernameError) {
-          toast.info("Пожалуйста, обновите ваш профиль", {
-            description: "Пожалуйста, введите корректные Имя и Фамилию",
-          })
-          router.push("/profile?update=username")
-          return
-        }
-      }
-
-      const redirect = searchParams.get("redirect")
-      router.push(redirect || "/")
+      // OAuth редиректит на callback, который обработает вход
+      // Toast и редирект будут в callback
     } catch (error) {
       console.error("Unexpected Google sign in error:", error)
-      const errorMessage = getFirebaseErrorMessage(error as any)
+      const errorMessage = getSupabaseErrorMessage(error as any)
       setFormError(errorMessage)
-      setIsGoogleLoading(false)
-    } finally {
       setIsGoogleLoading(false)
     }
   }
@@ -120,40 +102,22 @@ function LoginForm() {
     setIsGithubLoading(true)
 
     try {
-      const { error, user, profile } = await signInWithGithub()
+      const { error } = await signInWithGithub()
 
       if (error) {
         console.error("GitHub sign in error:", error)
-        const errorMessage = getFirebaseErrorMessage(error)
+        const errorMessage = getSupabaseErrorMessage(error)
         setFormError(errorMessage)
         setIsGithubLoading(false)
         return
       }
 
-      toast.success("Успешный вход", {
-        description: "Вы успешно вошли в систему через GitHub",
-      })
-
-      if (profile && profile.username) {
-        const { validateUsername } = await import("@/lib/validation")
-        const usernameError = validateUsername(profile.username)
-        if (usernameError) {
-          toast.info("Пожалуйста, обновите ваш профиль", {
-            description: "Пожалуйста, введите корректные Имя и Фамилию",
-          })
-          router.push("/profile?update=username")
-          return
-        }
-      }
-
-      const redirect = searchParams.get("redirect")
-      router.push(redirect || "/")
+      // OAuth редиректит на callback, который обработает вход
+      // Toast и редирект будут в callback
     } catch (error) {
       console.error("Unexpected GitHub sign in error:", error)
-      const errorMessage = getFirebaseErrorMessage(error as any)
+      const errorMessage = getSupabaseErrorMessage(error as any)
       setFormError(errorMessage)
-      setIsGithubLoading(false)
-    } finally {
       setIsGithubLoading(false)
     }
   }
@@ -167,10 +131,10 @@ function LoginForm() {
     )
   }
 
-  // Если уже авторизован, не показываем форму (редирект произойдет через useEffect)
-  if (user) {
-    return null
-  }
+  // Не скрываем форму для авторизованных пользователей
+  // if (user) {
+  //   return null
+  // }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -193,7 +157,15 @@ function LoginForm() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="email">Email</Label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-muted-foreground hover:text-primary"
+                  >
+                    Забыли пароль?
+                  </Link>
+                </div>
                 <Input
                   id="email"
                   type="email"
@@ -204,15 +176,7 @@ function LoginForm() {
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Пароль</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-xs text-muted-foreground hover:text-primary"
-                  >
-                    Забыли пароль?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Пароль</Label>
                 <div className="relative">
                   <Input
                     id="password"

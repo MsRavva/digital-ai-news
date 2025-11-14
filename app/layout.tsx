@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/context/auth-context";
+import { AuthProvider } from "@/context/auth-context-supabase";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalBackground } from "@/components/global-background";
 

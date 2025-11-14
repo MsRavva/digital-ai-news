@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { TextEffect } from '@/components/ui/text-effect'
 import { AnimatedGroup } from '@/components/ui/animated-group'
@@ -32,7 +33,7 @@ import {
   saveViewModeToProfile,
   getViewModeFromProfile,
 } from '@/lib/category-storage'
-import { useAuth } from '@/context/auth-context'
+import { useAuth } from '@/context/auth-context-supabase'
 
 const transitionVariants = {
     item: {
@@ -56,10 +57,30 @@ const transitionVariants = {
 
 export default function HeroSection() {
     const [viewMode, setViewMode] = useState<"table" | "bento">("table")
-    const [selectedCategory, setSelectedCategory] = useState<string>("all")
+    // Инициализируем категорию синхронно из sessionStorage или localStorage
+    const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+        if (typeof window !== "undefined") {
+            const sessionCategory = getCategoryFromSession()
+            if (sessionCategory) return sessionCategory
+            const localCategory = localStorage.getItem("selectedCategory")
+            if (localCategory) return localCategory
+            const cookieCategory = getCategoryFromCookie()
+            if (cookieCategory) return cookieCategory
+        }
+        return "all"
+    })
     const [searchQuery, setSearchQuery] = useState<string>("")
     const [isMounted, setIsMounted] = useState(false)
-    const { user, profile } = useAuth()
+    const { user, profile, isLoading: authLoading } = useAuth()
+    const router = useRouter()
+
+    // Редирект на /login если не авторизован
+    useEffect(() => {
+        if (!authLoading && !user) {
+            // Используем replace вместо push, чтобы не добавлять в историю
+            router.replace("/login")
+        }
+    }, [user, authLoading, router])
 
     // Инициализация на клиенте после монтирования
     useEffect(() => {
@@ -82,7 +103,7 @@ export default function HeroSection() {
                     if (cookieView) {
                         viewModeToSet = cookieView
                     } else if (user) {
-                        const profileView = await getViewModeFromProfile(user.uid)
+                        const profileView = await getViewModeFromProfile(user.id)
                         if (profileView) {
                             viewModeToSet = profileView
                             saveViewModeToCookie(viewModeToSet)
@@ -98,44 +119,31 @@ export default function HeroSection() {
             localStorage.setItem("viewMode", viewModeToSet)
             saveViewModeToCookie(viewModeToSet)
             if (user) {
-                saveViewModeToProfile(user.uid, viewModeToSet).catch(console.error)
+                saveViewModeToProfile(user.id, viewModeToSet).catch(console.error)
             }
         }
 
-        // Инициализация категории
+        // Инициализация категории (обновление из профиля, если нужно)
         const initializeCategory = async () => {
-            let categoryToSet = "all"
-            
-            // Приоритет: sessionStorage > localStorage > cookie > профиль
-            const sessionCategory = getCategoryFromSession()
-            if (sessionCategory) {
-                categoryToSet = sessionCategory
-            } else {
-                const localCategory = localStorage.getItem("selectedCategory")
-                if (localCategory) {
-                    categoryToSet = localCategory
-                } else {
-                    const cookieCategory = getCategoryFromCookie()
-                    if (cookieCategory) {
-                        categoryToSet = cookieCategory
-                    } else if (user && profile) {
-                        const profileCategory = await getCategoryFromProfile(user.uid)
-                        if (profileCategory) {
-                            categoryToSet = profileCategory
-                            saveCategoryToCookie(categoryToSet)
-                            localStorage.setItem("selectedCategory", categoryToSet)
-                        }
-                    }
+            // Если категория уже установлена из sessionStorage/localStorage/cookie, используем её
+            // Иначе пытаемся загрузить из профиля
+            if (selectedCategory === "all" && user && profile) {
+                const profileCategory = await getCategoryFromProfile(user.id)
+                if (profileCategory && profileCategory !== "all") {
+                    setSelectedCategory(profileCategory)
+                    // Сохраняем во все хранилища
+                    saveCategoryToSession(profileCategory)
+                    localStorage.setItem("selectedCategory", profileCategory)
+                    saveCategoryToCookie(profileCategory)
                 }
-            }
-
-            setSelectedCategory(categoryToSet)
-            // Сохраняем во все хранилища
-            saveCategoryToSession(categoryToSet)
-            localStorage.setItem("selectedCategory", categoryToSet)
-            saveCategoryToCookie(categoryToSet)
-            if (user) {
-                saveCategoryToProfile(user.uid, categoryToSet).catch(console.error)
+            } else {
+                // Сохраняем текущую категорию во все хранилища для согласованности
+                saveCategoryToSession(selectedCategory)
+                localStorage.setItem("selectedCategory", selectedCategory)
+                saveCategoryToCookie(selectedCategory)
+                if (user) {
+                    saveCategoryToProfile(user.id, selectedCategory).catch(console.error)
+                }
             }
         }
 
@@ -154,7 +162,7 @@ export default function HeroSection() {
             saveCategoryToCookie(selectedCategory)
             // Сохраняем в профиль пользователя (Firestore)
             if (user) {
-                saveCategoryToProfile(user.uid, selectedCategory).catch((error) => {
+                saveCategoryToProfile(user.id, selectedCategory).catch((error) => {
                     console.error("Error saving category to profile:", error)
                 })
             }
@@ -172,7 +180,7 @@ export default function HeroSection() {
             saveViewModeToCookie(viewMode)
             // Сохраняем в профиль пользователя (Firestore)
             if (user) {
-                saveViewModeToProfile(user.uid, viewMode).catch((error) => {
+                saveViewModeToProfile(user.id, viewMode).catch((error) => {
                     console.error("Error saving viewMode to profile:", error)
                 })
             }
@@ -181,6 +189,25 @@ export default function HeroSection() {
 
     const handleViewChange = (mode: "table" | "bento") => {
         setViewMode(mode)
+    }
+
+    // Показываем загрузку пока проверяем авторизацию
+    // Защита маршрутов обрабатывается в proxy.ts
+    if (authLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="text-muted-foreground">Загрузка...</div>
+            </div>
+        )
+    }
+
+    // Если не авторизован, показываем загрузку (редирект произойдет через useEffect)
+    if (!user) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <div className="text-muted-foreground">Перенаправление...</div>
+            </div>
+        )
     }
 
     return (
@@ -239,57 +266,65 @@ export default function HeroSection() {
                                         {viewMode === "table" ? (
                                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 {/* Дропдаун для мобильных и планшетов */}
-                                                <div className="lg:hidden flex-1">
-                                                    <Select
-                                                        value={selectedCategory}
-                                                        onValueChange={setSelectedCategory}
-                                                    >
-                                                        <SelectTrigger className="w-full sm:w-[200px]">
-                                                            <SelectValue placeholder="Выберите категорию" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="all">Все категории</SelectItem>
-                                                            <SelectItem value="news">Новости</SelectItem>
-                                                            <SelectItem value="materials">Учебные материалы</SelectItem>
-                                                            <SelectItem value="project-ideas">Идеи проектов</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
+                                                {isMounted ? (
+                                                    <div className="lg:hidden flex-1">
+                                                        <Select
+                                                            value={selectedCategory}
+                                                            onValueChange={setSelectedCategory}
+                                                        >
+                                                            <SelectTrigger className="w-full sm:w-[200px]">
+                                                                <SelectValue placeholder="Выберите категорию" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="all">Все категории</SelectItem>
+                                                                <SelectItem value="news">Новости</SelectItem>
+                                                                <SelectItem value="materials">Учебные материалы</SelectItem>
+                                                                <SelectItem value="project-ideas">Идеи проектов</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                ) : (
+                                                    <div className="lg:hidden flex-1 h-9 w-full sm:w-[200px] bg-muted animate-pulse rounded-md" />
+                                                )}
                                                 {/* Табы для десктопа */}
-                                                <div className="hidden lg:block">
-                                                    <Tabs
-                                                        value={selectedCategory}
-                                                        onValueChange={setSelectedCategory}
-                                                        className="w-auto"
-                                                    >
-                                                        <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
-                                                            <TabsTrigger
-                                                                value="all"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Все категории
-                                                            </TabsTrigger>
-                                                            <TabsTrigger
-                                                                value="news"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Новости
-                                                            </TabsTrigger>
-                                                            <TabsTrigger
-                                                                value="materials"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Учебные материалы
-                                                            </TabsTrigger>
-                                                            <TabsTrigger
-                                                                value="project-ideas"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Идеи проектов
-                                                            </TabsTrigger>
-                                                        </TabsList>
-                                                    </Tabs>
-                                                </div>
+                                                {isMounted ? (
+                                                    <div className="hidden lg:block">
+                                                        <Tabs
+                                                            value={selectedCategory}
+                                                            onValueChange={setSelectedCategory}
+                                                            className="w-auto"
+                                                        >
+                                                            <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                                                                <TabsTrigger
+                                                                    value="all"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Все категории
+                                                                </TabsTrigger>
+                                                                <TabsTrigger
+                                                                    value="news"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Новости
+                                                                </TabsTrigger>
+                                                                <TabsTrigger
+                                                                    value="materials"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Учебные материалы
+                                                                </TabsTrigger>
+                                                                <TabsTrigger
+                                                                    value="project-ideas"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Идеи проектов
+                                                                </TabsTrigger>
+                                                            </TabsList>
+                                                        </Tabs>
+                                                    </div>
+                                                ) : (
+                                                    <div className="hidden lg:block h-10 w-64 bg-muted animate-pulse rounded-lg" />
+                                                )}
                                                 <div className="flex items-center gap-2 flex-1 sm:flex-initial sm:justify-end">
                                                     <div className="relative flex-1 sm:flex-initial sm:w-64">
                                                         <Input
@@ -335,57 +370,65 @@ export default function HeroSection() {
                                         ) : (
                                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 {/* Дропдаун для мобильных и планшетов */}
-                                                <div className="lg:hidden">
-                                                    <Select
-                                                        value={selectedCategory}
-                                                        onValueChange={setSelectedCategory}
-                                                    >
-                                                        <SelectTrigger className="w-full sm:w-[200px]">
-                                                            <SelectValue placeholder="Выберите категорию" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="all">Все категории</SelectItem>
-                                                            <SelectItem value="news">Новости</SelectItem>
-                                                            <SelectItem value="materials">Учебные материалы</SelectItem>
-                                                            <SelectItem value="project-ideas">Идеи проектов</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
+                                                {isMounted ? (
+                                                    <div className="lg:hidden">
+                                                        <Select
+                                                            value={selectedCategory}
+                                                            onValueChange={setSelectedCategory}
+                                                        >
+                                                            <SelectTrigger className="w-full sm:w-[200px]">
+                                                                <SelectValue placeholder="Выберите категорию" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="all">Все категории</SelectItem>
+                                                                <SelectItem value="news">Новости</SelectItem>
+                                                                <SelectItem value="materials">Учебные материалы</SelectItem>
+                                                                <SelectItem value="project-ideas">Идеи проектов</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                ) : (
+                                                    <div className="lg:hidden h-9 w-full sm:w-[200px] bg-muted animate-pulse rounded-md" />
+                                                )}
                                                 {/* Табы для десктопа */}
-                                                <div className="hidden lg:block">
-                                                    <Tabs
-                                                        value={selectedCategory}
-                                                        onValueChange={setSelectedCategory}
-                                                        className="w-auto"
-                                                    >
-                                                        <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
-                                                            <TabsTrigger
-                                                                value="all"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Все категории
-                                                            </TabsTrigger>
-                                                            <TabsTrigger
-                                                                value="news"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Новости
-                                                            </TabsTrigger>
-                                                            <TabsTrigger
-                                                                value="materials"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Учебные материалы
-                                                            </TabsTrigger>
-                                                            <TabsTrigger
-                                                                value="project-ideas"
-                                                                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-                                                            >
-                                                                Идеи проектов
-                                                            </TabsTrigger>
-                                                        </TabsList>
-                                                    </Tabs>
-                                                </div>
+                                                {isMounted ? (
+                                                    <div className="hidden lg:block">
+                                                        <Tabs
+                                                            value={selectedCategory}
+                                                            onValueChange={setSelectedCategory}
+                                                            className="w-auto"
+                                                        >
+                                                            <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                                                                <TabsTrigger
+                                                                    value="all"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Все категории
+                                                                </TabsTrigger>
+                                                                <TabsTrigger
+                                                                    value="news"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Новости
+                                                                </TabsTrigger>
+                                                                <TabsTrigger
+                                                                    value="materials"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Учебные материалы
+                                                                </TabsTrigger>
+                                                                <TabsTrigger
+                                                                    value="project-ideas"
+                                                                    className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200 hover:text-foreground hover:bg-background/50 hover:scale-105 active:scale-95"
+                                                                >
+                                                                    Идеи проектов
+                                                                </TabsTrigger>
+                                                            </TabsList>
+                                                        </Tabs>
+                                                    </div>
+                                                ) : (
+                                                    <div className="hidden lg:block h-10 w-64 bg-muted animate-pulse rounded-lg" />
+                                                )}
                                                 <div className="flex items-center gap-2 flex-1 sm:flex-initial sm:justify-end">
                                                     <div className="relative flex-1 sm:flex-initial sm:w-64">
                                                         <Input
@@ -447,37 +490,37 @@ export default function HeroSection() {
                         <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
                             <span className="text-sm">Используй сам и посоветуй другу</span>
                         </div>
-                        <div className="group-hover:blur-xs mx-auto mt-12 grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14 items-center">
+                        <div className="group-hover:blur-xs mx-auto mt-12 flex w-full items-center justify-center gap-6 transition-all duration-500 group-hover:opacity-50 sm:gap-8">
                             <div className="flex items-center justify-center">
                                 <img
-                                    className="mx-auto h-8 w-fit dark:invert"
+                                    className="h-10 w-fit dark:invert"
                                     src="/next-js-icon-seeklogo.svg"
                                     alt="Next.js Logo"
-                                    height="32"
+                                    height="40"
                                     width="auto"
                                 />
                             </div>
                             <div className="flex items-center justify-center">
                                 <img
-                                    className="mx-auto h-8 w-fit dark:invert"
+                                    className="h-10 w-fit dark:invert"
                                     src="/react-seeklogo.svg"
                                     alt="React Logo"
-                                    height="32"
+                                    height="40"
                                     width="auto"
                                 />
                             </div>
                             <div className="flex items-center justify-center">
                                 <img
-                                    className="mx-auto h-8 w-fit"
+                                    className="h-10 w-fit"
                                     src="/tailwind-css-seeklogo.svg"
                                     alt="Tailwind CSS Logo"
-                                    height="32"
+                                    height="40"
                                     width="auto"
                                 />
                             </div>
                             <div className="flex items-center justify-center">
                                 <img
-                                    className="mx-auto h-8 w-fit dark:invert"
+                                    className="h-8 w-fit dark:invert"
                                     src="https://html.tailus.io/blocks/customers/github.svg"
                                     alt="GitHub Logo"
                                     height="32"
@@ -486,10 +529,10 @@ export default function HeroSection() {
                             </div>
                             <div className="flex items-center justify-center">
                                 <img
-                                    className="mx-auto h-8 w-fit dark:invert"
+                                    className="h-10 w-fit dark:invert"
                                     src="/shadcn-ui-seeklogo.svg"
                                     alt="shadcn/ui Logo"
-                                    height="32"
+                                    height="40"
                                     width="auto"
                                 />
                             </div>

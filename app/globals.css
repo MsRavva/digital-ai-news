@@ -128,6 +128,14 @@
    Более специфичные селекторы без !important
    ============================================ */
 
+/* Скрываем кнопку Full screen */
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button[title="Full screen"],
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button[title="Fullscreen"],
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button.fullscreen,
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation .button-wrap .button:has(svg[class*="fullscreen"]) {
+  display: none !important;
+}
+
 /* Основной контейнер - рамка как у input field */
 .markdown-editor > .rc-md-editor.rc-md-editor {
   border: 1px solid hsl(var(--input));

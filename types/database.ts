@@ -1,6 +1,7 @@
 export interface Profile {
   id: string
   username: string
+  email?: string // Опциональное поле для обратной совместимости с существующими профилями
   role: "student" | "teacher" | "admin"
   created_at: string
   updated_at?: string

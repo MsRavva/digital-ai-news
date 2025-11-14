@@ -8,7 +8,7 @@ import { useScroll } from 'motion/react'
 import { ThemeSwitcher } from '@/components/kibo-ui/theme-switcher'
 import { useTheme } from 'next-themes'
 import { UserNav } from '@/components/user-nav'
-import { useAuth } from '@/context/auth-context'
+import { useAuth } from '@/context/auth-context-supabase'
 import {
   saveThemeToSession,
   getThemeFromSession,
@@ -58,7 +58,7 @@ export const HeroHeader = () => {
                     if (cookieTheme) {
                         themeToSet = cookieTheme
                     } else if (user?.uid) {
-                        const profileTheme = await getThemeFromProfile(user.uid)
+                        const profileTheme = await getThemeFromProfile(user.id)
                         if (profileTheme) {
                             themeToSet = profileTheme
                         }
@@ -74,7 +74,7 @@ export const HeroHeader = () => {
                 saveThemeToSession(themeToSet)
                 saveThemeToCookie(themeToSet)
                 if (user?.uid) {
-                    saveThemeToProfile(user.uid, themeToSet).catch(console.error)
+                    saveThemeToProfile(user.id, themeToSet).catch(console.error)
                 }
             }
         }
@@ -96,7 +96,7 @@ export const HeroHeader = () => {
         saveThemeToCookie(currentTheme)
         // Сохраняем в профиль пользователя (Firestore)
         if (user) {
-            saveThemeToProfile(user.uid, currentTheme).catch((error) => {
+            saveThemeToProfile(user.id, currentTheme).catch((error) => {
                 console.error("Error saving theme to profile:", error)
             })
         }
@@ -133,7 +133,7 @@ export const HeroHeader = () => {
                             </button>
 
                             <div className="hidden lg:block">
-                                <ul className="flex gap-8 text-sm">
+                                <ul className="flex gap-8 text-base">
                                     {menuItems.map((item, index) => (
                                         <li key={index}>
                                             <Link
@@ -149,7 +149,7 @@ export const HeroHeader = () => {
 
                         <div className="bg-background in-data-[state=active]:block lg:in-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
                             <div className="lg:hidden">
-                                <ul className="space-y-6 text-base">
+                                <ul className="space-y-6 text-lg">
                                     {menuItems.map((item, index) => (
                                         <li key={index}>
                                             <Link

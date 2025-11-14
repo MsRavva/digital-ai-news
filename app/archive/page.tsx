@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { HeroHeader } from "@/components/header"
 import { PostsDataTable } from "@/components/posts-data-table"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/context/auth-context-supabase"
 import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 

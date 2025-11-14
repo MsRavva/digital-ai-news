@@ -1,5 +1,3 @@
-import { requireGuest } from "@/lib/auth-server"
-
 export const dynamic = 'force-dynamic'
 
 export default async function RegisterLayout({
@@ -7,8 +5,7 @@ export default async function RegisterLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Редирект на главную если уже авторизован
-  await requireGuest()
+  // Защита маршрутов теперь обрабатывается в proxy.ts
   return <>{children}</>
 }
 

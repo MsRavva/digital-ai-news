@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { useAuth } from "@/context/auth-context"
-import { addComment } from "@/lib/firebase-comments"
+import { useAuth } from "@/context/auth-context-supabase"
+import { addComment } from "@/lib/supabase-comments"
 import { toast } from "sonner"
 
 interface CommentFormProps {
@@ -46,7 +46,7 @@ export function CommentForm({
       const commentData = {
         content: comment.trim(),
         post_id: postId,
-        author_id: user.uid,
+        author_id: user.id,
         parent_id: parentId,
       }
 

@@ -13,17 +13,17 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SimpleAvatar } from "@/components/simple-avatar"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/context/auth-context-supabase"
 import {
   getCommentsByPostId,
   likeComment,
   unlikeComment,
   deleteComment,
   hasUserLikedComment,
-} from "@/lib/firebase-comments"
+} from "@/lib/supabase-comments"
 import type { Comment } from "@/types/database"
 import { Reply, ThumbsUp, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback, memo, useOptimistic, useTransition } from "react"
 import { CommentForm } from "./comment-form"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
@@ -32,7 +32,7 @@ interface CommentsListProps {
   postId: string
 }
 
-export function CommentsList({ postId }: CommentsListProps) {
+function CommentsListComponent({ postId }: CommentsListProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [loading, setLoading] = useState(true)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
@@ -40,19 +40,43 @@ export function CommentsList({ postId }: CommentsListProps) {
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const { user, profile } = useAuth()
+  const [isPending, startTransition] = useTransition()
+  
+  // Используем useOptimistic для оптимистичных обновлений комментариев
+  const [optimisticComments, addOptimisticComment] = useOptimistic(
+    comments,
+    (state, newComment: Comment) => {
+      if (newComment.parent_id) {
+        // Если это ответ, добавляем к родительскому комментарию
+        return state.map((comment) => {
+          if (comment.id === newComment.parent_id) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), newComment],
+            }
+          }
+          return comment
+        })
+      }
+      // Если это новый комментарий, добавляем в начало
+      return [newComment, ...state]
+    }
+  )
 
-  const fetchComments = async () => {
+  const userId = user?.id
+
+  const fetchComments = useCallback(async () => {
     try {
       setLoading(true)
       const fetchedComments = await getCommentsByPostId(postId)
       setComments(fetchedComments)
 
       // Загружаем информацию о лайках пользователя
-      if (user) {
+      if (userId) {
         const likedSet = new Set<string>()
         for (const comment of fetchedComments) {
           const checkLiked = async (c: Comment) => {
-            const isLiked = await hasUserLikedComment(c.id, user.uid)
+            const isLiked = await hasUserLikedComment(c.id, userId)
             if (isLiked) {
               likedSet.add(c.id)
             }
@@ -74,14 +98,14 @@ export function CommentsList({ postId }: CommentsListProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [postId, userId])
 
   useEffect(() => {
     fetchComments()
-  }, [postId, user])
+  }, [fetchComments])
 
-  // Проверка прав на удаление комментария
-  const canDeleteComment = (comment: Comment) => {
+  // Проверка прав на удаление комментария (мемоизировано)
+  const canDeleteComment = useCallback((comment: Comment) => {
     if (!user || !profile) return false
 
     // Автор комментария может удалить свой комментарий
@@ -92,10 +116,10 @@ export function CommentsList({ postId }: CommentsListProps) {
       profile.role === "teacher" || profile.role === "admin"
 
     return isAuthor || isTeacherOrAdmin
-  }
+  }, [user, profile])
 
   // Подтверждение удаления комментария
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!commentToDelete) return
 
     setIsDeleting(true)
@@ -107,7 +131,9 @@ export function CommentsList({ postId }: CommentsListProps) {
         toast.success("Успешно", {
           description: "Комментарий был удален",
         })
-        fetchComments()
+        startTransition(() => {
+          fetchComments()
+        })
       } else {
         toast.error("Ошибка", {
           description: "Не удалось удалить комментарий",
@@ -122,9 +148,9 @@ export function CommentsList({ postId }: CommentsListProps) {
       setIsDeleting(false)
       setCommentToDelete(null)
     }
-  }
+  }, [commentToDelete, fetchComments])
 
-  const handleLike = async (commentId: string) => {
+  const handleLike = useCallback(async (commentId: string) => {
     if (!user) {
       toast.error("Ошибка", {
         description: "Вы должны быть авторизованы для отправки лайков",
@@ -135,29 +161,73 @@ export function CommentsList({ postId }: CommentsListProps) {
     try {
       const isLiked = likedComments.has(commentId)
 
-      if (isLiked) {
-        await unlikeComment(commentId, user.uid)
-        setLikedComments((prev) => {
-          const newSet = new Set(prev)
+      // Оптимистичное обновление UI
+      setLikedComments((prev) => {
+        const newSet = new Set(prev)
+        if (isLiked) {
           newSet.delete(commentId)
-          return newSet
-        })
-      } else {
-        await likeComment(commentId, user.uid)
-        setLikedComments((prev) => new Set([...prev, commentId]))
-      }
+        } else {
+          newSet.add(commentId)
+        }
+        return newSet
+      })
 
-      // Обновляем комментарии после лайка/анлайка
-      fetchComments()
+      // Обновляем счетчик лайков оптимистично
+      setComments((prev) =>
+        prev.map((comment) => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              likesCount: (comment.likesCount || 0) + (isLiked ? -1 : 1),
+            }
+          }
+          // Проверяем ответы
+          if (comment.replies) {
+            return {
+              ...comment,
+              replies: comment.replies.map((reply) =>
+                reply.id === commentId
+                  ? {
+                      ...reply,
+                      likesCount: (reply.likesCount || 0) + (isLiked ? -1 : 1),
+                    }
+                  : reply
+              ),
+            }
+          }
+          return comment
+        })
+      )
+
+      // Выполняем действие в фоне
+      startTransition(async () => {
+        if (isLiked) {
+          await unlikeComment(commentId, user.id)
+        } else {
+          await likeComment(commentId, user.id)
+        }
+        // Обновляем данные после успешного действия
+        fetchComments()
+      })
     } catch (error) {
       console.error("Error liking/unliking comment:", error)
       toast.error("Ошибка", {
         description: "Не удалось обработать лайк",
       })
+      // Откатываем оптимистичное обновление
+      fetchComments()
     }
-  }
+  }, [user, likedComments, fetchComments])
 
-  const renderComment = (comment: Comment, isReply = false) => {
+  // Мемоизируем функцию рендеринга комментария
+  const renderComment = useCallback((comment: Comment, isReply = false) => {
+    const isLiked = likedComments.has(comment.id)
+    const formattedDate = new Date(comment.created_at).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    })
+
     return (
       <div
         key={comment.id}
@@ -176,11 +246,7 @@ export function CommentsList({ postId }: CommentsListProps) {
                     : "Ученик"}
               </Badge>
               <span className="text-xs text-muted-foreground">
-                {new Date(comment.created_at).toLocaleDateString("ru-RU", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "2-digit",
-                })}
+                {formattedDate}
               </span>
             </div>
             <p className="mt-1 text-sm whitespace-pre-wrap break-words">{comment.content}</p>
@@ -188,10 +254,9 @@ export function CommentsList({ postId }: CommentsListProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`h-8 px-2 ${
-                  likedComments.has(comment.id) ? "text-primary" : ""
-                }`}
+                className={`h-8 px-2 ${isLiked ? "text-primary" : ""}`}
                 onClick={() => handleLike(comment.id)}
+                disabled={isPending}
               >
                 <ThumbsUp className="h-3 w-3 mr-1" />
                 <span className="text-xs">{comment.likesCount || 0}</span>
@@ -227,7 +292,9 @@ export function CommentsList({ postId }: CommentsListProps) {
                   parentId={comment.id}
                   onCommentAdded={() => {
                     setReplyingTo(null)
-                    fetchComments()
+                    startTransition(() => {
+                      fetchComments()
+                    })
                   }}
                   onCancel={() => setReplyingTo(null)}
                   placeholder="Напишите ответ..."
@@ -244,7 +311,10 @@ export function CommentsList({ postId }: CommentsListProps) {
         )}
       </div>
     )
-  }
+  }, [likedComments, handleLike, canDeleteComment, replyingTo, postId, fetchComments, isPending])
+
+  // Используем оптимистичные комментарии для рендеринга
+  const commentsToRender = optimisticComments
 
   if (loading) {
     return (
@@ -285,12 +355,19 @@ export function CommentsList({ postId }: CommentsListProps) {
       <div className="space-y-6">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-4">Комментарии</h3>
-          <CommentForm postId={postId} onCommentAdded={fetchComments} />
+          <CommentForm
+            postId={postId}
+            onCommentAdded={() => {
+              startTransition(() => {
+                fetchComments()
+              })
+            }}
+          />
         </div>
 
-        {comments.length > 0 ? (
+        {commentsToRender.length > 0 ? (
           <div className="space-y-4">
-            {comments.map((comment) => renderComment(comment))}
+            {commentsToRender.map((comment) => renderComment(comment))}
           </div>
         ) : (
           <div className="text-center py-4 text-muted-foreground">
@@ -301,4 +378,10 @@ export function CommentsList({ postId }: CommentsListProps) {
     </>
   )
 }
+
+// Мемоизируем компонент для предотвращения лишних ререндеров
+export const CommentsList = memo(CommentsListComponent, (prevProps, nextProps) => {
+  // Компонент перерендерится только если postId изменился
+  return prevProps.postId === nextProps.postId
+})
 

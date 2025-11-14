@@ -14,9 +14,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { X, Loader2, Plus } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/context/auth-context-supabase"
 import { toast } from "sonner"
-import { createPost } from "@/lib/firebase-posts-api"
+import { createPost } from "@/lib/supabase-posts-api"
 import { MarkdownEditor } from "@/components/ui/markdown-editor"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
@@ -73,7 +73,7 @@ export function CreatePostForm() {
         title,
         content,
         category,
-        author_id: user.uid,
+        author_id: user.id,
         tags,
       }
 

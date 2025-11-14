@@ -15,15 +15,25 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { MarkdownContent } from "@/components/ui/markdown-content"
-import { MessageSquare, ThumbsUp, Eye, Pencil } from "lucide-react"
-import { getPostById, recordView } from "@/lib/firebase-posts-api"
-import { likePost, hasUserLikedPost } from "@/lib/firebase-post-actions"
-import { useAuth } from "@/context/auth-context"
+import { MessageSquare, ThumbsUp, Eye, Pencil, Trash2 } from "lucide-react"
+import { getPostById, recordView } from "@/lib/supabase-posts-api"
+import { likePost, hasUserLikedPost, deletePost } from "@/lib/supabase-post-actions"
+import { useAuth } from "@/context/auth-context-supabase"
 import { toast } from "sonner"
 import type { Post } from "@/types/database"
 import { Spinner } from "@/components/ui/spinner"
 import { CommentsList } from "@/components/comments-list"
 import { cn } from "@/lib/utils"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type Props = {
   params: Promise<{ id: string }>
@@ -36,15 +46,19 @@ export default function PostPage({ params }: Props) {
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [isLiked, setIsLiked] = useState(false)
-  const { user, profile } = useAuth()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const { user, profile, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
-  const canEdit =
-    post &&
-    profile &&
-    (profile.role === "teacher" ||
-      profile.role === "admin" ||
-      post.author?.username === profile.username)
+  // Вычисляем права доступа с использованием useMemo для пересчета при изменении post или profile
+  const canEdit = !authLoading && post && profile && (
+    profile.role === "teacher" ||
+    profile.role === "admin" ||
+    post.author?.username === profile.username
+  )
+
+  const canDelete = !authLoading && post && profile && (profile.role === "admin" || profile.role === "teacher")
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -60,10 +74,10 @@ export default function PostPage({ params }: Props) {
         setPost(postData)
 
         if (user) {
-          await recordView(postId, user.uid)
+          await recordView(postId, user.id)
           
           // Проверяем, лайкнул ли пользователь пост
-          const liked = await hasUserLikedPost(postId, user.uid)
+          const liked = await hasUserLikedPost(postId, user.id)
           setIsLiked(liked)
         }
       } catch (error) {
@@ -84,7 +98,7 @@ export default function PostPage({ params }: Props) {
     }
 
     try {
-      const result = await likePost(postId, user.uid)
+      const result = await likePost(postId, user.id)
 
       const wasLiked = isLiked
       setIsLiked(result)
@@ -106,6 +120,28 @@ export default function PostPage({ params }: Props) {
     } catch (error) {
       console.error('Ошибка при лайке/анлайке:', error)
       toast.error("Не удалось обработать лайк")
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!post) return
+
+    setIsDeleting(true)
+
+    try {
+      const success = await deletePost(post.id)
+      if (success) {
+        toast.success("Публикация удалена")
+        router.push("/")
+      } else {
+        toast.error("Не удалось удалить публикацию")
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error)
+      toast.error("Произошла ошибка")
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
     }
   }
 
@@ -152,6 +188,27 @@ export default function PostPage({ params }: Props) {
 
   return (
     <>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удаление публикации</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить эту публикацию? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <HeroHeader />
       <div className="container mx-auto w-[90%] pt-24 pb-8 px-4">
       <Card className={cn(
@@ -181,16 +238,31 @@ export default function PostPage({ params }: Props) {
                 </div>
               </div>
             </div>
-            {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1"
-                onClick={() => router.push(`/edit/${post.id}`)}
-              >
-                <Pencil className="h-4 w-4" />
-                Редактировать
-              </Button>
+            {(canEdit || canDelete) && (
+              <div className="flex items-center gap-2">
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Удалить
+                  </Button>
+                )}
+                {canEdit && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                    onClick={() => router.push(`/edit/${post.id}`)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Редактировать
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 

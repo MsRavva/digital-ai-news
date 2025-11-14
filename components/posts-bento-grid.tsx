@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid"
 import { SimpleAvatar } from "@/components/simple-avatar"
 import { Badge } from "@/components/ui/badge"
@@ -13,15 +13,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
-import { togglePinPost, archivePost, unarchivePost, deletePost } from "@/lib/firebase-post-actions"
+import { useAuth } from "@/context/auth-context-supabase"
+import { togglePinPost, archivePost, unarchivePost, deletePost } from "@/lib/supabase-post-actions"
 import { toast } from "sonner"
 import { Pencil, Archive, ArchiveRestore, Trash2 } from "lucide-react"
-import { getPosts } from "@/lib/firebase-posts"
+import { getPosts } from "@/lib/supabase-posts"
 import type { Post } from "@/types/database"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { MarkdownContent } from "@/components/ui/markdown-content"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface PostsBentoGridProps {
   category?: string
@@ -33,14 +43,15 @@ interface PostsBentoGridProps {
 export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "", onSearchChange }: PostsBentoGridProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [postIdToDelete, setPostIdToDelete] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
-  const { profile } = useAuth()
+  const { profile, isLoading: authLoading } = useAuth()
 
-  const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin"
-  const canDelete = isTeacherOrAdmin
-
+  const isTeacherOrAdmin = !authLoading && (profile?.role === "teacher" || profile?.role === "admin")
+  
   const canEdit = (post: Post) => {
-    if (!profile) return false
+    if (authLoading || !profile) return false
     return (
       profile.role === "teacher" ||
       profile.role === "admin" ||
@@ -48,22 +59,36 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
     )
   }
 
-  useEffect(() => {
-    const loadPosts = async () => {
-      setLoading(true)
-      try {
-        const selectedCategory = category === "all" ? undefined : category
-        const fetchedPosts = await getPosts(selectedCategory, archivedOnly, archivedOnly)
-        setPosts(fetchedPosts)
-      } catch (error) {
-        console.error("Error loading posts:", error)
-      } finally {
-        setLoading(false)
-      }
+  const canDelete = (post: Post) => {
+    if (authLoading || !profile) {
+      return false
+    }
+    return profile.role === "admin" || profile.role === "teacher"
+  }
+
+  // Функция загрузки публикаций
+  const loadPosts = useCallback(async () => {
+    // Не загружаем посты, если пользователь не авторизован
+    if (authLoading || !profile) {
+      return
     }
 
+    setLoading(true)
+    try {
+      // Используем category из пропа напрямую
+      const categoryToUse = category && category !== "all" ? category : undefined
+      const fetchedPosts = await getPosts(categoryToUse, archivedOnly, archivedOnly)
+      setPosts(fetchedPosts)
+    } catch (error) {
+      console.error("Error loading posts:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [category, archivedOnly, authLoading, profile?.id])
+
+  useEffect(() => {
     loadPosts()
-  }, [category, archivedOnly])
+  }, [loadPosts])
 
   // Фильтрация постов по searchQuery
   const filteredPosts = searchQuery
@@ -91,6 +116,28 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
   const groupedPosts: Post[][] = []
   for (let i = 0; i < filteredPosts.length; i += 2) {
     groupedPosts.push(filteredPosts.slice(i, i + 2))
+  }
+
+  const confirmDelete = async () => {
+    if (!postIdToDelete) return
+
+    setIsDeleting(true)
+
+    try {
+      const success = await deletePost(postIdToDelete)
+      if (success) {
+        setPosts(posts.filter((p) => p.id !== postIdToDelete))
+        toast.success("Публикация удалена")
+      } else {
+        toast.error("Не удалось удалить публикацию")
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error)
+      toast.error("Произошла ошибка")
+    } finally {
+      setIsDeleting(false)
+      setPostIdToDelete(null)
+    }
   }
 
   if (loading) {
@@ -162,8 +209,30 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
   }
 
   return (
-    <div className="w-full space-y-4">
-      {filteredPosts.length === 0 ? (
+    <>
+      <AlertDialog open={postIdToDelete !== null} onOpenChange={(open) => !open && setPostIdToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удаление публикации</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить эту публикацию? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="w-full space-y-4">
+        {filteredPosts.length === 0 ? (
         <div className="w-full p-8 text-center">
           <p className="text-muted-foreground">Публикации не найдены</p>
         </div>
@@ -216,14 +285,13 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
                     ? await unarchivePost(post.id)
                     : await archivePost(post.id)
                   if (success) {
-                    setPosts(
-                      posts.map((p) => (p.id === post.id ? { ...p, archived: !p.archived } : p))
-                    )
                     toast.success(
                       post.archived
                         ? "Публикация восстановлена из архива"
                         : "Публикация архивирована"
                     )
+                    // Перезагружаем посты после успешного архивирования
+                    await loadPosts()
                   }
                 } catch (error) {
                   console.error("Error toggling archive:", error)
@@ -231,22 +299,10 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
                 }
               }
 
-              const handleDelete = async (e: React.MouseEvent) => {
+              const handleDelete = (e: React.MouseEvent) => {
                 e.preventDefault()
                 e.stopPropagation()
-                if (!confirm("Вы уверены, что хотите удалить эту публикацию?")) {
-                  return
-                }
-                try {
-                  const success = await deletePost(post.id)
-                  if (success) {
-                    setPosts(posts.filter((p) => p.id !== post.id))
-                    toast.success("Публикация удалена")
-                  }
-                } catch (error) {
-                  console.error("Error deleting post:", error)
-                  toast.error("Произошла ошибка")
-                }
+                setPostIdToDelete(post.id)
               }
 
               const handleCardClick = (e: React.MouseEvent) => {
@@ -292,7 +348,7 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
                         {post.pinned && (
                           <Paperclip className="h-4 w-4 text-primary" />
                         )}
-                        {(canEdit(post) || isTeacherOrAdmin || canDelete) && (
+                        {(canEdit(post) || isTeacherOrAdmin || canDelete(post)) && (
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               asChild
@@ -336,7 +392,7 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
                                   </DropdownMenuItem>
                                 </>
                               )}
-                              {canDelete && (
+                              {canDelete(post) && (
                                 <DropdownMenuItem
                                   onClick={handleDelete}
                                   className="text-destructive focus:text-destructive"
@@ -447,6 +503,7 @@ export function PostsBentoGrid({ category, archivedOnly = false, searchQuery = "
         </>
       )}
     </div>
+    </>
   )
 }
 

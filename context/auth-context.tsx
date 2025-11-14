@@ -4,29 +4,27 @@ import type React from "react"
 
 import { toast } from "sonner"
 import {
-  signIn as firebaseSignIn,
-  signInWithGithub as firebaseSignInWithGithub,
-  signInWithGoogle as firebaseSignInWithGoogle,
-  signOut as firebaseSignOut,
-  signUp as firebaseSignUp,
-  updateUserProfile as firebaseUpdateUserProfile,
-  getRedirectResult,
+  signIn,
+  signUp,
+  signInWithGoogle,
+  signInWithGithub,
+  signOut,
+  getCurrentUser,
   getUserProfile,
+  updateUserProfile,
   subscribeToAuthChanges,
-} from "@/lib/firebase-auth"
+} from "@/lib/supabase-auth"
 import { validateUsername } from "@/lib/validation"
 import type { Profile } from "@/types/database"
-import type { User as FirebaseUser } from "firebase/auth"
-import { onIdTokenChanged } from "firebase/auth"
-import { auth } from "@/lib/firebase"
+import type { User } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
-import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react"
+import { createContext, useContext, useEffect, useState, useRef } from "react"
 
 // Проверка, что код выполняется в браузере
 const isBrowser = typeof window !== "undefined"
 
 interface AuthContextType {
-  user: FirebaseUser | null
+  user: User | null
   profile: Profile | null
   isLoading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
@@ -36,16 +34,8 @@ interface AuthContextType {
     username: string,
     role?: string,
   ) => Promise<{ error: any }>
-  signInWithGoogle: () => Promise<{
-    user: FirebaseUser | null
-    error: any
-    profile: Profile | null
-  }>
-  signInWithGithub: () => Promise<{
-    user: FirebaseUser | null
-    error: any
-    profile: Profile | null
-  }>
+  signInWithGoogle: () => Promise<{ error: any }>
+  signInWithGithub: () => Promise<{ error: any }>
   updateProfile: (
     profileData: Partial<Profile>,
   ) => Promise<{ success: boolean; error: any }>
@@ -55,7 +45,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FirebaseUser | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false)
@@ -70,43 +60,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     routerRef.current = router
   }, [router])
 
-  // Проверка имени пользователя и перенаправление на страницу профиля при необходимости
+  // Проверка имени пользователя и email, перенаправление на страницу профиля при необходимости
   useEffect(() => {
     if (needsProfileUpdate && profile && !isLoading) {
-      toast.info("Пожалуйста, обновите ваш профиль", {
-        description: "Пожалуйста, введите корректные Имя и Фамилию",
-      })
-      router.push("/profile?update=username")
+      const usernameError = validateUsername(profile.username)
+      const hasEmail = profile.email && profile.email.trim() !== ""
+      
+      if (usernameError || !hasEmail) {
+        const description = !hasEmail 
+          ? "Пожалуйста, укажите ваш email"
+          : "Пожалуйста, введите корректные Имя и Фамилию"
+        
+        toast.info("Пожалуйста, обновите ваш профиль", {
+          description,
+        })
+        router.push("/profile?update=username")
+      }
       setNeedsProfileUpdate(false)
     }
   }, [needsProfileUpdate, profile, isLoading, router])
 
-  // Функция для обновления токена в cookie - используем useRef для стабильной ссылки
-  const updateTokenInCookieRef = useRef(async (firebaseUser: FirebaseUser) => {
+  // Функция для обновления сессии в cookie - используем useRef для стабильной ссылки
+  const updateSessionInCookieRef = useRef(async (supabaseUser: User) => {
     try {
-      const idToken = await firebaseUser.getIdToken()
-      // Устанавливаем cookie через API route для безопасности (httpOnly)
-      try {
-        await fetch("/api/auth/set-token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token: idToken }),
-        })
-      } catch (apiError) {
-        // Fallback на document.cookie если API недоступен
-        console.warn("Failed to set token via API, using fallback:", apiError)
-        document.cookie = `auth-token=${idToken}; path=/; max-age=3600; SameSite=Lax`
-      }
+      // Supabase автоматически управляет сессией через cookies
+      // Эта функция оставлена для совместимости, но не требует действий
+      console.log("Session updated for user:", supabaseUser.id)
     } catch (error) {
-      console.error("Error getting ID token:", error)
+      console.error("Error updating session:", error)
     }
   })
 
   useEffect(() => {
     // Выполняем только на клиенте
     if (!isBrowser) {
+      setIsLoading(false)
       return
     }
 
@@ -116,177 +104,127 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     isSubscribedRef.current = true
 
-    // Проверяем результат редиректа после аутентификации
-    const checkRedirectResult = async () => {
-      // Не проверяем редирект если уже проверяли
-      if (checkRedirectResultCalledRef.current) {
-        return
-      }
+    // Таймаут для isLoading - если через 5 секунд не получили ответ, устанавливаем false
+    const loadingTimeout = setTimeout(() => {
+      setIsLoading(false)
+    }, 5000)
 
-      // Не проверяем редирект на странице 404
-      const currentPath = isBrowser ? window.location.pathname : ""
-      if (currentPath.includes("not-found")) {
-        return
-      }
-
-      checkRedirectResultCalledRef.current = true
-
+    // Проверяем текущего пользователя при монтировании
+    const checkCurrentUser = async () => {
       try {
-        const { user, error } = await getRedirectResult()
+        const currentUser = await getCurrentUser()
+        if (currentUser) {
+          setUser(currentUser)
+          const userProfile = await getUserProfile(currentUser.id)
+          setProfile(userProfile)
 
-        if (error) {
-          console.error("Redirect result error:", error)
-          return
-        }
-
-        if (user) {
-          // Пользователь успешно аутентифицирован через редирект
-          const userProfile = await getUserProfile(user.uid)
-
-          // Проверяем имя пользователя на соответствие требованиям
+          // Проверяем имя пользователя и email на соответствие требованиям
           if (userProfile && userProfile.username) {
             const usernameError = validateUsername(userProfile.username)
-            if (usernameError) {
-              // Если имя пользователя не соответствует требованиям, перенаправляем на страницу профиля
-              toast.info("Пожалуйста, обновите ваш профиль", {
-                description: "Пожалуйста, введите корректные Имя и Фамилию",
-              })
-              routerRef.current.push("/profile?update=username")
-            } else {
-              // Если имя пользователя соответствует требованиям, перенаправляем на главную страницу
-              routerRef.current.push("/")
+            const hasEmail = userProfile.email && userProfile.email.trim() !== ""
+            
+            if (usernameError || !hasEmail) {
+              setNeedsProfileUpdate(true)
             }
-          } else {
-            // Если профиля нет, перенаправляем на главную страницу
-            routerRef.current.push("/")
           }
         }
       } catch (error) {
-        console.error("Error checking redirect result:", error)
+        console.error("Error checking current user:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    // Проверяем результат редиректа только один раз при монтировании
-    checkRedirectResult()
+    // Проверяем текущего пользователя только один раз при монтировании
+    checkCurrentUser()
 
     // Подписываемся на изменения состояния аутентификации
-    const unsubscribeAuth = subscribeToAuthChanges(async (firebaseUser) => {
-      setUser(firebaseUser)
+    const unsubscribeAuth = subscribeToAuthChanges(async (supabaseUser) => {
+      try {
+        clearTimeout(loadingTimeout)
+        setUser(supabaseUser)
 
-      if (firebaseUser) {
-        // Обновляем токен в cookie
-        await updateTokenInCookieRef.current(firebaseUser)
+        if (supabaseUser) {
+          // Обновляем сессию
+          await updateSessionInCookieRef.current(supabaseUser)
 
-        // Получаем профиль пользователя из Firestore
-        const userProfile = await getUserProfile(firebaseUser.uid)
-        setProfile(userProfile)
-
-        // Проверяем имя пользователя на соответствие требованиям
-        if (userProfile && userProfile.username) {
-          const usernameError = validateUsername(userProfile.username)
-          if (usernameError) {
-            setNeedsProfileUpdate(true)
+          // Получаем профиль пользователя из Supabase
+          const userProfile = await getUserProfile(supabaseUser.id)
+          
+          // Обновляем email в профиле, если его нет, но есть в Supabase Auth
+          if (userProfile && !userProfile.email && supabaseUser.email) {
+            try {
+              await updateUserProfile(supabaseUser.id, {
+                email: supabaseUser.email,
+              })
+              // Обновляем локальный профиль
+              userProfile.email = supabaseUser.email
+            } catch (error) {
+              console.error("Error updating email in profile:", error)
+            }
           }
-        }
-      } else {
-        // Удаляем cookie при выходе
-        try {
-          await fetch("/api/auth/set-token", {
-            method: "DELETE",
-          })
-        } catch (apiError) {
-          // Fallback на document.cookie если API недоступен
-          console.warn("Failed to delete token via API, using fallback:", apiError)
-          document.cookie = "auth-token=; path=/; max-age=0"
-        }
-        setProfile(null)
-        setNeedsProfileUpdate(false)
-      }
+          
+          setProfile(userProfile)
 
-      setIsLoading(false)
+          // Проверяем имя пользователя и email на соответствие требованиям
+          if (userProfile && userProfile.username) {
+            const usernameError = validateUsername(userProfile.username)
+            const hasEmail = userProfile.email && userProfile.email.trim() !== ""
+            
+            if (usernameError || !hasEmail) {
+              setNeedsProfileUpdate(true)
+            }
+          }
+        } else {
+          setProfile(null)
+          setNeedsProfileUpdate(false)
+        }
+      } catch (error) {
+        console.error("Error in auth state change handler:", error)
+      } finally {
+        // Всегда устанавливаем isLoading в false после обработки
+        setIsLoading(false)
+      }
     })
 
-    // Подписываемся на обновление токена (срабатывает каждые ~55 минут)
-    let unsubscribeToken: (() => void) | null = null
-    if (isBrowser && auth) {
-      try {
-        unsubscribeToken = onIdTokenChanged(auth, async (firebaseUser) => {
-          if (firebaseUser) {
-            // Обновляем токен в cookie при его обновлении
-            await updateTokenInCookieRef.current(firebaseUser)
-          }
-        })
-      } catch (error) {
-        console.error("Error setting up token refresh listener:", error)
-      }
-    }
-
     return () => {
+      clearTimeout(loadingTimeout)
       isSubscribedRef.current = false
       unsubscribeAuth()
-      if (unsubscribeToken) {
-        unsubscribeToken()
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const signIn = async (email: string, password: string) => {
-    const { user, error } = await firebaseSignIn(email, password)
+  const handleSignIn = async (email: string, password: string) => {
+    const { error } = await signIn(email, password)
     return { error }
   }
 
-  const signUp = async (
+  const handleSignUp = async (
     email: string,
     password: string,
     username: string,
     role = "student",
   ) => {
     // Всегда используем роль student независимо от переданного значения
-    const { user, error } = await firebaseSignUp(
-      email,
-      password,
-      username,
-      "student",
-    )
+    const { error } = await signUp(email, password, username, "student")
     return { error }
   }
 
-  const signInWithGoogle = async () => {
-    const { user, error } = await firebaseSignInWithGoogle()
-    let profile = null
-    if (user) {
-      profile = await getUserProfile(user.uid)
-    }
-    return { user, error, profile }
+  const handleSignInWithGoogle = async () => {
+    const { error } = await signInWithGoogle()
+    return { error }
   }
 
-  const signInWithGithub = async () => {
-    const { user, error } = await firebaseSignInWithGithub()
-    let profile = null
-    if (user) {
-      profile = await getUserProfile(user.uid)
-    }
-    return { user, error, profile }
+  const handleSignInWithGithub = async () => {
+    const { error } = await signInWithGithub()
+    return { error }
   }
 
-  const signOut = async () => {
-    // Сначала удаляем cookie
-    try {
-      await fetch("/api/auth/set-token", {
-        method: "DELETE",
-      })
-    } catch (apiError) {
-      // Fallback на document.cookie если API недоступен
-      console.warn("Failed to delete token via API, using fallback:", apiError)
-      document.cookie = "auth-token=; path=/; max-age=0; SameSite=Lax"
-    }
+  const handleSignOut = async () => {
+    await signOut()
     
-    // Затем выходим из Firebase
-    await firebaseSignOut()
-    
-    // Используем window.location для полного редиректа, чтобы серверный layout проверил отсутствие cookie
-    // Это гарантирует, что сервер увидит удаленный cookie
+    // Используем window.location для полного редиректа
     if (isBrowser) {
       window.location.href = "/login"
     } else {
@@ -295,12 +233,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const updateProfile = async (profileData: Partial<Profile>) => {
+  const handleUpdateProfile = async (profileData: Partial<Profile>) => {
     if (!user) {
       return { success: false, error: { message: "User not authenticated" } }
     }
 
-    const result = await firebaseUpdateUserProfile(user.uid, profileData)
+    const result = await updateUserProfile(user.id, profileData)
 
     // Если обновление прошло успешно, обновляем локальный профиль
     if (result.success && profile) {
@@ -316,12 +254,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         profile,
         isLoading,
-        signIn,
-        signUp,
-        signInWithGoogle,
-        signInWithGithub,
-        updateProfile,
-        signOut,
+        signIn: handleSignIn,
+        signUp: handleSignUp,
+        signInWithGoogle: handleSignInWithGoogle,
+        signInWithGithub: handleSignInWithGithub,
+        updateProfile: handleUpdateProfile,
+        signOut: handleSignOut,
       }}
     >
       {children}

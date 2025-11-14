@@ -1,6 +1,6 @@
 {
   "name": "digital-ai-news",
-  "version": "0.4.0",
+  "version": "1.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -22,10 +22,11 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.81.1",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "firebase": "^12.5.0",
     "lucide-react": "^0.553.0",
     "markdown-it": "^14.1.0",
     "motion": "^12.23.24",

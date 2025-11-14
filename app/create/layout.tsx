@@ -1,5 +1,3 @@
-import { requireAuth } from "@/lib/auth-server"
-
 export const dynamic = 'force-dynamic'
 
 export default async function CreatePostLayout({
@@ -7,7 +5,7 @@ export default async function CreatePostLayout({
 }: {
   children: React.ReactNode
 }) {
-  await requireAuth()
+  // Защита маршрутов теперь обрабатывается в proxy.ts
   return <>{children}</>
 }
 
