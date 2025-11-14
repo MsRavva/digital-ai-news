@@ -57,7 +57,7 @@ export const HeroHeader = () => {
                     const cookieTheme = getThemeFromCookie()
                     if (cookieTheme) {
                         themeToSet = cookieTheme
-                    } else if (user?.uid) {
+                    } else if (user?.id) {
                         const profileTheme = await getThemeFromProfile(user.id)
                         if (profileTheme) {
                             themeToSet = profileTheme
@@ -73,7 +73,7 @@ export const HeroHeader = () => {
                 // Сохраняем во все хранилища даже если тема уже установлена
                 saveThemeToSession(themeToSet)
                 saveThemeToCookie(themeToSet)
-                if (user?.uid) {
+                if (user?.id) {
                     saveThemeToProfile(user.id, themeToSet).catch(console.error)
                 }
             }
@@ -82,7 +82,7 @@ export const HeroHeader = () => {
         // Запускаем инициализацию при монтировании и когда пользователь загрузится
         initializeTheme()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isMounted, user?.uid])
+    }, [isMounted, user?.id])
 
     // Сохранение темы при изменении
     React.useEffect(() => {
