@@ -61,7 +61,8 @@ function LoginForm() {
         description: "Вы успешно вошли в систему",
       })
 
-      router.push("/")
+      const redirect = searchParams.get("redirect")
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
     } catch (error) {
       console.error("Unexpected login error:", error)
       const errorMessage = getSupabaseErrorMessage(error as any)

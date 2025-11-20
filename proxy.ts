@@ -8,11 +8,21 @@ const protectedRoutes = ["/", "/archive", "/create", "/edit", "/profile", "/admi
 // Публичные маршруты (не требуют авторизации)
 const guestRoutes = ["/login", "/register"]
 
+// Маршруты только для администраторов
+const adminRoutes = ["/admin"]
+
+// Маршруты которые не требуют проверки (OAuth callback, API)
+const publicRoutes = ["/auth/callback"]
+
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Пропускаем API routes и статические файлы
-  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) {
+  // Пропускаем API routes, статические файлы и публичные маршруты
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    publicRoutes.some(route => pathname.startsWith(route))
+  ) {
     return NextResponse.next()
   }
 
@@ -45,6 +55,17 @@ export default async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const isAuthenticated = !!user
 
+  // Получаем профиль для проверки роли
+  let userProfile = null
+  if (isAuthenticated && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle()
+    userProfile = profile
+  }
+
   // Проверяем, является ли маршрут защищенным
   const isRootRoute = pathname === "/" || pathname === ""
   const isOtherProtectedRoute = protectedRoutes
@@ -63,8 +84,23 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Редирект авторизованных пользователей с guest routes на главную
+  // Проверка доступа к admin маршрутам
+  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
+  if (isAdminRoute && isAuthenticated) {
+    const userRole = userProfile?.role || "student"
+    if (userRole !== "admin" && userRole !== "teacher") {
+      // Редирект на главную для пользователей без прав
+      return NextResponse.redirect(new URL("/", request.url))
+    }
+  }
+
+  // Редирект авторизованных пользователей с guest routes
+  // Если есть параметр redirect, используем его
   if (isGuestRoute && isAuthenticated) {
+    const redirectTo = request.nextUrl.searchParams.get("redirect")
+    if (redirectTo && redirectTo.startsWith("/")) {
+      return NextResponse.redirect(new URL(redirectTo, request.url))
+    }
     return NextResponse.redirect(new URL("/", request.url))
   }
 

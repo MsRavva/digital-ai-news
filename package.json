@@ -2,6 +2,12 @@
   "name": "digital-ai-news",
   "version": "1.2.0",
   "private": true,
+  "overrides": {
+    "react-markdown-editor-lite": {
+      "react": "^19",
+      "react-dom": "^19"
+    }
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",

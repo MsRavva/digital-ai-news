@@ -18,7 +18,7 @@ import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
 import { validateUsername } from "@/lib/validation"
 import { Github } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -34,6 +34,7 @@ export default function Register() {
   const [formError, setFormError] = useState<string | null>(null)
   const { signUp, signInWithGoogle, signInWithGithub, user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Редирект если уже авторизован
   // useEffect(() => {
@@ -91,7 +92,8 @@ export default function Register() {
         description: "Вы успешно зарегистрировались",
       })
 
-      router.push("/")
+      const redirect = searchParams.get("redirect")
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
     } catch (error) {
       console.error("Unexpected error during registration:", error)
       const errorMessage = getSupabaseErrorMessage(error as any)

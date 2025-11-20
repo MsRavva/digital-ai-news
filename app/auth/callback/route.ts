@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { getReturnUrl, clearReturnUrl } from "@/lib/auth-helpers"
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
@@ -41,37 +42,11 @@ export async function GET(request: NextRequest) {
 
     if (data.session && data.user) {
       console.log("Session created successfully for user:", data.user.email)
-      
-      // Даем время на создание профиля через trigger
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Проверяем профиль пользователя
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('username, email')
-        .eq('id', data.user.id)
-        .single()
-      
-      if (profileError) {
-        console.error("Error fetching profile:", profileError)
-        // Профиль не найден - редирект на профиль для создания
-        return NextResponse.redirect(new URL("/profile?update=username", requestUrl.origin))
-      }
-      
-      if (profileData) {
-        // Проверяем имя пользователя (должно быть "Имя Фамилия" на русском)
-        const usernameRegex = /^[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+(\s+[А-ЯЁ][а-яё]+)*$/
-        const hasValidUsername = usernameRegex.test(profileData.username)
-        const hasEmail = profileData.email && profileData.email.trim() !== ""
-        
-        if (!hasValidUsername || !hasEmail) {
-          // Редирект на профиль для обновления данных
-          return NextResponse.redirect(new URL("/profile?update=username", requestUrl.origin))
-        }
-      }
     }
   }
 
-  // Redirect to home page after successful authentication
-  return NextResponse.redirect(new URL("/", requestUrl.origin))
+  const redirectUrl = getReturnUrl() || "/"
+  clearReturnUrl()
+
+  return NextResponse.redirect(new URL(redirectUrl, requestUrl.origin))
 }

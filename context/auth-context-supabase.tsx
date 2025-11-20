@@ -73,33 +73,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user)
-        // Загружаем профиль
-        getUserProfile(session.user.id).then((userProfile) => {
-          setProfile(userProfile)
-          setIsLoading(false)
-          clearTimeout(loadingTimeout)
-          
-          // Проверяем имя и email только если не на странице профиля
-          if (userProfile && !window.location.pathname.startsWith('/profile')) {
-            const usernameError = validateUsername(userProfile.username)
-            const hasEmail = userProfile.email && userProfile.email.trim() !== ""
-            
-            if (usernameError || !hasEmail) {
-              const description = !hasEmail 
-                ? "Пожалуйста, укажите ваш email"
-                : "Пожалуйста, введите корректные Имя и Фамилию"
-              
-              toast.info("Пожалуйста, обновите ваш профиль", {
-                description,
-              })
-              router.push("/profile?update=username")
-            }
-          }
-        }).catch((error) => {
-          console.error("Error loading profile:", error)
-          setIsLoading(false)
-          clearTimeout(loadingTimeout)
-        })
+        setIsLoading(false)
+        clearTimeout(loadingTimeout)
       } else {
         setIsLoading(false)
         clearTimeout(loadingTimeout)
@@ -120,23 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Получаем профиль пользователя
           const userProfile = await getUserProfile(supabaseUser.id)
           setProfile(userProfile)
-
-          // Проверяем имя пользователя и email
-          if (userProfile) {
-            const usernameError = validateUsername(userProfile.username)
-            const hasEmail = userProfile.email && userProfile.email.trim() !== ""
-            
-            if (usernameError || !hasEmail) {
-              const description = !hasEmail 
-                ? "Пожалуйста, укажите ваш email"
-                : "Пожалуйста, введите корректные Имя и Фамилию"
-              
-              toast.info("Пожалуйста, обновите ваш профиль", {
-                description,
-              })
-              router.push("/profile?update=username")
-            }
-          }
         } else {
           setProfile(null)
         }
@@ -156,12 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleSignIn = async (email: string, password: string) => {
     const { user: signedInUser, error } = await signIn(email, password)
-    
-    if (signedInUser && !error) {
-      // Профиль загрузится автоматически через subscribeToAuthChanges
-      router.push("/")
-    }
-    
     return { error }
   }
 
@@ -172,12 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     role: "student" | "teacher" | "admin" = "student",
   ) => {
     const { user: signedUpUser, error } = await signUp(email, password, username, role)
-    
-    if (signedUpUser && !error) {
-      // Профиль создастся автоматически через trigger
-      router.push("/")
-    }
-    
     return { error }
   }
 

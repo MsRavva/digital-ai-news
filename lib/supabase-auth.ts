@@ -1,4 +1,5 @@
 import { supabase } from "./supabase"
+import { saveReturnUrl } from "./auth-helpers"
 import type { Profile } from "@/types/database"
 import type { User, AuthError } from "@supabase/supabase-js"
 
@@ -32,53 +33,6 @@ export const signUp = async (
     }
 
     // Профиль создастся автоматически через database trigger
-    // Проверяем, существует ли профиль, и если нет - создаем вручную
-    // Если профиль уже существует (создан trigger'ом), обновляем username и email
-    const { data: existingProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", data.user.id)
-      .maybeSingle()
-
-    if (!existingProfile) {
-      // Профиль не существует, создаем вручную
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: data.user.id,
-        username,
-        email,
-        role,
-      })
-
-      if (profileError) {
-        // Игнорируем ошибки дубликатов (профиль мог быть создан между проверкой и вставкой)
-        const errorCode = profileError.code
-        const errorMessage = (profileError.message || "").toLowerCase()
-        const isDuplicateError =
-          errorCode === "23505" ||
-          errorCode === "PGRST301" ||
-          errorMessage.includes("duplicate") ||
-          errorMessage.includes("unique") ||
-          errorMessage.includes("already exists")
-
-        if (!isDuplicateError) {
-          console.error("Error creating profile:", profileError)
-        }
-      }
-    } else {
-      // Профиль уже существует, обновляем username и email если они отличаются
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({
-          username,
-          email,
-          role,
-        })
-        .eq("id", data.user.id)
-
-      if (updateError) {
-        console.error("Error updating profile:", updateError)
-      }
-    }
 
     return { user: data.user, error: null }
   } catch (error) {
@@ -113,6 +67,8 @@ export const signIn = async (
 // Вход через Google
 export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> => {
   try {
+    saveReturnUrl(window.location.pathname)
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -135,6 +91,8 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
 // Вход через GitHub
 export const signInWithGithub = async (): Promise<{ error: AuthError | null }> => {
   try {
+    saveReturnUrl(window.location.pathname)
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
