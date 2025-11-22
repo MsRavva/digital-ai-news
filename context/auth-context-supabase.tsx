@@ -12,6 +12,8 @@ import {
   getUserProfile,
   updateUserProfile,
   subscribeToAuthChanges,
+  resetPassword,
+  updatePassword,
 } from "@/lib/supabase-auth"
 import { supabase } from "@/lib/supabase"
 import { validateUsername } from "@/lib/validation"
@@ -40,6 +42,8 @@ interface AuthContextType {
     profileData: Partial<Profile>,
   ) => Promise<{ success: boolean; error: any }>
   signOut: () => Promise<void>
+  resetPassword: (email: string) => Promise<{ error: any }>
+  updatePassword: (newPassword: string) => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -143,7 +147,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut()
     setUser(null)
     setProfile(null)
-    router.push("/login")
+    // Используем window.location для полного редиректа после выхода
+    if (isBrowser) {
+      window.location.href = "/login"
+    } else {
+      router.push("/login")
+      router.refresh()
+    }
   }
 
   const handleUpdateProfile = async (profileData: Partial<Profile>) => {
@@ -161,6 +171,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return result
   }
 
+  const handleResetPassword = async (email: string) => {
+    return await resetPassword(email)
+  }
+
+  const handleUpdatePassword = async (newPassword: string) => {
+    return await updatePassword(newPassword)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -173,6 +191,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithGithub: handleSignInWithGithub,
         updateProfile: handleUpdateProfile,
         signOut: handleSignOut,
+        resetPassword: handleResetPassword,
+        updatePassword: handleUpdatePassword,
       }}
     >
       {children}

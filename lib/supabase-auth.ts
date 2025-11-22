@@ -276,6 +276,48 @@ export const createUserProfile = async (
   }
 }
 
+// Сброс пароля (отправка email с ссылкой для сброса)
+export const resetPassword = async (
+  email: string
+): Promise<{ error: AuthError | null }> => {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) {
+      console.error("Error resetting password:", error)
+      return { error }
+    }
+
+    return { error: null }
+  } catch (error) {
+    console.error("Unexpected error during password reset:", error)
+    return { error: error as AuthError }
+  }
+}
+
+// Обновление пароля (после перехода по ссылке из email)
+export const updatePassword = async (
+  newPassword: string
+): Promise<{ error: AuthError | null }> => {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    })
+
+    if (error) {
+      console.error("Error updating password:", error)
+      return { error }
+    }
+
+    return { error: null }
+  } catch (error) {
+    console.error("Unexpected error during password update:", error)
+    return { error: error as AuthError }
+  }
+}
+
 // Подписка на изменения состояния аутентификации
 export const subscribeToAuthChanges = (
   callback: (user: User | null) => void

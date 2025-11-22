@@ -6,7 +6,7 @@ import { createServerClient } from "@supabase/ssr"
 const protectedRoutes = ["/", "/archive", "/create", "/edit", "/profile", "/admin", "/posts"]
 
 // Публичные маршруты (не требуют авторизации)
-const guestRoutes = ["/login", "/register"]
+const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password"]
 
 // Маршруты только для администраторов
 const adminRoutes = ["/admin"]
@@ -95,8 +95,9 @@ export default async function proxy(request: NextRequest) {
   }
 
   // Редирект авторизованных пользователей с guest routes
+  // Исключение: /reset-password - разрешаем доступ для восстановления пароля
   // Если есть параметр redirect, используем его
-  if (isGuestRoute && isAuthenticated) {
+  if (isGuestRoute && isAuthenticated && pathname !== "/reset-password") {
     const redirectTo = request.nextUrl.searchParams.get("redirect")
     if (redirectTo && redirectTo.startsWith("/")) {
       return NextResponse.redirect(new URL(redirectTo, request.url))
