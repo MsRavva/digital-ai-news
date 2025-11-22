@@ -74,9 +74,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 5000)
 
     // Получаем текущую сессию
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user)
+        // Загружаем профиль сразу после получения сессии
+        try {
+          const userProfile = await getUserProfile(session.user.id)
+          setProfile(userProfile)
+        } catch (error) {
+          console.error("Error loading profile:", error)
+        }
         setIsLoading(false)
         clearTimeout(loadingTimeout)
       } else {
@@ -97,7 +104,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (supabaseUser) {
           // Получаем профиль пользователя
-          const userProfile = await getUserProfile(supabaseUser.id)
+          // Для OAuth пользователей профиль может создаваться с задержкой через триггер
+          // Делаем несколько попыток с небольшими задержками
+          let userProfile = await getUserProfile(supabaseUser.id)
+          
+          // Если профиль не найден, ждем немного и пробуем еще раз (для OAuth)
+          if (!userProfile) {
+            await new Promise(resolve => setTimeout(resolve, 500))
+            userProfile = await getUserProfile(supabaseUser.id)
+          }
+          
+          // Еще одна попытка через секунду
+          if (!userProfile) {
+            await new Promise(resolve => setTimeout(resolve, 1000))
+            userProfile = await getUserProfile(supabaseUser.id)
+          }
+          
           setProfile(userProfile)
         } else {
           setProfile(null)

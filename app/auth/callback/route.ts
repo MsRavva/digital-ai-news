@@ -42,6 +42,49 @@ export async function GET(request: NextRequest) {
 
     if (data.session && data.user) {
       console.log("Session created successfully for user:", data.user.email)
+      
+      // Проверяем и создаем профиль, если его нет (для OAuth пользователей)
+      // Триггер должен создать профиль автоматически, но на случай задержки проверяем
+      const { data: existingProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", data.user.id)
+        .maybeSingle()
+      
+      if (!existingProfile && !profileError) {
+        // Профиль не существует, создаем вручную
+        // Для OAuth пользователей используем email как username, если нет метаданных
+        const username = data.user.user_metadata?.username || 
+                        data.user.user_metadata?.full_name || 
+                        data.user.user_metadata?.name ||
+                        data.user.email?.split("@")[0] || 
+                        "Пользователь"
+        
+        const { error: createError } = await supabase
+          .from("profiles")
+          .insert({
+            id: data.user.id,
+            username,
+            email: data.user.email || null,
+            role: data.user.user_metadata?.role || "student",
+          })
+        
+        if (createError) {
+          // Игнорируем ошибки дубликатов (профиль мог быть создан между проверкой и вставкой)
+          const errorCode = createError.code
+          const errorMessage = (createError.message || "").toLowerCase()
+          const isDuplicateError =
+            errorCode === "23505" ||
+            errorCode === "PGRST301" ||
+            errorMessage.includes("duplicate") ||
+            errorMessage.includes("unique") ||
+            errorMessage.includes("already exists")
+          
+          if (!isDuplicateError) {
+            console.error("Error creating profile:", createError)
+          }
+        }
+      }
     }
   }
 
