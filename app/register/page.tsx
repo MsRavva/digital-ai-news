@@ -19,7 +19,7 @@ import { validateUsername } from "@/lib/validation"
 import { Github } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
 export default function Register() {
@@ -37,11 +37,13 @@ export default function Register() {
   const searchParams = useSearchParams()
 
   // Редирект если уже авторизован
-  // useEffect(() => {
-  //   if (!authLoading && user) {
-  //     router.push("/")
-  //   }
-  // }, [user, authLoading, router])
+  // Редирект если уже авторизован
+  useEffect(() => {
+    if (!authLoading && user) {
+      const redirect = searchParams.get("redirect")
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
+    }
+  }, [user, authLoading, router, searchParams])
 
   // Проверка имени пользователя при вводе
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,9 +164,7 @@ export default function Register() {
   }
 
   // Не скрываем форму для авторизованных пользователей
-  // if (user) {
-  //   return null
-  // }
+
 
   return (
     <div className="flex min-h-screen flex-col">

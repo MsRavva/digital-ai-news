@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const cookieStore = await cookies()
-    
+
     // Создаем серверный Supabase клиент с cookie support
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     )
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-    
+
     if (error) {
       console.error("Error exchanging code for session:", error.message, error)
       return NextResponse.redirect(new URL(`/login?error=auth_failed&details=${encodeURIComponent(error.message)}`, requestUrl.origin))
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     if (data.session && data.user) {
       console.log("Session created successfully for user:", data.user.email)
-      
+
       // Проверяем и создаем профиль, если его нет (для OAuth пользователей)
       // Триггер должен создать профиль автоматически, но на случай задержки проверяем
       const { data: existingProfile, error: profileError } = await supabase
@@ -50,16 +50,16 @@ export async function GET(request: NextRequest) {
         .select("id")
         .eq("id", data.user.id)
         .maybeSingle()
-      
+
       if (!existingProfile && !profileError) {
         // Профиль не существует, создаем вручную
         // Для OAuth пользователей используем email как username, если нет метаданных
-        const username = data.user.user_metadata?.username || 
-                        data.user.user_metadata?.full_name || 
-                        data.user.user_metadata?.name ||
-                        data.user.email?.split("@")[0] || 
-                        "Пользователь"
-        
+        const username = data.user.user_metadata?.username ||
+          data.user.user_metadata?.full_name ||
+          data.user.user_metadata?.name ||
+          data.user.email?.split("@")[0] ||
+          "Пользователь"
+
         const { error: createError } = await supabase
           .from("profiles")
           .insert({
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
             email: data.user.email || null,
             role: data.user.user_metadata?.role || "student",
           })
-        
+
         if (createError) {
           // Игнорируем ошибки дубликатов (профиль мог быть создан между проверкой и вставкой)
           const errorCode = createError.code
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
             errorMessage.includes("duplicate") ||
             errorMessage.includes("unique") ||
             errorMessage.includes("already exists")
-          
+
           if (!isDuplicateError) {
             console.error("Error creating profile:", createError)
           }
@@ -88,7 +88,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const redirectUrl = getReturnUrl() || "/"
+  let redirectUrl = getReturnUrl() || "/"
+
+  // Sanitize redirectUrl
+  if (["/login", "/register", "/forgot-password", "/reset-password"].some(path => redirectUrl.includes(path))) {
+    redirectUrl = "/"
+  }
   clearReturnUrl()
 
   return NextResponse.redirect(new URL(redirectUrl, requestUrl.origin))

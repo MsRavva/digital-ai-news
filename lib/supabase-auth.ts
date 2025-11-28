@@ -67,7 +67,10 @@ export const signIn = async (
 // Вход через Google
 export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> => {
   try {
-    saveReturnUrl(window.location.pathname)
+    const pathname = window.location.pathname
+    if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
+      saveReturnUrl(pathname)
+    }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -91,7 +94,10 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
 // Вход через GitHub
 export const signInWithGithub = async (): Promise<{ error: AuthError | null }> => {
   try {
-    saveReturnUrl(window.location.pathname)
+    const pathname = window.location.pathname
+    if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
+      saveReturnUrl(pathname)
+    }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",

@@ -34,12 +34,13 @@ function LoginForm() {
   const searchParams = useSearchParams()
 
   // Редирект если уже авторизован
-  // useEffect(() => {
-  //   if (!authLoading && user) {
-  //     const redirect = searchParams.get("redirect")
-  //     router.push(redirect || "/")
-  //   }
-  // }, [user, authLoading, router, searchParams])
+  // Редирект если уже авторизован
+  useEffect(() => {
+    if (!authLoading && user) {
+      const redirect = searchParams.get("redirect")
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
+    }
+  }, [user, authLoading, router, searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -133,9 +134,7 @@ function LoginForm() {
   }
 
   // Не скрываем форму для авторизованных пользователей
-  // if (user) {
-  //   return null
-  // }
+
 
   return (
     <div className="flex min-h-screen flex-col">
