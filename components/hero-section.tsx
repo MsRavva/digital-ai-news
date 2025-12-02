@@ -224,7 +224,7 @@ export default function HeroSection() {
                                         speedSegment={0.3}
                                         as="h1"
                                         className="flex-1 text-balance text-5xl font-medium md:text-6xl">
-                                        Вайбкодинг с AI News
+                                        Вайб-кодинг с AI News
                                     </TextEffect>
                                     <div className="flex-shrink-0">
                                         <Button
