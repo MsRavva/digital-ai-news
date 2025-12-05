@@ -1,5 +1,5 @@
-import { supabase } from "./supabase"
-import type { Post } from "@/types/database"
+import type { Post } from "@/types/database";
+import { supabase } from "./supabase";
 
 // Получение поста по ID
 export async function getPostById(postId: string): Promise<Post | null> {
@@ -20,55 +20,55 @@ export async function getPostById(postId: string): Promise<Post | null> {
           username,
           role
         )
-      `,
+      `
       )
       .eq("id", postId)
-      .single()
+      .single();
 
     if (postError || !postData) {
-      console.error("Error fetching post:", postError)
-      return null
+      console.error("Error fetching post:", postError);
+      return null;
     }
 
     // Получаем теги
     const { data: postTagsData } = await supabase
       .from("post_tags")
       .select("tag_id, tags!post_tags_tag_id_fkey(name)")
-      .eq("post_id", postId)
+      .eq("post_id", postId);
 
-    const tags: string[] = []
+    const tags: string[] = [];
     if (postTagsData) {
       postTagsData.forEach((pt) => {
         // tags может быть объектом или массивом в зависимости от запроса
-        const tagsData = Array.isArray(pt.tags) ? pt.tags[0] : pt.tags
-        const tagName = (tagsData as { name: string } | null | undefined)?.name
+        const tagsData = Array.isArray(pt.tags) ? pt.tags[0] : pt.tags;
+        const tagName = (tagsData as { name: string } | null | undefined)?.name;
         if (tagName) {
-          tags.push(tagName)
+          tags.push(tagName);
         }
-      })
+      });
     }
 
     // Получаем статистику
     const { count: likesCount } = await supabase
       .from("likes")
       .select("*", { count: "exact", head: true })
-      .eq("post_id", postId)
+      .eq("post_id", postId);
 
     const { count: commentsCount } = await supabase
       .from("comments")
       .select("*", { count: "exact", head: true })
-      .eq("post_id", postId)
+      .eq("post_id", postId);
 
     const { count: viewsCount } = await supabase
       .from("views")
       .select("*", { count: "exact", head: true })
-      .eq("post_id", postId)
+      .eq("post_id", postId);
 
     // profiles может быть объектом или массивом в зависимости от запроса
     const profilesData = Array.isArray(postData.profiles)
       ? postData.profiles[0]
-      : postData.profiles
-    const author = profilesData as { username: string; role: string } | null | undefined
+      : postData.profiles;
+    const author = profilesData as { username: string; role: string } | null | undefined;
 
     return {
       id: postData.id,
@@ -86,21 +86,21 @@ export async function getPostById(postId: string): Promise<Post | null> {
       viewsCount: viewsCount || 0,
       archived: postData.archived || false,
       pinned: postData.pinned || false,
-    }
+    };
   } catch (error) {
-    console.error("Error fetching post:", error)
-    return null
+    console.error("Error fetching post:", error);
+    return null;
   }
 }
 
 // Создание поста
 export async function createPost(data: {
-  title: string
-  content: string
-  category: string
-  author_id: string
-  tags: string[]
-  source_url?: string
+  title: string;
+  content: string;
+  category: string;
+  author_id: string;
+  tags: string[];
+  source_url?: string;
 }): Promise<string | null> {
   try {
     // Создаем пост
@@ -116,27 +116,27 @@ export async function createPost(data: {
         pinned: false,
       })
       .select("id")
-      .single()
+      .single();
 
     if (postError || !postData) {
-      console.error("Error creating post:", postError)
-      console.error("Post data:", data)
-      console.error("Error details:", JSON.stringify(postError, null, 2))
-      return null
+      console.error("Error creating post:", postError);
+      console.error("Post data:", data);
+      console.error("Error details:", JSON.stringify(postError, null, 2));
+      return null;
     }
 
-    const postId = postData.id
+    const postId = postData.id;
 
     // Создаем теги и связи с постом
     for (const tagName of data.tags) {
       // Проверяем, существует ли тег
-      let { data: existingTag } = await supabase
+      const { data: existingTag } = await supabase
         .from("tags")
         .select("id")
         .eq("name", tagName)
-        .single()
+        .single();
 
-      let tagId: string
+      let tagId: string;
 
       if (!existingTag) {
         // Создаем новый тег
@@ -144,39 +144,39 @@ export async function createPost(data: {
           .from("tags")
           .insert({ name: tagName })
           .select("id")
-          .single()
+          .single();
 
         if (tagError || !newTag) {
-          console.error("Error creating tag:", tagError)
-          continue
+          console.error("Error creating tag:", tagError);
+          continue;
         }
 
-        tagId = newTag.id
+        tagId = newTag.id;
       } else {
-        tagId = existingTag.id
+        tagId = existingTag.id;
       }
 
       // Создаем связь поста с тегом
       await supabase.from("post_tags").insert({
         post_id: postId,
         tag_id: tagId,
-      })
+      });
     }
 
-    return postId
+    return postId;
   } catch (error) {
-    console.error("Error creating post:", error)
-    return null
+    console.error("Error creating post:", error);
+    return null;
   }
 }
 
 // Обновление поста
 export async function updatePost(data: {
-  id: string
-  title: string
-  content: string
-  category: string
-  tags: string[]
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
 }): Promise<boolean> {
   try {
     // Обновляем пост
@@ -188,26 +188,26 @@ export async function updatePost(data: {
         category: data.category,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", data.id)
+      .eq("id", data.id);
 
     if (postError) {
-      console.error("Error updating post:", postError)
-      return false
+      console.error("Error updating post:", postError);
+      return false;
     }
 
     // Удаляем старые связи с тегами
-    await supabase.from("post_tags").delete().eq("post_id", data.id)
+    await supabase.from("post_tags").delete().eq("post_id", data.id);
 
     // Добавляем новые теги
     for (const tagName of data.tags) {
       // Проверяем, существует ли тег
-      let { data: existingTag } = await supabase
+      const { data: existingTag } = await supabase
         .from("tags")
         .select("id")
         .eq("name", tagName)
-        .single()
+        .single();
 
-      let tagId: string
+      let tagId: string;
 
       if (!existingTag) {
         // Создаем новый тег
@@ -215,29 +215,29 @@ export async function updatePost(data: {
           .from("tags")
           .insert({ name: tagName })
           .select("id")
-          .single()
+          .single();
 
         if (tagError || !newTag) {
-          console.error("Error creating tag:", tagError)
-          continue
+          console.error("Error creating tag:", tagError);
+          continue;
         }
 
-        tagId = newTag.id
+        tagId = newTag.id;
       } else {
-        tagId = existingTag.id
+        tagId = existingTag.id;
       }
 
       // Создаем связь поста с тегом
       await supabase.from("post_tags").insert({
         post_id: data.id,
         tag_id: tagId,
-      })
+      });
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error("Error updating post:", error)
-    return false
+    console.error("Error updating post:", error);
+    return false;
   }
 }
 
@@ -249,15 +249,14 @@ export async function recordView(postId: string, userId: string): Promise<void> 
     const { error: functionError } = await supabase.rpc("safe_record_view", {
       p_post_id: postId,
       p_user_id: userId,
-    })
+    });
 
     // Если произошла ошибка, логируем её (но не прерываем выполнение)
     if (functionError) {
-      console.error("Error recording view:", functionError)
+      console.error("Error recording view:", functionError);
     }
   } catch (error) {
     // Логируем ошибки, но не прерываем выполнение
-    console.error("Error recording view:", error)
+    console.error("Error recording view:", error);
   }
 }
-

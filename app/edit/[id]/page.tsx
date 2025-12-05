@@ -1,12 +1,12 @@
-import { HeroHeader } from "@/components/header"
-import { EditPostForm } from "@/components/edit-post-form"
+import { EditPostForm } from "@/components/edit-post-form";
+import { HeroHeader } from "@/components/header";
 
 type Props = {
-  params: Promise<{ id: string }>
-}
+  params: Promise<{ id: string }>;
+};
 
 export default async function EditPostPage({ params }: Props) {
-  const { id: postId } = await params
+  const { id: postId } = await params;
 
   return (
     <>
@@ -15,6 +15,5 @@ export default async function EditPostPage({ params }: Props) {
         <EditPostForm postId={postId} />
       </div>
     </>
-  )
+  );
 }
-

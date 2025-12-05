@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { AuthProvider } from "@/context/auth-context-supabase";
-import { Toaster } from "@/components/ui/sonner";
 import { GlobalBackground } from "@/components/global-background";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/context/auth-context-supabase";
 
 export const metadata: Metadata = {
   title: "Digital AI News",
@@ -32,4 +32,3 @@ export default function RootLayout({
     </html>
   );
 }
-

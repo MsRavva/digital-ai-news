@@ -1,5 +1,5 @@
-import { HeroHeader } from "@/components/header"
-import { CreatePostForm } from "@/components/create-post-form"
+import { CreatePostForm } from "@/components/create-post-form";
+import { HeroHeader } from "@/components/header";
 
 export default function CreatePostPage() {
   return (
@@ -9,6 +9,5 @@ export default function CreatePostPage() {
         <CreatePostForm />
       </div>
     </>
-  )
+  );
 }
-

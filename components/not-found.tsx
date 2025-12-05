@@ -14,7 +14,6 @@ import {
 export function NotFoundPage() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden text-[var(--foreground)]">
-
       <Empty>
         <EmptyHeader>
           <EmptyTitle className="font-extrabold text-8xl">404</EmptyTitle>

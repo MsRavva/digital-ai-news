@@ -1,20 +1,24 @@
-"use client"
+"use client";
 
-import React from "react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
-import rehypeRaw from "rehype-raw"
-import { cn } from "@/lib/utils"
-import { InlineCode } from "./inline-code"
-import { CodeBlock } from "./code-block"
+import React from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import { cn } from "@/lib/utils";
+import { CodeBlock } from "./code-block";
+import { InlineCode } from "./inline-code";
 
 interface MarkdownContentProps {
-  content: string
-  className?: string
-  disableLinks?: boolean
+  content: string;
+  className?: string;
+  disableLinks?: boolean;
 }
 
-export function MarkdownContent({ content, className, disableLinks = false }: MarkdownContentProps) {
+export function MarkdownContent({
+  content,
+  className,
+  disableLinks = false,
+}: MarkdownContentProps) {
   return (
     <div
       className={cn(
@@ -35,7 +39,7 @@ export function MarkdownContent({ content, className, disableLinks = false }: Ma
         "prose-table:border-collapse",
         "prose-th:border prose-th:border-zinc-300 dark:prose-th:border-zinc-700 prose-th:p-2 prose-th:bg-zinc-100 dark:prose-th:bg-zinc-800",
         "prose-td:border prose-td:border-zinc-300 dark:prose-td:border-zinc-700 prose-td:p-2",
-        className,
+        className
       )}
     >
       <ReactMarkdown
@@ -43,32 +47,26 @@ export function MarkdownContent({ content, className, disableLinks = false }: Ma
         rehypePlugins={[rehypeRaw]}
         components={{
           code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || "")
-            const language = match ? match[1] : undefined
-            const codeContent = String(children).replace(/\n$/, "")
+            const match = /language-(\w+)/.exec(className || "");
+            const language = match ? match[1] : undefined;
+            const codeContent = String(children).replace(/\n$/, "");
 
             // Инлайн код определяется по отсутствию языка и отсутствию переносов строк
-            const isInline = !language && !codeContent.includes("\n")
+            const isInline = !language && !codeContent.includes("\n");
 
             // Инлайн код (однострочный)
             if (isInline) {
-              return <InlineCode className={className}>{codeContent}</InlineCode>
+              return <InlineCode className={className}>{codeContent}</InlineCode>;
             }
 
             // Многострочный код
-            return (
-              <CodeBlock
-                code={codeContent}
-                language={language}
-                className={className}
-              />
-            )
+            return <CodeBlock code={codeContent} language={language} className={className} />;
           },
           pre({ children, ...props }) {
             // pre оборачивается автоматически react-markdown, но мы обрабатываем код внутри code компонента
             // Убираем ref и другие специфичные для pre пропсы, чтобы избежать конфликтов типов
-            const { ref, ...divProps } = props as any
-            return <div {...divProps}>{children}</div>
+            const { ref, ...divProps } = props as any;
+            return <div {...divProps}>{children}</div>;
           },
           a({ href, children, ...props }) {
             if (disableLinks) {
@@ -76,30 +74,29 @@ export function MarkdownContent({ content, className, disableLinks = false }: Ma
                 <span className="text-purple-600 dark:text-purple-400 underline" {...props}>
                   {children}
                 </span>
-              )
+              );
             }
             return (
-              <a 
-                href={href} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300" 
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
                 {...props}
               >
                 {children}
               </a>
-            )
+            );
           },
           img({ src, alt, ...props }) {
-            if (!src || typeof src !== "string") return null
+            if (!src || typeof src !== "string") return null;
 
-            const isUrl =
-              src.startsWith("http://") || src.startsWith("https://")
+            const isUrl = src.startsWith("http://") || src.startsWith("https://");
 
             if (!isUrl) {
-              return null
+              return null;
             }
 
             return (
@@ -111,17 +108,16 @@ export function MarkdownContent({ content, className, disableLinks = false }: Ma
                 loading="lazy"
                 onError={(e) => {
                   e.currentTarget.src =
-                    "https://via.placeholder.com/400x300?text=Изображение+недоступно"
-                  e.currentTarget.alt = "Изображение недоступно"
+                    "https://via.placeholder.com/400x300?text=Изображение+недоступно";
+                  e.currentTarget.alt = "Изображение недоступно";
                 }}
               />
-            )
+            );
           },
         }}
       >
         {content}
       </ReactMarkdown>
     </div>
-  )
+  );
 }
-

@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "./supabase-server"
-import { redirect } from "next/navigation"
+import { redirect } from "next/navigation";
+import { createServerSupabaseClient } from "./supabase-server";
 
 /**
  * Проверка аутентификации на сервере
@@ -7,15 +7,15 @@ import { redirect } from "next/navigation"
  */
 export async function checkAuth(): Promise<boolean> {
   try {
-    const supabase = await createServerSupabaseClient()
+    const supabase = await createServerSupabaseClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
-    return !!user
+    return !!user;
   } catch (error) {
-    console.error("Error checking auth:", error)
-    return false
+    console.error("Error checking auth:", error);
+    return false;
   }
 }
 
@@ -24,9 +24,9 @@ export async function checkAuth(): Promise<boolean> {
  * Используется для защищенных страниц (профиль, создание поста и т.д.)
  */
 export async function requireAuth(redirectTo = "/login"): Promise<void> {
-  const isAuthenticated = await checkAuth()
+  const isAuthenticated = await checkAuth();
   if (!isAuthenticated) {
-    redirect(redirectTo)
+    redirect(redirectTo);
   }
 }
 
@@ -35,9 +35,8 @@ export async function requireAuth(redirectTo = "/login"): Promise<void> {
  * Перенаправляет авторизованных пользователей на главную страницу
  */
 export async function requireGuest(redirectTo = "/"): Promise<void> {
-  const isAuthenticated = await checkAuth()
+  const isAuthenticated = await checkAuth();
   if (isAuthenticated) {
-    redirect(redirectTo)
+    redirect(redirectTo);
   }
 }
-

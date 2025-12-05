@@ -1,58 +1,56 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useTheme } from "next-themes"
-import { codeToHtml } from "shiki"
-import { Copy, Check } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Check, Copy } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { codeToHtml } from "shiki";
+import { cn } from "@/lib/utils";
 
 interface CodeBlockProps {
-  code: string
-  language?: string
-  className?: string
+  code: string;
+  language?: string;
+  className?: string;
 }
 
 export function CodeBlock({ code, language, className }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false)
-  const [highlightedCode, setHighlightedCode] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [mounted, setMounted] = useState(false)
-  const { resolvedTheme, theme } = useTheme()
+  const [copied, setCopied] = useState(false);
+  const [highlightedCode, setHighlightedCode] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme, theme } = useTheme();
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!mounted) return
+    if (!mounted) return;
 
-    let isMounted = true
+    let isMounted = true;
 
     const highlightCode = async () => {
       if (!language) {
-        setIsLoading(false)
-        return
+        setIsLoading(false);
+        return;
       }
 
       try {
         // Определяем тему
-        let currentTheme = resolvedTheme
+        let currentTheme = resolvedTheme;
         if (!currentTheme) {
           if (theme === "system") {
-            currentTheme = window.matchMedia("(prefers-color-scheme: dark)")
-              .matches
+            currentTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
               ? "dark"
-              : "light"
+              : "light";
           } else {
-            currentTheme = theme || "light"
+            currentTheme = theme || "light";
           }
         }
 
-        const shikiTheme =
-          currentTheme === "dark" ? "github-dark" : "github-light"
+        const shikiTheme = currentTheme === "dark" ? "github-dark" : "github-light";
 
         // Нормализуем язык
-        const normalizedLang = language.toLowerCase().trim()
+        const normalizedLang = language.toLowerCase().trim();
         const langMap: Record<string, string> = {
           js: "javascript",
           ts: "typescript",
@@ -71,75 +69,69 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
           cs: "csharp",
           kt: "kotlin",
           code: "plaintext",
-        }
+        };
 
-        const lang = langMap[normalizedLang] || normalizedLang
+        const lang = langMap[normalizedLang] || normalizedLang;
 
-        if (!isMounted) return
+        if (!isMounted) return;
 
         const html = await codeToHtml(code, {
           lang: lang,
           theme: shikiTheme,
-        })
+        });
 
         // Заменяем встроенные стили фона от shiki на наш серый фон
         const modifiedHtml = html
-          .replace(
-            /style="([^"]*background[^"]*)"/gi,
-            (match, styles) => {
-              const cleanStyles = styles
-                .replace(/background[^:;]*:[^;]+/gi, "")
-                .replace(/;\s*;/g, ";")
-                .trim()
-              return cleanStyles ? `style="${cleanStyles}"` : ""
-            },
-          )
-          .replace(
-            /<pre([^>]*?)(?<!style)([^>]*?)>/gi,
-            (match, before, after) => {
-              if (!match.includes("style=")) {
-                return `<pre${before} style="background-color: hsl(var(--muted));"${after}>`
-              }
-              return match
-            },
-          )
+          .replace(/style="([^"]*background[^"]*)"/gi, (match, styles) => {
+            const cleanStyles = styles
+              .replace(/background[^:;]*:[^;]+/gi, "")
+              .replace(/;\s*;/g, ";")
+              .trim();
+            return cleanStyles ? `style="${cleanStyles}"` : "";
+          })
+          .replace(/<pre([^>]*?)(?<!style)([^>]*?)>/gi, (match, before, after) => {
+            if (!match.includes("style=")) {
+              return `<pre${before} style="background-color: hsl(var(--muted));"${after}>`;
+            }
+            return match;
+          });
 
         if (isMounted) {
-          setHighlightedCode(modifiedHtml)
-          setIsLoading(false)
+          setHighlightedCode(modifiedHtml);
+          setIsLoading(false);
         }
       } catch (error) {
-        console.error("Error highlighting code:", error)
+        console.error("Error highlighting code:", error);
         if (isMounted) {
-          setIsLoading(false)
+          setIsLoading(false);
         }
       }
-    }
+    };
 
-    highlightCode()
+    highlightCode();
 
     return () => {
-      isMounted = false
-    }
-  }, [code, language, resolvedTheme, theme, mounted])
+      isMounted = false;
+    };
+  }, [code, language, resolvedTheme, theme, mounted]);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(code)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy:", err)
+      console.error("Failed to copy:", err);
     }
-  }
+  };
 
   if (!mounted) {
     return (
-      <div 
+      <div
         className="relative group my-4"
         onClick={(e) => {
-          e.stopPropagation()
-          handleCopy()
+          e.stopPropagation();
+          handleCopy();
         }}
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -147,7 +139,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
           className={cn(
             "relative rounded-lg bg-muted p-4 overflow-x-auto cursor-pointer",
             "font-['Ubuntu_Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace]",
-            className,
+            className
           )}
         >
           <code className="text-sm">{code}</code>
@@ -160,11 +152,11 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
             "hover:scale-105 transition-all duration-200",
             "active:scale-95",
             "flex items-center justify-center",
-            "text-primary",
+            "text-primary"
           )}
           onClick={(e) => {
-            e.stopPropagation()
-            handleCopy()
+            e.stopPropagation();
+            handleCopy();
           }}
           aria-label="Скопировать код"
         >
@@ -175,15 +167,15 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
           )}
         </button>
       </div>
-    )
+    );
   }
 
   return (
-    <div 
+    <div
       className="relative group my-4"
       onClick={(e) => {
-        e.stopPropagation()
-        handleCopy()
+        e.stopPropagation();
+        handleCopy();
       }}
       onMouseDown={(e) => e.stopPropagation()}
     >
@@ -191,7 +183,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
         className={cn(
           "relative rounded-lg bg-muted p-4 overflow-x-auto cursor-pointer",
           "font-['Ubuntu_Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation_Mono','Courier_New',monospace]",
-          className,
+          className
         )}
       >
         {highlightedCode && !isLoading ? (
@@ -211,11 +203,11 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
           "hover:scale-105 transition-all duration-200",
           "active:scale-95",
           "flex items-center justify-center",
-          "text-primary",
+          "text-primary"
         )}
         onClick={(e) => {
-          e.stopPropagation()
-          handleCopy()
+          e.stopPropagation();
+          handleCopy();
         }}
         aria-label="Скопировать код"
       >
@@ -226,6 +218,5 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
         )}
       </button>
     </div>
-  )
+  );
 }
-

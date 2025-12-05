@@ -1,8 +1,12 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { Button } from "@/components/ui/button"
+import { Eye, EyeOff, Github } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import type React from "react";
+import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,119 +14,114 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/auth-context-supabase"
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
-import { Eye, EyeOff, Github } from "lucide-react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Suspense, useEffect, useState } from "react"
-import { toast } from "sonner"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/auth-context-supabase";
+import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 
 function LoginForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const [isGithubLoading, setIsGithubLoading] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const { signIn, signInWithGoogle, signInWithGithub, user, isLoading: authLoading } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGithubLoading, setIsGithubLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { signIn, signInWithGoogle, signInWithGithub, user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Редирект если уже авторизован
   // Редирект если уже авторизован
   useEffect(() => {
     if (!authLoading && user) {
-      const redirect = searchParams.get("redirect")
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
+      const redirect = searchParams.get("redirect");
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/");
     }
-  }, [user, authLoading, router, searchParams])
+  }, [user, authLoading, router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormError(null)
-    setIsLoading(true)
+    e.preventDefault();
+    setFormError(null);
+    setIsLoading(true);
 
     try {
-      const { error } = await signIn(email, password)
+      const { error } = await signIn(email, password);
 
       if (error) {
-        console.error("Login error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsLoading(false)
-        return
+        console.error("Login error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsLoading(false);
+        return;
       }
 
       toast.success("Успешный вход", {
         description: "Вы успешно вошли в систему",
-      })
+      });
 
-      const redirect = searchParams.get("redirect")
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
+      const redirect = searchParams.get("redirect");
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/");
     } catch (error) {
-      console.error("Unexpected login error:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsLoading(false)
+      console.error("Unexpected login error:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsLoading(false);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    setFormError(null)
-    setIsGoogleLoading(true)
+    setFormError(null);
+    setIsGoogleLoading(true);
 
     try {
-      const { error } = await signInWithGoogle()
+      const { error } = await signInWithGoogle();
 
       if (error) {
-        console.error("Google sign in error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsGoogleLoading(false)
-        return
+        console.error("Google sign in error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsGoogleLoading(false);
+        return;
       }
 
       // OAuth редиректит на callback, который обработает вход
       // Toast и редирект будут в callback
     } catch (error) {
-      console.error("Unexpected Google sign in error:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsGoogleLoading(false)
+      console.error("Unexpected Google sign in error:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsGoogleLoading(false);
     }
-  }
+  };
 
   const handleGithubSignIn = async () => {
-    setFormError(null)
-    setIsGithubLoading(true)
+    setFormError(null);
+    setIsGithubLoading(true);
 
     try {
-      const { error } = await signInWithGithub()
+      const { error } = await signInWithGithub();
 
       if (error) {
-        console.error("GitHub sign in error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsGithubLoading(false)
-        return
+        console.error("GitHub sign in error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsGithubLoading(false);
+        return;
       }
 
       // OAuth редиректит на callback, который обработает вход
       // Toast и редирект будут в callback
     } catch (error) {
-      console.error("Unexpected GitHub sign in error:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsGithubLoading(false)
+      console.error("Unexpected GitHub sign in error:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsGithubLoading(false);
     }
-  }
+  };
 
   // Показываем загрузку пока проверяем аутентификацию
   if (authLoading) {
@@ -130,20 +129,17 @@ function LoginForm() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-muted-foreground">Загрузка...</div>
       </div>
-    )
+    );
   }
 
   // Не скрываем форму для авторизованных пользователей
-
 
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
-              Вход в AI News
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Вход в AI News</CardTitle>
             <CardDescription className="text-center">
               Войдите в свой аккаунт для продолжения
             </CardDescription>
@@ -192,11 +188,7 @@ function LoginForm() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -265,10 +257,7 @@ function LoginForm() {
 
               <div className="text-center text-sm text-muted-foreground">
                 Нет аккаунта?{" "}
-                <Link
-                  href="/register"
-                  className="text-primary hover:underline"
-                >
+                <Link href="/register" className="text-primary hover:underline">
                   Зарегистрироваться
                 </Link>
               </div>
@@ -277,18 +266,19 @@ function LoginForm() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 export default function Login() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Загрузка...</div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="text-muted-foreground">Загрузка...</div>
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
-  )
+  );
 }
-

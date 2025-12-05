@@ -1,6 +1,9 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
+import { LogOut, User } from "lucide-react";
+import Link from "next/link";
+import { SimpleAvatar } from "@/components/simple-avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,14 +12,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { SimpleAvatar } from "@/components/simple-avatar"
-import { useAuth } from "@/context/auth-context-supabase"
-import { LogOut, User } from "lucide-react"
-import Link from "next/link"
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/auth-context-supabase";
 
 export function UserNav() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut } = useAuth();
 
   if (!user || !profile) {
     return (
@@ -28,31 +28,22 @@ export function UserNav() {
           <Link href="/register">Регистрация</Link>
         </Button>
       </div>
-    )
+    );
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="relative h-auto p-2 gap-2 hover:bg-accent"
-        >
+        <Button variant="ghost" className="relative h-auto p-2 gap-2 hover:bg-accent">
           <SimpleAvatar username={profile.username} size="sm" />
-          <span className="hidden sm:inline-block font-medium">
-            {profile.username}
-          </span>
+          <span className="hidden sm:inline-block font-medium">{profile.username}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
-              {profile.username}
-            </p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
+            <p className="text-sm font-medium leading-none">{profile.username}</p>
+            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -74,6 +65,5 @@ export function UserNav() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
-

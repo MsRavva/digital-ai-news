@@ -1,8 +1,12 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { Button } from "@/components/ui/button"
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,27 +14,22 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/auth-context-supabase"
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
-import { Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/auth-context-supabase";
+import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 
 export default function ResetPassword() {
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const { updatePassword, user } = useAuth()
-  const router = useRouter()
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { updatePassword, user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     // Проверяем, есть ли у пользователя сессия восстановления
@@ -39,58 +38,58 @@ export default function ResetPassword() {
       // Даем немного времени для обработки hash из URL
       const timer = setTimeout(() => {
         if (!user) {
-          router.push("/forgot-password")
+          router.push("/forgot-password");
         }
-      }, 1000)
-      return () => clearTimeout(timer)
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-  }, [user, router])
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormError(null)
+    e.preventDefault();
+    setFormError(null);
 
     if (password !== confirmPassword) {
-      setFormError("Пароли не совпадают")
-      return
+      setFormError("Пароли не совпадают");
+      return;
     }
 
     if (password.length < 6) {
-      setFormError("Пароль должен содержать минимум 6 символов")
-      return
+      setFormError("Пароль должен содержать минимум 6 символов");
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const { error } = await updatePassword(password)
+      const { error } = await updatePassword(password);
 
       if (error) {
-        console.error("Password update error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsLoading(false)
-        return
+        console.error("Password update error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsLoading(false);
+        return;
       }
 
-      setIsSuccess(true)
+      setIsSuccess(true);
       toast.success("Пароль обновлен", {
         description: "Ваш пароль успешно изменен",
-      })
+      });
 
       // Редирект на главную через небольшую задержку
       setTimeout(() => {
-        router.push("/")
-      }, 2000)
+        router.push("/");
+      }, 2000);
     } catch (error) {
-      console.error("Unexpected password update error:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsLoading(false)
+      console.error("Unexpected password update error:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsLoading(false);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (isSuccess) {
     return (
@@ -118,7 +117,7 @@ export default function ResetPassword() {
           </Card>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -126,9 +125,7 @@ export default function ResetPassword() {
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
-              Сброс пароля
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Сброс пароля</CardTitle>
             <CardDescription className="text-center">
               Введите новый пароль для вашего аккаунта
             </CardDescription>
@@ -159,11 +156,7 @@ export default function ResetPassword() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
@@ -209,6 +202,5 @@ export default function ResetPassword() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

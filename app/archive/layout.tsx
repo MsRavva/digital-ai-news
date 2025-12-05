@@ -1,11 +1,6 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-export default async function ArchiveLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function ArchiveLayout({ children }: { children: React.ReactNode }) {
   // Защита маршрутов теперь обрабатывается в proxy.ts
-  return <>{children}</>
+  return <>{children}</>;
 }
-

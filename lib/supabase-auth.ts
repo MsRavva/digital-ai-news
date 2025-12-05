@@ -1,7 +1,7 @@
-import { supabase } from "./supabase"
-import { saveReturnUrl } from "./auth-helpers"
-import type { Profile } from "@/types/database"
-import type { User, AuthError } from "@supabase/supabase-js"
+import type { AuthError, User } from "@supabase/supabase-js";
+import type { Profile } from "@/types/database";
+import { saveReturnUrl } from "./auth-helpers";
+import { supabase } from "./supabase";
 
 // Регистрация нового пользователя
 export const signUp = async (
@@ -21,25 +21,25 @@ export const signUp = async (
           role,
         },
       },
-    })
+    });
 
     if (error) {
-      console.error("Error signing up:", error)
-      return { user: null, error }
+      console.error("Error signing up:", error);
+      return { user: null, error };
     }
 
     if (!data.user) {
-      return { user: null, error: { message: "User creation failed" } as AuthError }
+      return { user: null, error: { message: "User creation failed" } as AuthError };
     }
 
     // Профиль создастся автоматически через database trigger
 
-    return { user: data.user, error: null }
+    return { user: data.user, error: null };
   } catch (error) {
-    console.error("Unexpected error during sign up:", error)
-    return { user: null, error: error as AuthError }
+    console.error("Unexpected error during sign up:", error);
+    return { user: null, error: error as AuthError };
   }
-}
+};
 
 // Вход пользователя
 export const signIn = async (
@@ -50,26 +50,26 @@ export const signIn = async (
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
 
     if (error) {
-      console.error("Error signing in:", error)
-      return { user: null, error }
+      console.error("Error signing in:", error);
+      return { user: null, error };
     }
 
-    return { user: data.user, error: null }
+    return { user: data.user, error: null };
   } catch (error) {
-    console.error("Unexpected error during sign in:", error)
-    return { user: null, error: error as AuthError }
+    console.error("Unexpected error during sign in:", error);
+    return { user: null, error: error as AuthError };
   }
-}
+};
 
 // Вход через Google
 export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> => {
   try {
-    const pathname = window.location.pathname
+    const pathname = window.location.pathname;
     if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
-      saveReturnUrl(pathname)
+      saveReturnUrl(pathname);
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -77,26 +77,26 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    })
+    });
 
     if (error) {
-      console.error("Error signing in with Google:", error)
-      return { error }
+      console.error("Error signing in with Google:", error);
+      return { error };
     }
 
-    return { error: null }
+    return { error: null };
   } catch (error) {
-    console.error("Unexpected error during Google sign in:", error)
-    return { error: error as AuthError }
+    console.error("Unexpected error during Google sign in:", error);
+    return { error: error as AuthError };
   }
-}
+};
 
 // Вход через GitHub
 export const signInWithGithub = async (): Promise<{ error: AuthError | null }> => {
   try {
-    const pathname = window.location.pathname
+    const pathname = window.location.pathname;
     if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
-      saveReturnUrl(pathname)
+      saveReturnUrl(pathname);
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -104,75 +104,71 @@ export const signInWithGithub = async (): Promise<{ error: AuthError | null }> =
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    })
+    });
 
     if (error) {
-      console.error("Error signing in with GitHub:", error)
-      return { error }
+      console.error("Error signing in with GitHub:", error);
+      return { error };
     }
 
-    return { error: null }
+    return { error: null };
   } catch (error) {
-    console.error("Unexpected error during GitHub sign in:", error)
-    return { error: error as AuthError }
+    console.error("Unexpected error during GitHub sign in:", error);
+    return { error: error as AuthError };
   }
-}
+};
 
 // Выход пользователя
 export const signOut = async (): Promise<{ error: AuthError | null }> => {
   try {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut();
 
     if (error) {
-      console.error("Error signing out:", error)
-      return { error }
+      console.error("Error signing out:", error);
+      return { error };
     }
 
-    return { error: null }
+    return { error: null };
   } catch (error) {
-    console.error("Unexpected error during sign out:", error)
-    return { error: error as AuthError }
+    console.error("Unexpected error during sign out:", error);
+    return { error: error as AuthError };
   }
-}
+};
 
 // Получение текущего пользователя
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
-    const { data, error } = await supabase.auth.getUser()
+    const { data, error } = await supabase.auth.getUser();
 
     if (error) {
-      console.error("Error getting current user:", error)
-      return null
+      console.error("Error getting current user:", error);
+      return null;
     }
 
-    return data.user
+    return data.user;
   } catch (error) {
-    console.error("Unexpected error getting current user:", error)
-    return null
+    console.error("Unexpected error getting current user:", error);
+    return null;
   }
-}
+};
 
 // Получение профиля пользователя
 export const getUserProfile = async (userId: string): Promise<Profile | null> => {
   try {
     // Используем обычный клиент - RLS политики должны разрешать чтение своего профиля
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single()
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
     if (error) {
       if (error.code === "PGRST116") {
         // No rows returned
-        return null
+        return null;
       }
-      console.error("Error fetching user profile:", error)
-      return null
+      console.error("Error fetching user profile:", error);
+      return null;
     }
 
     if (!data) {
-      return null
+      return null;
     }
 
     return {
@@ -188,77 +184,74 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
       social: data.social as Profile["social"] | undefined,
       avatar_url: data.avatar_url || undefined,
       preferredCategory: data.preferred_category || undefined,
-    }
+    };
   } catch (error) {
-    console.error("Error fetching user profile:", error)
-    return null
+    console.error("Error fetching user profile:", error);
+    return null;
   }
-}
+};
 
 // Обновление профиля пользователя
 export const updateUserProfile = async (
   userId: string,
-  profileData: Partial<Profile>,
+  profileData: Partial<Profile>
 ): Promise<{ success: boolean; error: any }> => {
   try {
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString(),
-    }
+    };
 
     if (profileData.username !== undefined) {
-      updateData.username = profileData.username
+      updateData.username = profileData.username;
     }
     if (profileData.email !== undefined) {
-      updateData.email = profileData.email
+      updateData.email = profileData.email;
     }
     if (profileData.role !== undefined) {
-      updateData.role = profileData.role
+      updateData.role = profileData.role;
     }
     if (profileData.bio !== undefined) {
-      updateData.bio = profileData.bio
+      updateData.bio = profileData.bio;
     }
     if (profileData.location !== undefined) {
-      updateData.location = profileData.location
+      updateData.location = profileData.location;
     }
     if (profileData.website !== undefined) {
-      updateData.website = profileData.website
+      updateData.website = profileData.website;
     }
     if (profileData.social !== undefined) {
-      updateData.social = profileData.social
+      updateData.social = profileData.social;
     }
     if (profileData.avatar_url !== undefined) {
-      updateData.avatar_url = profileData.avatar_url
+      updateData.avatar_url = profileData.avatar_url;
     }
     if (profileData.preferredCategory !== undefined) {
-      updateData.preferred_category = profileData.preferredCategory
+      updateData.preferred_category = profileData.preferredCategory;
     }
 
     // Используем обычный клиент - RLS политики должны разрешать обновление своего профиля
-    const { error } = await supabase
-      .from("profiles")
-      .update(updateData)
-      .eq("id", userId)
+    const { error } = await supabase.from("profiles").update(updateData).eq("id", userId);
 
     if (error) {
-      console.error("Error updating user profile:", error)
-      return { success: false, error }
+      console.error("Error updating user profile:", error);
+      return { success: false, error };
     }
 
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (error) {
-    console.error("Error updating user profile:", error)
-    return { success: false, error }
+    console.error("Error updating user profile:", error);
+    return { success: false, error };
   }
-}
+};
 
 // Создание профиля пользователя
 export const createUserProfile = async (
   userId: string,
   profileData: {
-    username: string
-    email?: string
-    role?: "student" | "teacher" | "admin"
-  },
+    username: string;
+    email?: string;
+    role?: "student" | "teacher" | "admin";
+  }
 ): Promise<{ success: boolean; error: any }> => {
   try {
     // Используем обычный клиент - RLS политики должны разрешать создание профиля
@@ -268,73 +261,67 @@ export const createUserProfile = async (
       username: profileData.username,
       email: profileData.email || null,
       role: profileData.role || "student",
-    })
+    });
 
     if (error) {
-      console.error("Error creating user profile:", error)
-      return { success: false, error }
+      console.error("Error creating user profile:", error);
+      return { success: false, error };
     }
 
-    return { success: true, error: null }
+    return { success: true, error: null };
   } catch (error) {
-    console.error("Error creating user profile:", error)
-    return { success: false, error }
+    console.error("Error creating user profile:", error);
+    return { success: false, error };
   }
-}
+};
 
 // Сброс пароля (отправка email с ссылкой для сброса)
-export const resetPassword = async (
-  email: string
-): Promise<{ error: AuthError | null }> => {
+export const resetPassword = async (email: string): Promise<{ error: AuthError | null }> => {
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
-    })
+    });
 
     if (error) {
-      console.error("Error resetting password:", error)
-      return { error }
+      console.error("Error resetting password:", error);
+      return { error };
     }
 
-    return { error: null }
+    return { error: null };
   } catch (error) {
-    console.error("Unexpected error during password reset:", error)
-    return { error: error as AuthError }
+    console.error("Unexpected error during password reset:", error);
+    return { error: error as AuthError };
   }
-}
+};
 
 // Обновление пароля (после перехода по ссылке из email)
-export const updatePassword = async (
-  newPassword: string
-): Promise<{ error: AuthError | null }> => {
+export const updatePassword = async (newPassword: string): Promise<{ error: AuthError | null }> => {
   try {
     const { error } = await supabase.auth.updateUser({
       password: newPassword,
-    })
+    });
 
     if (error) {
-      console.error("Error updating password:", error)
-      return { error }
+      console.error("Error updating password:", error);
+      return { error };
     }
 
-    return { error: null }
+    return { error: null };
   } catch (error) {
-    console.error("Unexpected error during password update:", error)
-    return { error: error as AuthError }
+    console.error("Unexpected error during password update:", error);
+    return { error: error as AuthError };
   }
-}
+};
 
 // Подписка на изменения состояния аутентификации
-export const subscribeToAuthChanges = (
-  callback: (user: User | null) => void
-) => {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (_event, session) => {
-      callback(session?.user ?? null)
-    }
-  )
+export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session?.user ?? null);
+  });
 
   return () => {
-    subscription.unsubscribe()
-  }
-}
+    subscription.unsubscribe();
+  };
+};

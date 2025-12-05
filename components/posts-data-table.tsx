@@ -1,14 +1,12 @@
-"use client"
+"use client";
 
-import { useId, useState, useEffect, useCallback } from "react"
-import { SearchIcon, MessageSquare, ThumbsUp, Eye, Pencil, Paperclip, Archive, ArchiveRestore, Trash2 } from "lucide-react"
 import type {
   Column,
   ColumnDef,
   ColumnFiltersState,
   RowData,
   SortingState,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
@@ -17,35 +15,23 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+} from "@tanstack/react-table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { SimpleAvatar } from "@/components/simple-avatar"
-import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/ui/spinner"
-import { cn } from "@/lib/utils"
-import type { Post } from "@/types/database"
-import { getPosts } from "@/lib/supabase-posts"
-import { togglePinPost, archivePost, unarchivePost, deletePost } from "@/lib/supabase-post-actions"
-import { useAuth } from "@/context/auth-context-supabase"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import Link from "next/link"
-import {
-  saveCategoryToCookie,
-  getCategoryFromCookie,
-  saveCategoryToProfile,
-  getCategoryFromProfile,
-} from "@/lib/category-storage"
+  Archive,
+  ArchiveRestore,
+  Eye,
+  MessageSquare,
+  Paperclip,
+  Pencil,
+  SearchIcon,
+  ThumbsUp,
+  Trash2,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useId, useState } from "react";
+import { toast } from "sonner";
+import { SimpleAvatar } from "@/components/simple-avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,12 +41,36 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/context/auth-context-supabase";
+import {
+  getCategoryFromCookie,
+  getCategoryFromProfile,
+  saveCategoryToCookie,
+  saveCategoryToProfile,
+} from "@/lib/category-storage";
+import { archivePost, deletePost, togglePinPost, unarchivePost } from "@/lib/supabase-post-actions";
+import { getPosts } from "@/lib/supabase-posts";
+import { cn } from "@/lib/utils";
+import type { Post } from "@/types/database";
 
 declare module "@tanstack/react-table" {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
-    filterVariant?: "text"
+    filterVariant?: "text";
   }
 }
 
@@ -72,7 +82,7 @@ const createColumns = (
   handleTogglePin: (postId: string) => void,
   handleToggleArchive: (postId: string, archived: boolean) => void,
   handleDelete: (postId: string) => void,
-  onTagClick?: (tag: string) => void,
+  onTagClick?: (tag: string) => void
 ): ColumnDef<Post>[] => [
   {
     header: "Автор",
@@ -113,32 +123,28 @@ const createColumns = (
     header: "Дата",
     accessorKey: "created_at",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("created_at"))
-      const day = String(date.getDate()).padStart(2, "0")
-      const month = String(date.getMonth() + 1).padStart(2, "0")
-      const year = String(date.getFullYear()).slice(-2)
-      return (
-        <div className="text-sm text-muted-foreground">
-          {`${day}.${month}.${year}`}
-        </div>
-      )
+      const date = new Date(row.getValue("created_at"));
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = String(date.getFullYear()).slice(-2);
+      return <div className="text-sm text-muted-foreground">{`${day}.${month}.${year}`}</div>;
     },
   },
   {
     header: "Теги",
     accessorKey: "tags",
     cell: ({ row }) => {
-      const tags = row.original.tags || []
+      const tags = row.original.tags || [];
       return (
         <div className="flex flex-wrap gap-1">
           {tags.slice(0, 3).map((tag, index) => (
-            <Badge 
-              key={index} 
-              variant="secondary" 
+            <Badge
+              key={index}
+              variant="secondary"
               className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
               onClick={(e) => {
-                e.stopPropagation()
-                onTagClick?.(tag)
+                e.stopPropagation();
+                onTagClick?.(tag);
               }}
             >
               {tag}
@@ -150,7 +156,7 @@ const createColumns = (
             </Badge>
           )}
         </div>
-      )
+      );
     },
     enableSorting: false,
   },
@@ -158,9 +164,9 @@ const createColumns = (
     header: "Статистика",
     accessorKey: "stats",
     cell: ({ row }) => {
-      const likesCount = row.original.likesCount || 0
-      const commentsCount = row.original.commentsCount || 0
-      const viewsCount = row.original.viewsCount || 0
+      const likesCount = row.original.likesCount || 0;
+      const commentsCount = row.original.commentsCount || 0;
+      const viewsCount = row.original.viewsCount || 0;
 
       return (
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -177,7 +183,7 @@ const createColumns = (
             {viewsCount}
           </div>
         </div>
-      )
+      );
     },
     enableSorting: false,
   },
@@ -185,7 +191,7 @@ const createColumns = (
     header: "Действия",
     id: "actions",
     cell: ({ row }) => {
-      const post = row.original
+      const post = row.original;
       return (
         <div className="flex items-center gap-1">
           {canEdit(post) && (
@@ -194,8 +200,8 @@ const createColumns = (
               size="icon"
               className="h-8 w-8 text-primary hover:text-primary/80"
               onClick={(e) => {
-                e.stopPropagation()
-                handleEdit(post.id)
+                e.stopPropagation();
+                handleEdit(post.id);
               }}
               title="Редактировать"
             >
@@ -209,8 +215,8 @@ const createColumns = (
                 size="icon"
                 className={`h-8 w-8 ${post.pinned ? "text-primary" : "text-muted-foreground"}`}
                 onClick={(e) => {
-                  e.stopPropagation()
-                  handleTogglePin(post.id)
+                  e.stopPropagation();
+                  handleTogglePin(post.id);
                 }}
                 title={post.pinned ? "Открепить" : "Закрепить"}
               >
@@ -221,8 +227,8 @@ const createColumns = (
                 size="icon"
                 className={`h-8 w-8 ${post.archived ? "text-[var(--chart-3)]" : "text-[var(--chart-4)]"}`}
                 onClick={(e) => {
-                  e.stopPropagation()
-                  handleToggleArchive(post.id, !!post.archived)
+                  e.stopPropagation();
+                  handleToggleArchive(post.id, !!post.archived);
                 }}
                 title={post.archived ? "Восстановить из архива" : "Архивировать"}
               >
@@ -240,8 +246,8 @@ const createColumns = (
               size="icon"
               className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
               onClick={(e) => {
-                e.stopPropagation()
-                handleDelete(post.id)
+                e.stopPropagation();
+                handleDelete(post.id);
               }}
               title="Удалить"
             >
@@ -249,15 +255,21 @@ const createColumns = (
             </Button>
           )}
         </div>
-      )
+      );
     },
     enableSorting: false,
   },
-]
+];
 
-function SearchFilter({ column, onTagClick }: { column: Column<any, unknown>, onTagClick?: (tag: string) => void }) {
-  const id = useId()
-  const columnFilterValue = column.getFilterValue()
+function SearchFilter({
+  column,
+  onTagClick,
+}: {
+  column: Column<any, unknown>;
+  onTagClick?: (tag: string) => void;
+}) {
+  const id = useId();
+  const columnFilterValue = column.getFilterValue();
 
   return (
     <div className="relative">
@@ -274,181 +286,178 @@ function SearchFilter({ column, onTagClick }: { column: Column<any, unknown>, on
         <span className="text-sm">Поиск</span>
       </div>
     </div>
-  )
+  );
 }
 
 interface PostsDataTableProps {
-  archivedOnly?: boolean
-  category?: string
-  searchQuery?: string
-  onSearchChange?: (query: string) => void
+  archivedOnly?: boolean;
+  category?: string;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
-export function PostsDataTable({ archivedOnly = false, category, searchQuery = "", onSearchChange }: PostsDataTableProps) {
-  const { profile, user, isLoading: authLoading } = useAuth()
-  const router = useRouter()
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  const [postIdToDelete, setPostIdToDelete] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+export function PostsDataTable({
+  archivedOnly = false,
+  category,
+  searchQuery = "",
+  onSearchChange,
+}: PostsDataTableProps) {
+  const { profile, user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [postIdToDelete, setPostIdToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   // Используем проп category как основной источник, с fallback на внутреннее состояние
   const [internalCategory, setInternalCategory] = useState<string>(() => {
     // Пытаемся получить из cookie только если проп не передан
     if (!category) {
-      const cookieCategory = getCategoryFromCookie()
+      const cookieCategory = getCategoryFromCookie();
       if (cookieCategory) {
-        return cookieCategory
+        return cookieCategory;
       }
     }
-    return category || "all"
-  })
-  
+    return category || "all";
+  });
+
   // Используем проп category, если он передан, иначе используем внутреннее состояние
-  const selectedCategory = category || internalCategory
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = useState<SortingState>([])
+  const selectedCategory = category || internalCategory;
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   // Синхронизация searchQuery с фильтрами
   useEffect(() => {
     if (searchQuery !== undefined) {
-      setColumnFilters(prev => {
-        const filtered = prev.filter(f => f.id !== "title")
-        return searchQuery ? [...filtered, { id: "title", value: searchQuery }] : filtered
-      })
+      setColumnFilters((prev) => {
+        const filtered = prev.filter((f) => f.id !== "title");
+        return searchQuery ? [...filtered, { id: "title", value: searchQuery }] : filtered;
+      });
     }
-  }, [searchQuery])
+  }, [searchQuery]);
 
   // Проверка прав доступа
-  const isTeacherOrAdmin = !authLoading && (profile?.role === "teacher" || profile?.role === "admin")
+  const isTeacherOrAdmin =
+    !authLoading && (profile?.role === "teacher" || profile?.role === "admin");
 
   const canEdit = (post: Post) => {
-    if (authLoading || !profile) return false
+    if (authLoading || !profile) return false;
     return (
       profile.role === "teacher" ||
       profile.role === "admin" ||
       post.author?.username === profile.username
-    )
-  }
+    );
+  };
 
   const canDelete = (post: Post) => {
     if (authLoading || !profile) {
-      return false
+      return false;
     }
-    return profile.role === "admin" || profile.role === "teacher"
-  }
+    return profile.role === "admin" || profile.role === "teacher";
+  };
 
   // Обработчики действий
   const handleEdit = (postId: string) => {
-    router.push(`/edit/${postId}`)
-  }
+    router.push(`/edit/${postId}`);
+  };
 
   const handleTogglePin = async (postId: string) => {
     try {
-      const post = posts.find((p) => p.id === postId)
-      if (!post) return
+      const post = posts.find((p) => p.id === postId);
+      if (!post) return;
 
-      const success = await togglePinPost(postId)
+      const success = await togglePinPost(postId);
       if (success) {
-        const newPinned = !post.pinned
-        setPosts(
-          posts.map((p) => (p.id === postId ? { ...p, pinned: newPinned } : p)),
-        )
-        toast.success(
-          newPinned ? "Публикация закреплена" : "Публикация откреплена",
-        )
+        const newPinned = !post.pinned;
+        setPosts(posts.map((p) => (p.id === postId ? { ...p, pinned: newPinned } : p)));
+        toast.success(newPinned ? "Публикация закреплена" : "Публикация откреплена");
       } else {
-        toast.error("Не удалось изменить статус закрепления")
+        toast.error("Не удалось изменить статус закрепления");
       }
     } catch (error) {
-      console.error("Error toggling pin:", error)
-      toast.error("Произошла ошибка")
+      console.error("Error toggling pin:", error);
+      toast.error("Произошла ошибка");
     }
-  }
+  };
 
   const handleToggleArchive = async (postId: string, archived: boolean) => {
     try {
-      const success = archived
-        ? await unarchivePost(postId)
-        : await archivePost(postId)
+      const success = archived ? await unarchivePost(postId) : await archivePost(postId);
       if (success) {
-        toast.success(
-          archived
-            ? "Публикация восстановлена из архива"
-            : "Публикация архивирована",
-        )
+        toast.success(archived ? "Публикация восстановлена из архива" : "Публикация архивирована");
         // Перезагружаем посты после успешного архивирования
-        await loadPosts()
+        await loadPosts();
       } else {
-        toast.error("Не удалось изменить статус архивации")
+        toast.error("Не удалось изменить статус архивации");
       }
     } catch (error) {
-      console.error("Error toggling archive:", error)
-      toast.error("Произошла ошибка")
+      console.error("Error toggling archive:", error);
+      toast.error("Произошла ошибка");
     }
-  }
+  };
 
   const handleDelete = (postId: string) => {
-    setPostIdToDelete(postId)
-  }
+    setPostIdToDelete(postId);
+  };
 
   const confirmDelete = async () => {
-    if (!postIdToDelete) return
+    if (!postIdToDelete) return;
 
-    setIsDeleting(true)
+    setIsDeleting(true);
 
     try {
-      const success = await deletePost(postIdToDelete)
+      const success = await deletePost(postIdToDelete);
       if (success) {
-        setPosts(posts.filter((post) => post.id !== postIdToDelete))
-        toast.success("Публикация удалена")
+        setPosts(posts.filter((post) => post.id !== postIdToDelete));
+        toast.success("Публикация удалена");
       } else {
-        toast.error("Не удалось удалить публикацию")
+        toast.error("Не удалось удалить публикацию");
       }
     } catch (error) {
-      console.error("Error deleting post:", error)
-      toast.error("Произошла ошибка")
+      console.error("Error deleting post:", error);
+      toast.error("Произошла ошибка");
     } finally {
-      setIsDeleting(false)
-      setPostIdToDelete(null)
+      setIsDeleting(false);
+      setPostIdToDelete(null);
     }
-  }
+  };
 
   // Синхронизация внутреннего состояния с пропом category
   useEffect(() => {
     if (category && category !== internalCategory) {
-      setInternalCategory(category)
+      setInternalCategory(category);
     }
-  }, [category, internalCategory])
+  }, [category, internalCategory]);
 
   // Функция загрузки публикаций
   const loadPosts = useCallback(async () => {
     // Не загружаем посты, если пользователь не авторизован
     if (!user || authLoading) {
-      return
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
       // Используем category из пропа напрямую, если он передан, иначе internalCategory
-      const categoryToUse = (category || internalCategory) === "all" ? undefined : (category || internalCategory)
-      const fetchedPosts = await getPosts(categoryToUse, archivedOnly, archivedOnly)
+      const categoryToUse =
+        (category || internalCategory) === "all" ? undefined : category || internalCategory;
+      const fetchedPosts = await getPosts(categoryToUse, archivedOnly, archivedOnly);
       // Посты уже отсортированы из Firestore (pinned desc, created_at desc)
-      setPosts(fetchedPosts)
+      setPosts(fetchedPosts);
     } catch (error) {
-      console.error("Error loading posts:", error)
+      console.error("Error loading posts:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [category, internalCategory, archivedOnly, user?.id, authLoading])
+  }, [category, internalCategory, archivedOnly, user?.id, authLoading]);
 
   // Загрузка публикаций (только для авторизованных пользователей)
   useEffect(() => {
-    loadPosts()
-  }, [loadPosts])
+    loadPosts();
+  }, [loadPosts]);
 
   const handleTagClick = (tag: string) => {
-    onSearchChange?.(tag)
-  }
+    onSearchChange?.(tag);
+  };
 
   const columns = createColumns(
     canEdit,
@@ -458,8 +467,8 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
     handleTogglePin,
     handleToggleArchive,
     handleDelete,
-    handleTagClick,
-  )
+    handleTagClick
+  );
 
   const table = useReactTable({
     data: posts,
@@ -476,8 +485,7 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
     getFacetedUniqueValues: getFacetedUniqueValues(),
     onSortingChange: setSorting,
     enableSortingRemoval: false,
-  })
-
+  });
 
   if (loading) {
     return (
@@ -487,12 +495,15 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
           <p className="text-muted-foreground">Загрузка публикаций...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <>
-      <AlertDialog open={postIdToDelete !== null} onOpenChange={(open) => !open && setPostIdToDelete(null)}>
+      <AlertDialog
+        open={postIdToDelete !== null}
+        onOpenChange={(open) => !open && setPostIdToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удаление публикации</AlertDialogTitle>
@@ -515,116 +526,115 @@ export function PostsDataTable({ archivedOnly = false, category, searchQuery = "
 
       <div className="w-full">
         {!category && (
-        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <Tabs
-            value={selectedCategory}
-            onValueChange={(newCategory) => {
-              setInternalCategory(newCategory)
-              // Если проп category не передан, сохраняем в куки
-              if (!category) {
-                saveCategoryToCookie(newCategory)
-                if (user) {
-                  saveCategoryToProfile(user.id, newCategory).catch(console.error)
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <Tabs
+              value={selectedCategory}
+              onValueChange={(newCategory) => {
+                setInternalCategory(newCategory);
+                // Если проп category не передан, сохраняем в куки
+                if (!category) {
+                  saveCategoryToCookie(newCategory);
+                  if (user) {
+                    saveCategoryToProfile(user.id, newCategory).catch(console.error);
+                  }
                 }
-              }
-            }}
-            className="w-auto"
-          >
-            <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
-              <TabsTrigger
-                value="all"
-                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-              >
-                Все категории
-              </TabsTrigger>
-              <TabsTrigger
-                value="news"
-                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-              >
-                Новости
-              </TabsTrigger>
-              <TabsTrigger
-                value="materials"
-                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-              >
-                Учебные материалы
-              </TabsTrigger>
-              <TabsTrigger
-                value="project-ideas"
-                className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
-              >
-                Идеи проектов
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <div className="w-full sm:w-64">
-            <SearchFilter column={table.getColumn("title")!} />
-          </div>
-        </div>
-      )}
-
-      <div className={cn(
-        "rounded-3xl border border-border/50 dark:border-white/[0.1] transition-all duration-300 overflow-hidden",
-        "shadow-[0_2px_15px_rgba(0,0,0,0.08),0_8px_25px_rgba(0,0,0,0.05)]",
-        "dark:shadow-[0_2px_20px_rgba(98,51,255,0.12),0_8px_35px_rgba(98,51,255,0.08),0_0_0_1px_rgba(255,255,255,0.03)]",
-        "hover:shadow-[0_4px_25px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)]",
-        "dark:hover:shadow-[0_4px_30px_rgba(98,51,255,0.18),0_12px_50px_rgba(98,51,255,0.12),0_0_0_1px_rgba(255,255,255,0.05)]"
-      )}>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup, groupIndex) => (
-              <TableRow key={headerGroup.id} className={cn(
-                "bg-muted/50",
-                groupIndex === 0 && "[&>th:first-child]:rounded-tl-3xl [&>th:last-child]:rounded-tr-3xl"
-              )}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="relative h-10 border-t select-none px-6 py-3"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-muted/50"
+              }}
+              className="w-auto"
+            >
+              <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
+                <TabsTrigger
+                  value="all"
+                  className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-6 py-3">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center px-6 py-3">
-                  Публикации не найдены
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-    </>
-  )
-}
+                  Все категории
+                </TabsTrigger>
+                <TabsTrigger
+                  value="news"
+                  className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                >
+                  Новости
+                </TabsTrigger>
+                <TabsTrigger
+                  value="materials"
+                  className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                >
+                  Учебные материалы
+                </TabsTrigger>
+                <TabsTrigger
+                  value="project-ideas"
+                  className="px-4 py-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:bg-background rounded-sm transition-all duration-200"
+                >
+                  Идеи проектов
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="w-full sm:w-64">
+              <SearchFilter column={table.getColumn("title")!} />
+            </div>
+          </div>
+        )}
 
+        <div
+          className={cn(
+            "rounded-3xl border border-border/50 dark:border-white/[0.1] transition-all duration-300 overflow-hidden",
+            "shadow-[0_2px_15px_rgba(0,0,0,0.08),0_8px_25px_rgba(0,0,0,0.05)]",
+            "dark:shadow-[0_2px_20px_rgba(98,51,255,0.12),0_8px_35px_rgba(98,51,255,0.08),0_0_0_1px_rgba(255,255,255,0.03)]",
+            "hover:shadow-[0_4px_25px_rgba(0,0,0,0.12),0_12px_40px_rgba(0,0,0,0.08)]",
+            "dark:hover:shadow-[0_4px_30px_rgba(98,51,255,0.18),0_12px_50px_rgba(98,51,255,0.12),0_0_0_1px_rgba(255,255,255,0.05)]"
+          )}
+        >
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup, groupIndex) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className={cn(
+                    "bg-muted/50",
+                    groupIndex === 0 &&
+                      "[&>th:first-child]:rounded-tl-3xl [&>th:last-child]:rounded-tr-3xl"
+                  )}
+                >
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className="relative h-10 border-t select-none px-6 py-3"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-muted/50"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="px-6 py-3">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center px-6 py-3">
+                    Публикации не найдены
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </>
+  );
+}

@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
-import { HeroHeader } from "@/components/header"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Spinner } from "@/components/ui/spinner"
-import type { Profile } from "@/types/database"
+import { useEffect, useState } from "react";
+import { HeroHeader } from "@/components/header";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
+import { supabase } from "@/lib/supabase";
+import type { Profile } from "@/types/database";
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Profile[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [teachers, setTeachers] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -19,13 +19,13 @@ export default function TeachersPage() {
         const { data: teachersData, error } = await supabase
           .from("profiles")
           .select("*")
-          .eq("role", "teacher")
+          .eq("role", "teacher");
 
         if (error) {
-          console.error("Error fetching teachers:", error)
-          setError("Ошибка при загрузке данных")
-          setLoading(false)
-          return
+          console.error("Error fetching teachers:", error);
+          setError("Ошибка при загрузке данных");
+          setLoading(false);
+          return;
         }
 
         const teachersList = (teachersData || []).map((teacher) => ({
@@ -41,19 +41,19 @@ export default function TeachersPage() {
           social: teacher.social,
           avatar_url: teacher.avatar_url,
           preferredCategory: teacher.preferred_category,
-        })) as Profile[]
+        })) as Profile[];
 
-        setTeachers(teachersList)
+        setTeachers(teachersList);
       } catch (err) {
-        console.error("Error fetching teachers:", err)
-        setError("Ошибка при загрузке данных")
+        console.error("Error fetching teachers:", err);
+        setError("Ошибка при загрузке данных");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchTeachers()
-  }, [])
+    fetchTeachers();
+  }, []);
 
   return (
     <>
@@ -62,9 +62,7 @@ export default function TeachersPage() {
         <Card>
           <CardHeader>
             <CardTitle>Пользователи с ролью "Учитель"</CardTitle>
-            <CardDescription>
-              Всего найдено: {loading ? "..." : teachers.length}
-            </CardDescription>
+            <CardDescription>Всего найдено: {loading ? "..." : teachers.length}</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -92,7 +90,8 @@ export default function TeachersPage() {
                             <strong>ID:</strong> {teacher.id}
                           </p>
                           <p>
-                            <strong>Email:</strong> {teacher.email || (
+                            <strong>Email:</strong>{" "}
+                            {teacher.email || (
                               <span className="text-muted-foreground italic">не указан</span>
                             )}
                           </p>
@@ -117,6 +116,5 @@ export default function TeachersPage() {
         </Card>
       </div>
     </>
-  )
+  );
 }
-

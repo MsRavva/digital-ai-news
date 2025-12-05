@@ -1,8 +1,12 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { Button } from "@/components/ui/button"
+import { Github } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import type React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,149 +14,144 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useAuth } from "@/context/auth-context-supabase"
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
-import { validateUsername } from "@/lib/validation"
-import { Github } from "lucide-react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
-import { toast } from "sonner"
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/auth-context-supabase";
+import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
+import { validateUsername } from "@/lib/validation";
 
 export default function Register() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [username, setUsername] = useState("")
-  const [usernameError, setUsernameError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const [isGithubLoading, setIsGithubLoading] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
-  const { signUp, signInWithGoogle, signInWithGithub, user, isLoading: authLoading } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGithubLoading, setIsGithubLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { signUp, signInWithGoogle, signInWithGithub, user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Редирект если уже авторизован
   // Редирект если уже авторизован
   useEffect(() => {
     if (!authLoading && user) {
-      const redirect = searchParams.get("redirect")
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
+      const redirect = searchParams.get("redirect");
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/");
     }
-  }, [user, authLoading, router, searchParams])
+  }, [user, authLoading, router, searchParams]);
 
   // Проверка имени пользователя при вводе
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setUsername(value)
+    const value = e.target.value;
+    setUsername(value);
 
     // Пропускаем валидацию для пустого значения
     if (!value.trim()) {
-      setUsernameError(null)
-      return
+      setUsernameError(null);
+      return;
     }
 
     // Проверяем имя пользователя
-    const error = validateUsername(value)
-    setUsernameError(error)
-  }
+    const error = validateUsername(value);
+    setUsernameError(error);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormError(null)
+    e.preventDefault();
+    setFormError(null);
 
     if (password !== confirmPassword) {
-      setFormError("Пароли не совпадают")
-      return
+      setFormError("Пароли не совпадают");
+      return;
     }
 
     // Проверка имени пользователя
-    const usernameError = validateUsername(username)
+    const usernameError = validateUsername(username);
     if (usernameError) {
-      setFormError(usernameError)
-      return
+      setFormError(usernameError);
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const { error } = await signUp(email, password, username, "student")
+      const { error } = await signUp(email, password, username, "student");
 
       if (error) {
-        console.error("Registration error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsLoading(false)
-        return
+        console.error("Registration error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsLoading(false);
+        return;
       }
 
       toast.success("Успешная регистрация", {
         description: "Вы успешно зарегистрировались",
-      })
+      });
 
-      const redirect = searchParams.get("redirect")
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/")
+      const redirect = searchParams.get("redirect");
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/");
     } catch (error) {
-      console.error("Unexpected error during registration:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsLoading(false)
+      console.error("Unexpected error during registration:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsLoading(false);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    setFormError(null)
-    setIsGoogleLoading(true)
+    setFormError(null);
+    setIsGoogleLoading(true);
 
     try {
-      const { error } = await signInWithGoogle()
+      const { error } = await signInWithGoogle();
 
       if (error) {
-        console.error("Google sign in error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsGoogleLoading(false)
-        return
+        console.error("Google sign in error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsGoogleLoading(false);
+        return;
       }
 
       // OAuth редиректит на callback, который обработает вход
     } catch (error) {
-      console.error("Unexpected Google sign in error:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsGoogleLoading(false)
+      console.error("Unexpected Google sign in error:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsGoogleLoading(false);
     }
-  }
+  };
 
   const handleGithubSignIn = async () => {
-    setFormError(null)
-    setIsGithubLoading(true)
+    setFormError(null);
+    setIsGithubLoading(true);
 
     try {
-      const { error } = await signInWithGithub()
+      const { error } = await signInWithGithub();
 
       if (error) {
-        console.error("GitHub sign in error:", error)
-        const errorMessage = getSupabaseErrorMessage(error)
-        setFormError(errorMessage)
-        setIsGithubLoading(false)
-        return
+        console.error("GitHub sign in error:", error);
+        const errorMessage = getSupabaseErrorMessage(error);
+        setFormError(errorMessage);
+        setIsGithubLoading(false);
+        return;
       }
 
       // OAuth редиректит на callback, который обработает вход
     } catch (error) {
-      console.error("Unexpected GitHub sign in error:", error)
-      const errorMessage = getSupabaseErrorMessage(error as any)
-      setFormError(errorMessage)
-      setIsGithubLoading(false)
+      console.error("Unexpected GitHub sign in error:", error);
+      const errorMessage = getSupabaseErrorMessage(error as any);
+      setFormError(errorMessage);
+      setIsGithubLoading(false);
     }
-  }
+  };
 
   // Показываем загрузку пока проверяем аутентификацию
   if (authLoading) {
@@ -160,20 +159,17 @@ export default function Register() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-muted-foreground">Загрузка...</div>
       </div>
-    )
+    );
   }
 
   // Не скрываем форму для авторизованных пользователей
-
 
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1 items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">
-              Регистрация в AI News
-            </CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">Регистрация в AI News</CardTitle>
             <CardDescription className="text-center">
               Создайте аккаунт для начала работы
             </CardDescription>
@@ -215,8 +211,7 @@ export default function Register() {
                   <p className="text-xs text-destructive">{usernameError}</p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    Укажите имя и фамилию на русском языке, например: Иван
-                    Иванов
+                    Укажите имя и фамилию на русском языке, например: Иван Иванов
                   </p>
                 )}
               </div>
@@ -316,6 +311,5 @@ export default function Register() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
-

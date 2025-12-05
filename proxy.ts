@@ -1,37 +1,37 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
-import { createServerClient } from "@supabase/ssr"
+import { createServerClient } from "@supabase/ssr";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 // Защищенные маршруты (требуют авторизации)
-const protectedRoutes = ["/", "/archive", "/create", "/edit", "/profile", "/admin", "/posts"]
+const protectedRoutes = ["/", "/archive", "/create", "/edit", "/profile", "/admin", "/posts"];
 
 // Публичные маршруты (не требуют авторизации)
-const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password"]
+const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 // Маршруты только для администраторов
-const adminRoutes = ["/admin"]
+const adminRoutes = ["/admin"];
 
 // Маршруты которые не требуют проверки (OAuth callback, API)
-const publicRoutes = ["/auth/callback"]
+const publicRoutes = ["/auth/callback"];
 
 export default async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname } = request.nextUrl;
 
   // Пропускаем API routes, статические файлы и публичные маршруты
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
-    publicRoutes.some(route => pathname.startsWith(route))
+    publicRoutes.some((route) => pathname.startsWith(route))
   ) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
   // Создаем Supabase клиент для проверки сессии
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: request.headers,
     },
-  })
+  });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,58 +39,60 @@ export default async function proxy(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value)
-            response.cookies.set(name, value, options)
-          })
+            request.cookies.set(name, value);
+            response.cookies.set(name, value, options);
+          });
         },
       },
     }
-  )
+  );
 
   // Проверяем сессию пользователя
-  const { data: { user } } = await supabase.auth.getUser()
-  const isAuthenticated = !!user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isAuthenticated = !!user;
 
   // Получаем профиль для проверки роли
-  let userProfile = null
+  let userProfile = null;
   if (isAuthenticated && user) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
-      .maybeSingle()
-    userProfile = profile
+      .maybeSingle();
+    userProfile = profile;
   }
 
   // Проверяем, является ли маршрут защищенным
-  const isRootRoute = pathname === "/" || pathname === ""
+  const isRootRoute = pathname === "/" || pathname === "";
   const isOtherProtectedRoute = protectedRoutes
-    .filter(route => route !== "/")
-    .some(route => pathname.startsWith(route))
-  
-  const isProtectedRoute = isRootRoute || isOtherProtectedRoute
+    .filter((route) => route !== "/")
+    .some((route) => pathname.startsWith(route));
+
+  const isProtectedRoute = isRootRoute || isOtherProtectedRoute;
 
   // Проверяем, является ли маршрут guest маршрутом
-  const isGuestRoute = guestRoutes.some((route) => pathname.startsWith(route))
+  const isGuestRoute = guestRoutes.some((route) => pathname.startsWith(route));
 
   // Если пользователь пытается зайти на защищенный маршрут без авторизации
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL("/login", request.url)
-    loginUrl.searchParams.set("redirect", pathname)
-    return NextResponse.redirect(loginUrl)
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Проверка доступа к admin маршрутам
-  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
   if (isAdminRoute && isAuthenticated) {
-    const userRole = userProfile?.role || "student"
+    const userRole = userProfile?.role || "student";
     if (userRole !== "admin" && userRole !== "teacher") {
       // Редирект на главную для пользователей без прав
-      return NextResponse.redirect(new URL("/", request.url))
+      return NextResponse.redirect(new URL("/", request.url));
     }
   }
 
@@ -98,19 +100,19 @@ export default async function proxy(request: NextRequest) {
   // Исключение: /reset-password - разрешаем доступ для восстановления пароля
   // Если есть параметр redirect, используем его
   if (isGuestRoute && isAuthenticated && pathname !== "/reset-password") {
-    const redirectTo = request.nextUrl.searchParams.get("redirect")
+    const redirectTo = request.nextUrl.searchParams.get("redirect");
     if (redirectTo && redirectTo.startsWith("/")) {
-      return NextResponse.redirect(new URL(redirectTo, request.url))
+      return NextResponse.redirect(new URL(redirectTo, request.url));
     }
-    return NextResponse.redirect(new URL("/", request.url))
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   // Разрешаем доступ к guest routes для неавторизованных пользователей
   if (isGuestRoute) {
-    return response
+    return response;
   }
 
-  return response
+  return response;
 }
 
 export const config = {
@@ -125,4 +127,4 @@ export const config = {
      */
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
-}
+};

@@ -2,46 +2,46 @@
  * Утилиты для сохранения и восстановления выбранной категории публикаций, режима просмотра и темы
  */
 
-const CATEGORY_COOKIE_NAME = "selected-category"
-const VIEW_MODE_COOKIE_NAME = "view-mode"
-const THEME_COOKIE_NAME = "theme"
-const CATEGORY_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 дней
-const VIEW_MODE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 дней
-const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 дней
+const CATEGORY_COOKIE_NAME = "selected-category";
+const VIEW_MODE_COOKIE_NAME = "view-mode";
+const THEME_COOKIE_NAME = "theme";
+const CATEGORY_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
+const VIEW_MODE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
+const THEME_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
 
-const CATEGORY_SESSION_KEY = "selected-category"
-const VIEW_MODE_SESSION_KEY = "view-mode"
-const THEME_SESSION_KEY = "theme"
+const CATEGORY_SESSION_KEY = "selected-category";
+const VIEW_MODE_SESSION_KEY = "view-mode";
+const THEME_SESSION_KEY = "theme";
 
 /**
  * Сохранение категории в cookie (клиентская сторона)
  */
 export function saveCategoryToCookie(category: string): void {
-  if (typeof document === "undefined") return
+  if (typeof document === "undefined") return;
 
-  const expires = new Date()
-  expires.setTime(expires.getTime() + CATEGORY_COOKIE_MAX_AGE * 1000)
+  const expires = new Date();
+  expires.setTime(expires.getTime() + CATEGORY_COOKIE_MAX_AGE * 1000);
 
-  document.cookie = `${CATEGORY_COOKIE_NAME}=${category}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`
+  document.cookie = `${CATEGORY_COOKIE_NAME}=${category}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
 }
 
 /**
  * Чтение категории из cookie (клиентская сторона)
  */
 export function getCategoryFromCookie(): string | null {
-  if (typeof document === "undefined") return null
+  if (typeof document === "undefined") return null;
 
-  const name = `${CATEGORY_COOKIE_NAME}=`
-  const cookies = document.cookie.split(";")
+  const name = `${CATEGORY_COOKIE_NAME}=`;
+  const cookies = document.cookie.split(";");
 
   for (let i = 0; i < cookies.length; i++) {
-    let cookie = cookies[i].trim()
+    const cookie = cookies[i].trim();
     if (cookie.indexOf(name) === 0) {
-      return cookie.substring(name.length)
+      return cookie.substring(name.length);
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -55,26 +55,23 @@ export async function saveCategoryToCookieServer(category: string): Promise<void
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ category }),
-    })
+    });
 
     if (!response.ok) {
-      console.error("Failed to save category to cookie")
+      console.error("Failed to save category to cookie");
     }
   } catch (error) {
-    console.error("Error saving category to cookie:", error)
+    console.error("Error saving category to cookie:", error);
   }
 }
 
 /**
  * Сохранение категории в профиль пользователя (Supabase)
  */
-export async function saveCategoryToProfile(
-  userId: string,
-  category: string,
-): Promise<boolean> {
+export async function saveCategoryToProfile(userId: string, category: string): Promise<boolean> {
   try {
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
-    const { supabase } = await import("./supabase")
+    const { supabase } = await import("./supabase");
 
     const { error } = await supabase
       .from("profiles")
@@ -82,49 +79,47 @@ export async function saveCategoryToProfile(
         preferred_category: category,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", userId)
+      .eq("id", userId);
 
     if (error) {
-      console.error("Error saving category to profile:", error)
-      return false
+      console.error("Error saving category to profile:", error);
+      return false;
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error("Error saving category to profile:", error)
-    return false
+    console.error("Error saving category to profile:", error);
+    return false;
   }
 }
 
 /**
  * Получение категории из профиля пользователя (Supabase)
  */
-export async function getCategoryFromProfile(
-  userId: string,
-): Promise<string | null> {
+export async function getCategoryFromProfile(userId: string): Promise<string | null> {
   try {
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
-    const { supabase } = await import("./supabase")
+    const { supabase } = await import("./supabase");
 
     const { data, error } = await supabase
       .from("profiles")
       .select("preferred_category")
       .eq("id", userId)
-      .single()
+      .single();
 
     if (error) {
       if (error.code === "PGRST116") {
         // No rows returned
-        return null
+        return null;
       }
-      console.error("Error getting category from profile:", error)
-      return null
+      console.error("Error getting category from profile:", error);
+      return null;
     }
 
-    return data?.preferred_category || null
+    return data?.preferred_category || null;
   } catch (error) {
-    console.error("Error getting category from profile:", error)
-    return null
+    console.error("Error getting category from profile:", error);
+    return null;
   }
 }
 
@@ -134,11 +129,11 @@ export async function getCategoryFromProfile(
  * Сохранение категории в sessionStorage
  */
 export function saveCategoryToSession(category: string): void {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(CATEGORY_SESSION_KEY, category)
+    sessionStorage.setItem(CATEGORY_SESSION_KEY, category);
   } catch (error) {
-    console.error("Error saving category to sessionStorage:", error)
+    console.error("Error saving category to sessionStorage:", error);
   }
 }
 
@@ -146,12 +141,12 @@ export function saveCategoryToSession(category: string): void {
  * Получение категории из sessionStorage
  */
 export function getCategoryFromSession(): string | null {
-  if (typeof window === "undefined") return null
+  if (typeof window === "undefined") return null;
   try {
-    return sessionStorage.getItem(CATEGORY_SESSION_KEY)
+    return sessionStorage.getItem(CATEGORY_SESSION_KEY);
   } catch (error) {
-    console.error("Error getting category from sessionStorage:", error)
-    return null
+    console.error("Error getting category from sessionStorage:", error);
+    return null;
   }
 }
 
@@ -159,11 +154,11 @@ export function getCategoryFromSession(): string | null {
  * Сохранение режима просмотра в sessionStorage
  */
 export function saveViewModeToSession(viewMode: "table" | "bento"): void {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(VIEW_MODE_SESSION_KEY, viewMode)
+    sessionStorage.setItem(VIEW_MODE_SESSION_KEY, viewMode);
   } catch (error) {
-    console.error("Error saving viewMode to sessionStorage:", error)
+    console.error("Error saving viewMode to sessionStorage:", error);
   }
 }
 
@@ -171,16 +166,16 @@ export function saveViewModeToSession(viewMode: "table" | "bento"): void {
  * Получение режима просмотра из sessionStorage
  */
 export function getViewModeFromSession(): "table" | "bento" | null {
-  if (typeof window === "undefined") return null
+  if (typeof window === "undefined") return null;
   try {
-    const value = sessionStorage.getItem(VIEW_MODE_SESSION_KEY)
+    const value = sessionStorage.getItem(VIEW_MODE_SESSION_KEY);
     if (value === "table" || value === "bento") {
-      return value
+      return value;
     }
-    return null
+    return null;
   } catch (error) {
-    console.error("Error getting viewMode from sessionStorage:", error)
-    return null
+    console.error("Error getting viewMode from sessionStorage:", error);
+    return null;
   }
 }
 
@@ -190,34 +185,34 @@ export function getViewModeFromSession(): "table" | "bento" | null {
  * Сохранение режима просмотра в cookie (клиентская сторона)
  */
 export function saveViewModeToCookie(viewMode: "table" | "bento"): void {
-  if (typeof document === "undefined") return
+  if (typeof document === "undefined") return;
 
-  const expires = new Date()
-  expires.setTime(expires.getTime() + VIEW_MODE_COOKIE_MAX_AGE * 1000)
+  const expires = new Date();
+  expires.setTime(expires.getTime() + VIEW_MODE_COOKIE_MAX_AGE * 1000);
 
-  document.cookie = `${VIEW_MODE_COOKIE_NAME}=${viewMode}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`
+  document.cookie = `${VIEW_MODE_COOKIE_NAME}=${viewMode}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
 }
 
 /**
  * Чтение режима просмотра из cookie (клиентская сторона)
  */
 export function getViewModeFromCookie(): "table" | "bento" | null {
-  if (typeof document === "undefined") return null
+  if (typeof document === "undefined") return null;
 
-  const name = `${VIEW_MODE_COOKIE_NAME}=`
-  const cookies = document.cookie.split(";")
+  const name = `${VIEW_MODE_COOKIE_NAME}=`;
+  const cookies = document.cookie.split(";");
 
   for (let i = 0; i < cookies.length; i++) {
-    let cookie = cookies[i].trim()
+    const cookie = cookies[i].trim();
     if (cookie.indexOf(name) === 0) {
-      const value = cookie.substring(name.length)
+      const value = cookie.substring(name.length);
       if (value === "table" || value === "bento") {
-        return value
+        return value;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -231,13 +226,13 @@ export async function saveViewModeToCookieServer(viewMode: "table" | "bento"): P
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ viewMode }),
-    })
+    });
 
     if (!response.ok) {
-      console.error("Failed to save viewMode to cookie")
+      console.error("Failed to save viewMode to cookie");
     }
   } catch (error) {
-    console.error("Error saving viewMode to cookie:", error)
+    console.error("Error saving viewMode to cookie:", error);
   }
 }
 
@@ -248,11 +243,11 @@ export async function saveViewModeToCookieServer(viewMode: "table" | "bento"): P
  */
 export async function saveViewModeToProfile(
   userId: string,
-  viewMode: "table" | "bento",
+  viewMode: "table" | "bento"
 ): Promise<boolean> {
   try {
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
-    const { supabase } = await import("./supabase")
+    const { supabase } = await import("./supabase");
 
     const { error } = await supabase
       .from("profiles")
@@ -260,54 +255,52 @@ export async function saveViewModeToProfile(
         preferred_view_mode: viewMode,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", userId)
+      .eq("id", userId);
 
     if (error) {
-      console.error("Error saving viewMode to profile:", error)
-      return false
+      console.error("Error saving viewMode to profile:", error);
+      return false;
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error("Error saving viewMode to profile:", error)
-    return false
+    console.error("Error saving viewMode to profile:", error);
+    return false;
   }
 }
 
 /**
  * Получение режима просмотра из профиля пользователя (Supabase)
  */
-export async function getViewModeFromProfile(
-  userId: string,
-): Promise<"table" | "bento" | null> {
+export async function getViewModeFromProfile(userId: string): Promise<"table" | "bento" | null> {
   try {
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
-    const { supabase } = await import("./supabase")
+    const { supabase } = await import("./supabase");
 
     const { data, error } = await supabase
       .from("profiles")
       .select("preferred_view_mode")
       .eq("id", userId)
-      .single()
+      .single();
 
     if (error) {
       if (error.code === "PGRST116") {
         // No rows returned
-        return null
+        return null;
       }
-      console.error("Error getting viewMode from profile:", error)
-      return null
+      console.error("Error getting viewMode from profile:", error);
+      return null;
     }
 
-    const viewMode = data?.preferred_view_mode
+    const viewMode = data?.preferred_view_mode;
     if (viewMode === "table" || viewMode === "bento") {
-      return viewMode
+      return viewMode;
     }
 
-    return null
+    return null;
   } catch (error) {
-    console.error("Error getting viewMode from profile:", error)
-    return null
+    console.error("Error getting viewMode from profile:", error);
+    return null;
   }
 }
 
@@ -317,11 +310,11 @@ export async function getViewModeFromProfile(
  * Сохранение темы в sessionStorage
  */
 export function saveThemeToSession(theme: "light" | "dark" | "system"): void {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(THEME_SESSION_KEY, theme)
+    sessionStorage.setItem(THEME_SESSION_KEY, theme);
   } catch (error) {
-    console.error("Error saving theme to sessionStorage:", error)
+    console.error("Error saving theme to sessionStorage:", error);
   }
 }
 
@@ -329,16 +322,16 @@ export function saveThemeToSession(theme: "light" | "dark" | "system"): void {
  * Получение темы из sessionStorage
  */
 export function getThemeFromSession(): "light" | "dark" | "system" | null {
-  if (typeof window === "undefined") return null
+  if (typeof window === "undefined") return null;
   try {
-    const value = sessionStorage.getItem(THEME_SESSION_KEY)
+    const value = sessionStorage.getItem(THEME_SESSION_KEY);
     if (value === "light" || value === "dark" || value === "system") {
-      return value
+      return value;
     }
-    return null
+    return null;
   } catch (error) {
-    console.error("Error getting theme from sessionStorage:", error)
-    return null
+    console.error("Error getting theme from sessionStorage:", error);
+    return null;
   }
 }
 
@@ -348,34 +341,34 @@ export function getThemeFromSession(): "light" | "dark" | "system" | null {
  * Сохранение темы в cookie (клиентская сторона)
  */
 export function saveThemeToCookie(theme: "light" | "dark" | "system"): void {
-  if (typeof document === "undefined") return
+  if (typeof document === "undefined") return;
 
-  const expires = new Date()
-  expires.setTime(expires.getTime() + THEME_COOKIE_MAX_AGE * 1000)
+  const expires = new Date();
+  expires.setTime(expires.getTime() + THEME_COOKIE_MAX_AGE * 1000);
 
-  document.cookie = `${THEME_COOKIE_NAME}=${theme}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`
+  document.cookie = `${THEME_COOKIE_NAME}=${theme}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
 }
 
 /**
  * Чтение темы из cookie (клиентская сторона)
  */
 export function getThemeFromCookie(): "light" | "dark" | "system" | null {
-  if (typeof document === "undefined") return null
+  if (typeof document === "undefined") return null;
 
-  const name = `${THEME_COOKIE_NAME}=`
-  const cookies = document.cookie.split(";")
+  const name = `${THEME_COOKIE_NAME}=`;
+  const cookies = document.cookie.split(";");
 
   for (let i = 0; i < cookies.length; i++) {
-    let cookie = cookies[i].trim()
+    const cookie = cookies[i].trim();
     if (cookie.indexOf(name) === 0) {
-      const value = cookie.substring(name.length)
+      const value = cookie.substring(name.length);
       if (value === "light" || value === "dark" || value === "system") {
-        return value
+        return value;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -389,13 +382,13 @@ export async function saveThemeToCookieServer(theme: "light" | "dark" | "system"
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ theme }),
-    })
+    });
 
     if (!response.ok) {
-      console.error("Failed to save theme to cookie")
+      console.error("Failed to save theme to cookie");
     }
   } catch (error) {
-    console.error("Error saving theme to cookie:", error)
+    console.error("Error saving theme to cookie:", error);
   }
 }
 
@@ -406,11 +399,11 @@ export async function saveThemeToCookieServer(theme: "light" | "dark" | "system"
  */
 export async function saveThemeToProfile(
   userId: string,
-  theme: "light" | "dark" | "system",
+  theme: "light" | "dark" | "system"
 ): Promise<boolean> {
   try {
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
-    const { supabase } = await import("./supabase")
+    const { supabase } = await import("./supabase");
 
     const { error } = await supabase
       .from("profiles")
@@ -418,17 +411,17 @@ export async function saveThemeToProfile(
         preferred_theme: theme,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", userId)
+      .eq("id", userId);
 
     if (error) {
-      console.error("Error saving theme to profile:", error)
-      return false
+      console.error("Error saving theme to profile:", error);
+      return false;
     }
 
-    return true
+    return true;
   } catch (error) {
-    console.error("Error saving theme to profile:", error)
-    return false
+    console.error("Error saving theme to profile:", error);
+    return false;
   }
 }
 
@@ -436,36 +429,35 @@ export async function saveThemeToProfile(
  * Получение темы из профиля пользователя (Supabase)
  */
 export async function getThemeFromProfile(
-  userId: string,
+  userId: string
 ): Promise<"light" | "dark" | "system" | null> {
   try {
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
-    const { supabase } = await import("./supabase")
+    const { supabase } = await import("./supabase");
 
     const { data, error } = await supabase
       .from("profiles")
       .select("preferred_theme")
       .eq("id", userId)
-      .single()
+      .single();
 
     if (error) {
       if (error.code === "PGRST116") {
         // No rows returned
-        return null
+        return null;
       }
-      console.error("Error getting theme from profile:", error)
-      return null
+      console.error("Error getting theme from profile:", error);
+      return null;
     }
 
-    const theme = data?.preferred_theme
+    const theme = data?.preferred_theme;
     if (theme === "light" || theme === "dark" || theme === "system") {
-      return theme
+      return theme;
     }
 
-    return null
+    return null;
   } catch (error) {
-    console.error("Error getting theme from profile:", error)
-    return null
+    console.error("Error getting theme from profile:", error);
+    return null;
   }
 }
-

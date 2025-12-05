@@ -1,12 +1,12 @@
-import { cn } from "@/lib/utils"
-import Link from "next/link"
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export const BentoGrid = ({
   className,
   children,
 }: {
-  className?: string
-  children?: React.ReactNode
+  className?: string;
+  children?: React.ReactNode;
 }) => {
   return (
     <div
@@ -17,8 +17,8 @@ export const BentoGrid = ({
     >
       {children}
     </div>
-  )
-}
+  );
+};
 
 export const BentoCard = ({
   className,
@@ -30,14 +30,14 @@ export const BentoCard = ({
   href,
   onClick,
 }: {
-  className?: string
-  title?: string | React.ReactNode
-  description?: string | React.ReactNode
-  header?: React.ReactNode
-  icon?: React.ReactNode
-  children?: React.ReactNode
-  href?: string
-  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void
+  className?: string;
+  title?: string | React.ReactNode;
+  description?: string | React.ReactNode;
+  header?: React.ReactNode;
+  icon?: React.ReactNode;
+  children?: React.ReactNode;
+  href?: string;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }) => {
   const content = (
     <div
@@ -52,11 +52,7 @@ export const BentoCard = ({
         className
       )}
     >
-      {header && (
-        <div className="flex-shrink-0">
-          {header}
-        </div>
-      )}
+      {header && <div className="flex-shrink-0">{header}</div>}
       <div className="flex-1 flex flex-col gap-0 min-h-0">
         {icon}
         {title && (
@@ -64,24 +60,19 @@ export const BentoCard = ({
             {title}
           </div>
         )}
-        {description && (
-          <div className="flex-1 min-h-0">
-            {description}
-          </div>
-        )}
+        {description && <div className="flex-1 min-h-0">{description}</div>}
         {children}
       </div>
     </div>
-  )
+  );
 
   if (href) {
     return (
       <Link href={href} className="block h-full">
         {content}
       </Link>
-    )
+    );
   }
 
-  return content
-}
-
+  return content;
+};
