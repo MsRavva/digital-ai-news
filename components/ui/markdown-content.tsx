@@ -4,6 +4,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 import { cn } from "@/lib/utils";
 import { CodeBlock } from "./code-block";
 import { InlineCode } from "./inline-code";
@@ -43,10 +44,10 @@ export function MarkdownContent({
       )}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         rehypePlugins={[rehypeRaw]}
         components={{
-          code({ className, children, ...props }) {
+          code({ className, children, node, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             const language = match ? match[1] : undefined;
             const codeContent = String(children).replace(/\n$/, "");
@@ -62,16 +63,16 @@ export function MarkdownContent({
             // Многострочный код
             return <CodeBlock code={codeContent} language={language} className={className} />;
           },
-          pre({ children, ...props }) {
+          pre({ children, node, ...props }) {
             // pre оборачивается автоматически react-markdown, но мы обрабатываем код внутри code компонента
             // Убираем ref и другие специфичные для pre пропсы, чтобы избежать конфликтов типов
             const { ref, ...divProps } = props as any;
             return <div {...divProps}>{children}</div>;
           },
-          a({ href, children, ...props }) {
+          a({ href, children, node, ref, ...props }) {
             if (disableLinks) {
               return (
-                <span className="text-purple-600 dark:text-purple-400 underline" {...props}>
+                <span className="text-purple-600 dark:text-purple-400 underline" {...(props as any)}>
                   {children}
                 </span>
               );
@@ -84,13 +85,13 @@ export function MarkdownContent({
                 className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
-                {...props}
+                {...(props as any)}
               >
                 {children}
               </a>
             );
           },
-          img({ src, alt, ...props }) {
+          img({ src, alt, node, ref, ...props }) {
             if (!src || typeof src !== "string") return null;
 
             const isUrl = src.startsWith("http://") || src.startsWith("https://");
@@ -101,7 +102,7 @@ export function MarkdownContent({
 
             return (
               <img
-                {...props}
+                {...(props as any)}
                 src={src}
                 alt={alt || "Изображение"}
                 className="max-w-full h-auto my-4 rounded-lg shadow-md"
