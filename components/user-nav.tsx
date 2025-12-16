@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 
 export function UserNav() {
   const { user, profile, signOut } = useAuth();

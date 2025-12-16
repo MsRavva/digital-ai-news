@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TextEffect } from "@/components/ui/text-effect";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 import {
   getCategoryFromCookie,
   getCategoryFromProfile,

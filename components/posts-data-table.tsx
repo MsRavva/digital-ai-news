@@ -55,7 +55,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 import {
   getCategoryFromCookie,
   getCategoryFromProfile,
@@ -84,182 +84,182 @@ const createColumns = (
   handleDelete: (postId: string) => void,
   onTagClick?: (tag: string) => void
 ): ColumnDef<Post>[] => [
-  {
-    header: "Автор",
-    accessorKey: "author",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3 min-w-[180px]">
-        <SimpleAvatar username={row.original.author?.username} size="sm" />
-        <div className="flex flex-col">
-          <div className="font-medium">{row.original.author?.username}</div>
-          <Badge variant="outline" className="w-fit text-xs">
-            {row.original.author?.role === "teacher"
-              ? "Учитель"
-              : row.original.author?.role === "admin"
-                ? "Администратор"
-                : "Ученик"}
-          </Badge>
-        </div>
-      </div>
-    ),
-    enableSorting: false,
-  },
-  {
-    header: "Заголовок",
-    accessorKey: "title",
-    cell: ({ row }) => (
-      <Link
-        href={`/posts/${row.original.id}`}
-        className="font-medium hover:text-primary transition-colors"
-      >
-        {row.getValue("title")}
-      </Link>
-    ),
-    meta: {
-      filterVariant: "text",
-    },
-  },
-  {
-    header: "Дата",
-    accessorKey: "created_at",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("created_at"));
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = String(date.getFullYear()).slice(-2);
-      return <div className="text-sm text-muted-foreground">{`${day}.${month}.${year}`}</div>;
-    },
-  },
-  {
-    header: "Теги",
-    accessorKey: "tags",
-    cell: ({ row }) => {
-      const tags = row.original.tags || [];
-      return (
-        <div className="flex flex-wrap gap-1">
-          {tags.slice(0, 3).map((tag, index) => (
-            <Badge
-              key={index}
-              variant="secondary"
-              className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
-              onClick={(e) => {
-                e.stopPropagation();
-                onTagClick?.(tag);
-              }}
-            >
-              {tag}
+    {
+      header: "Автор",
+      accessorKey: "author",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3 min-w-[180px]">
+          <SimpleAvatar username={row.original.author?.username} size="sm" />
+          <div className="flex flex-col">
+            <div className="font-medium">{row.original.author?.username}</div>
+            <Badge variant="outline" className="w-fit text-xs">
+              {row.original.author?.role === "teacher"
+                ? "Учитель"
+                : row.original.author?.role === "admin"
+                  ? "Администратор"
+                  : "Ученик"}
             </Badge>
-          ))}
-          {tags.length > 3 && (
-            <Badge variant="secondary" className="text-xs">
-              +{tags.length - 3}
-            </Badge>
-          )}
+          </div>
         </div>
-      );
+      ),
+      enableSorting: false,
     },
-    enableSorting: false,
-  },
-  {
-    header: "Статистика",
-    accessorKey: "stats",
-    cell: ({ row }) => {
-      const likesCount = row.original.likesCount || 0;
-      const commentsCount = row.original.commentsCount || 0;
-      const viewsCount = row.original.viewsCount || 0;
+    {
+      header: "Заголовок",
+      accessorKey: "title",
+      cell: ({ row }) => (
+        <Link
+          href={`/posts/${row.original.id}`}
+          className="font-medium hover:text-primary transition-colors"
+        >
+          {row.getValue("title")}
+        </Link>
+      ),
+      meta: {
+        filterVariant: "text",
+      },
+    },
+    {
+      header: "Дата",
+      accessorKey: "created_at",
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"));
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = String(date.getFullYear()).slice(-2);
+        return <div className="text-sm text-muted-foreground">{`${day}.${month}.${year}`}</div>;
+      },
+    },
+    {
+      header: "Теги",
+      accessorKey: "tags",
+      cell: ({ row }) => {
+        const tags = row.original.tags || [];
+        return (
+          <div className="flex flex-wrap gap-1">
+            {tags.slice(0, 3).map((tag, index) => (
+              <Badge
+                key={index}
+                variant="secondary"
+                className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTagClick?.(tag);
+                }}
+              >
+                {tag}
+              </Badge>
+            ))}
+            {tags.length > 3 && (
+              <Badge variant="secondary" className="text-xs">
+                +{tags.length - 3}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      header: "Статистика",
+      accessorKey: "stats",
+      cell: ({ row }) => {
+        const likesCount = row.original.likesCount || 0;
+        const commentsCount = row.original.commentsCount || 0;
+        const viewsCount = row.original.viewsCount || 0;
 
-      return (
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <ThumbsUp className="h-4 w-4" />
-            {likesCount}
+        return (
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <ThumbsUp className="h-4 w-4" />
+              {likesCount}
+            </div>
+            <div className="flex items-center gap-1">
+              <MessageSquare className="h-4 w-4" />
+              {commentsCount}
+            </div>
+            <div className="flex items-center gap-1">
+              <Eye className="h-4 w-4" />
+              {viewsCount}
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <MessageSquare className="h-4 w-4" />
-            {commentsCount}
-          </div>
-          <div className="flex items-center gap-1">
-            <Eye className="h-4 w-4" />
-            {viewsCount}
-          </div>
-        </div>
-      );
+        );
+      },
+      enableSorting: false,
     },
-    enableSorting: false,
-  },
-  {
-    header: "Действия",
-    id: "actions",
-    cell: ({ row }) => {
-      const post = row.original;
-      return (
-        <div className="flex items-center gap-1">
-          {canEdit(post) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-primary hover:text-primary/80"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleEdit(post.id);
-              }}
-              title="Редактировать"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-          {isTeacherOrAdmin && (
-            <>
+    {
+      header: "Действия",
+      id: "actions",
+      cell: ({ row }) => {
+        const post = row.original;
+        return (
+          <div className="flex items-center gap-1">
+            {canEdit(post) && (
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-8 w-8 ${post.pinned ? "text-primary" : "text-muted-foreground"}`}
+                className="h-8 w-8 text-primary hover:text-primary/80"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleTogglePin(post.id);
+                  handleEdit(post.id);
                 }}
-                title={post.pinned ? "Открепить" : "Закрепить"}
+                title="Редактировать"
               >
-                <Paperclip className="h-4 w-4" />
+                <Pencil className="h-4 w-4" />
               </Button>
+            )}
+            {isTeacherOrAdmin && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 ${post.pinned ? "text-primary" : "text-muted-foreground"}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTogglePin(post.id);
+                  }}
+                  title={post.pinned ? "Открепить" : "Закрепить"}
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`h-8 w-8 ${post.archived ? "text-[var(--chart-3)]" : "text-[var(--chart-4)]"}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleArchive(post.id, !!post.archived);
+                  }}
+                  title={post.archived ? "Восстановить из архива" : "Архивировать"}
+                >
+                  {post.archived ? (
+                    <ArchiveRestore className="h-4 w-4" />
+                  ) : (
+                    <Archive className="h-4 w-4" />
+                  )}
+                </Button>
+              </>
+            )}
+            {canDelete(post) && (
               <Button
                 variant="ghost"
                 size="icon"
-                className={`h-8 w-8 ${post.archived ? "text-[var(--chart-3)]" : "text-[var(--chart-4)]"}`}
+                className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleToggleArchive(post.id, !!post.archived);
+                  handleDelete(post.id);
                 }}
-                title={post.archived ? "Восстановить из архива" : "Архивировать"}
+                title="Удалить"
               >
-                {post.archived ? (
-                  <ArchiveRestore className="h-4 w-4" />
-                ) : (
-                  <Archive className="h-4 w-4" />
-                )}
+                <Trash2 className="h-4 w-4" />
               </Button>
-            </>
-          )}
-          {canDelete(post) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive/80 hover:bg-destructive/10"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDelete(post.id);
-              }}
-              title="Удалить"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      );
+            )}
+          </div>
+        );
+      },
+      enableSorting: false,
     },
-    enableSorting: false,
-  },
-];
+  ];
 
 function SearchFilter({
   column,
@@ -591,7 +591,7 @@ export function PostsDataTable({
                   className={cn(
                     "bg-muted/50",
                     groupIndex === 0 &&
-                      "[&>th:first-child]:rounded-tl-3xl [&>th:last-child]:rounded-tr-3xl"
+                    "[&>th:first-child]:rounded-tl-3xl [&>th:last-child]:rounded-tr-3xl"
                   )}
                 >
                   {headerGroup.headers.map((header) => {

@@ -23,7 +23,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { MarkdownContent } from "@/components/ui/markdown-content";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 import { deletePost, hasUserLikedPost, likePost } from "@/lib/supabase-post-actions";
 import { getPostById, recordView } from "@/lib/supabase-posts-api";
 import { cn } from "@/lib/utils";

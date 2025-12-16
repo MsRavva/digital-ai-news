@@ -17,7 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 import {
   deleteComment,
   getCommentsByPostId,
@@ -191,9 +191,9 @@ function CommentsListComponent({ postId }: CommentsListProps) {
                 replies: comment.replies.map((reply) =>
                   reply.id === commentId
                     ? {
-                        ...reply,
-                        likesCount: (reply.likesCount || 0) + (isLiked ? -1 : 1),
-                      }
+                      ...reply,
+                      likesCount: (reply.likesCount || 0) + (isLiked ? -1 : 1),
+                    }
                     : reply
                 ),
               };

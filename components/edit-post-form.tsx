@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 import { getPostById, updatePost } from "@/lib/supabase-posts-api";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/types/database";

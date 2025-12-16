@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { HeroHeader } from "@/components/header";
 import { PostsDataTable } from "@/components/posts-data-table";
 import { Card } from "@/components/ui/card";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 
 export default function ArchivePage() {
   const { profile } = useAuth();

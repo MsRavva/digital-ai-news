@@ -4,19 +4,19 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import {
-  getCurrentUser,
   getUserProfile,
+  resetPassword,
   signIn,
   signInWithGithub,
   signInWithGoogle,
   signOut,
   signUp,
   subscribeToAuthChanges,
+  updatePassword,
   updateUserProfile,
 } from "@/lib/supabase-auth";
-import { validateUsername } from "@/lib/validation";
 import type { Profile } from "@/types/database";
 
 // Проверка, что код выполняется в браузере
@@ -31,12 +31,14 @@ interface AuthContextType {
     email: string,
     password: string,
     username: string,
-    role?: string
+    role?: "student" | "teacher" | "admin"
   ) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signInWithGithub: () => Promise<{ error: any }>;
   updateProfile: (profileData: Partial<Profile>) => Promise<{ success: boolean; error: any }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,48 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false);
   const router = useRouter();
-  const routerRef = useRef(router);
-  const hasRefreshedRef = useRef(false);
-  const checkRedirectResultCalledRef = useRef(false);
   const isSubscribedRef = useRef(false);
-
-  // Обновляем ref при изменении router
-  useEffect(() => {
-    routerRef.current = router;
-  }, [router]);
-
-  // Проверка имени пользователя и email, перенаправление на страницу профиля при необходимости
-  useEffect(() => {
-    if (needsProfileUpdate && profile && !isLoading) {
-      const usernameError = validateUsername(profile.username);
-      const hasEmail = profile.email && profile.email.trim() !== "";
-
-      if (usernameError || !hasEmail) {
-        const description = !hasEmail
-          ? "Пожалуйста, укажите ваш email"
-          : "Пожалуйста, введите корректные Имя и Фамилию";
-
-        toast.info("Пожалуйста, обновите ваш профиль", {
-          description,
-        });
-        router.push("/profile?update=username");
-      }
-      setNeedsProfileUpdate(false);
-    }
-  }, [needsProfileUpdate, profile, isLoading, router]);
-
-  // Функция для обновления сессии в cookie - используем useRef для стабильной ссылки
-  const updateSessionInCookieRef = useRef(async (supabaseUser: User) => {
-    try {
-      // Supabase автоматически управляет сессией через cookies
-      // Эта функция оставлена для совместимости, но не требует действий
-      console.log("Session updated for user:", supabaseUser.id);
-    } catch (error) {
-      console.error("Error updating session:", error);
-    }
-  });
 
   useEffect(() => {
     // Выполняем только на клиенте
@@ -101,85 +63,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     isSubscribedRef.current = true;
 
-    // Таймаут для isLoading - если через 5 секунд не получили ответ, устанавливаем false
+    // Таймаут для isLoading
     const loadingTimeout = setTimeout(() => {
       setIsLoading(false);
     }, 5000);
 
-    // Проверяем текущего пользователя при монтировании
-    const checkCurrentUser = async () => {
-      try {
-        const currentUser = await getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser);
-          const userProfile = await getUserProfile(currentUser.id);
-          setProfile(userProfile);
-
-          // Проверяем имя пользователя и email на соответствие требованиям
-          if (userProfile && userProfile.username) {
-            const usernameError = validateUsername(userProfile.username);
-            const hasEmail = userProfile.email && userProfile.email.trim() !== "";
-
-            if (usernameError || !hasEmail) {
-              setNeedsProfileUpdate(true);
-            }
+    // Получаем текущую сессию
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
+        if (session?.user) {
+          setUser(session.user);
+          // Загружаем профиль сразу после получения сессии
+          try {
+            const userProfile = await getUserProfile(session.user.id);
+            setProfile(userProfile);
+          } catch (error) {
+            console.error("Error loading profile:", error);
           }
+          setIsLoading(false);
+          clearTimeout(loadingTimeout);
+        } else {
+          setIsLoading(false);
+          clearTimeout(loadingTimeout);
         }
-      } catch (error) {
-        console.error("Error checking current user:", error);
-      } finally {
+      })
+      .catch((error) => {
+        console.error("Error getting session:", error);
         setIsLoading(false);
-      }
-    };
-
-    // Проверяем текущего пользователя только один раз при монтировании
-    checkCurrentUser();
+        clearTimeout(loadingTimeout);
+      });
 
     // Подписываемся на изменения состояния аутентификации
-    const unsubscribeAuth = subscribeToAuthChanges(async (supabaseUser) => {
+    const unsubscribe = subscribeToAuthChanges(async (supabaseUser) => {
       try {
         clearTimeout(loadingTimeout);
         setUser(supabaseUser);
 
         if (supabaseUser) {
-          // Обновляем сессию
-          await updateSessionInCookieRef.current(supabaseUser);
+          // Получаем профиль пользователя
+          // Для OAuth пользователей профиль может создаваться с задержкой через триггер
+          // Делаем несколько попыток с небольшими задержками
+          let userProfile = await getUserProfile(supabaseUser.id);
 
-          // Получаем профиль пользователя из Supabase
-          const userProfile = await getUserProfile(supabaseUser.id);
+          // Если профиль не найден, ждем немного и пробуем еще раз (для OAuth)
+          if (!userProfile) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            userProfile = await getUserProfile(supabaseUser.id);
+          }
 
-          // Обновляем email в профиле, если его нет, но есть в Supabase Auth
-          if (userProfile && !userProfile.email && supabaseUser.email) {
-            try {
-              await updateUserProfile(supabaseUser.id, {
-                email: supabaseUser.email,
-              });
-              // Обновляем локальный профиль
-              userProfile.email = supabaseUser.email;
-            } catch (error) {
-              console.error("Error updating email in profile:", error);
-            }
+          // Еще одна попытка через секунду
+          if (!userProfile) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            userProfile = await getUserProfile(supabaseUser.id);
           }
 
           setProfile(userProfile);
-
-          // Проверяем имя пользователя и email на соответствие требованиям
-          if (userProfile && userProfile.username) {
-            const usernameError = validateUsername(userProfile.username);
-            const hasEmail = userProfile.email && userProfile.email.trim() !== "";
-
-            if (usernameError || !hasEmail) {
-              setNeedsProfileUpdate(true);
-            }
-          }
         } else {
           setProfile(null);
-          setNeedsProfileUpdate(false);
         }
       } catch (error) {
         console.error("Error in auth state change handler:", error);
       } finally {
-        // Всегда устанавливаем isLoading в false после обработки
         setIsLoading(false);
       }
     });
@@ -187,13 +132,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       clearTimeout(loadingTimeout);
       isSubscribedRef.current = false;
-      unsubscribeAuth();
+      unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router]);
 
   const handleSignIn = async (email: string, password: string) => {
-    const { error } = await signIn(email, password);
+    const { user: signedInUser, error } = await signIn(email, password);
     return { error };
   };
 
@@ -201,27 +145,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
     username: string,
-    role = "student"
+    role: "student" | "teacher" | "admin" = "student"
   ) => {
-    // Всегда используем роль student независимо от переданного значения
-    const { error } = await signUp(email, password, username, "student");
+    const { user: signedUpUser, error } = await signUp(email, password, username, role);
     return { error };
   };
 
   const handleSignInWithGoogle = async () => {
     const { error } = await signInWithGoogle();
+    // OAuth редиректит на callback, который обработает вход
     return { error };
   };
 
   const handleSignInWithGithub = async () => {
     const { error } = await signInWithGithub();
+    // OAuth редиректит на callback, который обработает вход
     return { error };
   };
 
   const handleSignOut = async () => {
     await signOut();
-
-    // Используем window.location для полного редиректа
+    setUser(null);
+    setProfile(null);
+    // Используем window.location для полного редиректа после выхода
     if (isBrowser) {
       window.location.href = "/login";
     } else {
@@ -245,6 +191,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return result;
   };
 
+  const handleResetPassword = async (email: string) => {
+    return await resetPassword(email);
+  };
+
+  const handleUpdatePassword = async (newPassword: string) => {
+    return await updatePassword(newPassword);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -257,6 +211,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signInWithGithub: handleSignInWithGithub,
         updateProfile: handleUpdateProfile,
         signOut: handleSignOut,
+        resetPassword: handleResetPassword,
+        updatePassword: handleUpdatePassword,
       }}
     >
       {children}

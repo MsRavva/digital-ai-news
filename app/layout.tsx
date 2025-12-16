@@ -3,7 +3,7 @@ import "./globals.css";
 import { GlobalBackground } from "@/components/global-background";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/context/auth-context-supabase";
+import { AuthProvider } from "@/context/auth-context";
 
 export const metadata: Metadata = {
   title: "Digital AI News",

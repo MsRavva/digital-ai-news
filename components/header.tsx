@@ -7,7 +7,7 @@ import React from "react";
 import { ThemeSwitcher } from "@/components/kibo-ui/theme-switcher";
 import { Logo } from "@/components/logo";
 import { UserNav } from "@/components/user-nav";
-import { useAuth } from "@/context/auth-context-supabase";
+import { useAuth } from "@/context/auth-context";
 import {
   getThemeFromCookie,
   getThemeFromProfile,
