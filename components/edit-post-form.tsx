@@ -48,7 +48,9 @@ export function EditPostForm({ postId }: EditPostFormProps) {
         }
 
         // Проверяем права на редактирование
-        const isOwner = postData.author?.username === profile?.username;
+        const isOwner = postData.author_id
+          ? postData.author_id === user.id
+          : postData.author?.username === profile?.username;
         const isTeacherOrAdmin = profile?.role === "teacher" || profile?.role === "admin";
 
         if (!isOwner && !isTeacherOrAdmin) {
@@ -130,7 +132,8 @@ export function EditPostForm({ postId }: EditPostFormProps) {
       router.push(`/posts/${postId}`);
       router.refresh();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Произошла ошибка при обновлении публикации";
+      const errorMessage =
+        error instanceof Error ? error.message : "Произошла ошибка при обновлении публикации";
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);

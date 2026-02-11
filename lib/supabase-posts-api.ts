@@ -1,6 +1,78 @@
 import type { Post } from "@/types/database";
 import { supabase } from "./supabase";
 
+function normalizeTagNames(tags: string[]): string[] {
+  const normalized = tags.map((tag) => tag.trim()).filter(Boolean);
+  return [...new Set(normalized)];
+}
+
+async function getOrCreateTagId(tagName: string): Promise<string | null> {
+  const normalizedTag = tagName.trim();
+  if (!normalizedTag) return null;
+
+  const { data: existingTag, error: selectError } = await supabase
+    .from("tags")
+    .select("id")
+    .eq("name", normalizedTag)
+    .maybeSingle();
+
+  if (selectError) {
+    console.error("Error fetching tag:", selectError);
+    return null;
+  }
+
+  if (existingTag?.id) {
+    return existingTag.id;
+  }
+
+  const { data: createdTag, error: createError } = await supabase
+    .from("tags")
+    .insert({ name: normalizedTag })
+    .select("id")
+    .maybeSingle();
+
+  if (!createError && createdTag?.id) {
+    return createdTag.id;
+  }
+
+  const errorCode = createError?.code;
+  const errorMessage = (createError?.message || "").toLowerCase();
+  const isDuplicate =
+    errorCode === "23505" || errorMessage.includes("duplicate") || errorMessage.includes("unique");
+
+  if (isDuplicate) {
+    const { data: retryTag, error: retryError } = await supabase
+      .from("tags")
+      .select("id")
+      .eq("name", normalizedTag)
+      .maybeSingle();
+
+    if (retryError) {
+      console.error("Error re-fetching duplicated tag:", retryError);
+      return null;
+    }
+
+    return retryTag?.id || null;
+  }
+
+  console.error("Error creating tag:", createError);
+  return null;
+}
+
+async function resolveTagIds(tags: string[]): Promise<string[] | null> {
+  const tagIds: string[] = [];
+
+  for (const tagName of normalizeTagNames(tags)) {
+    const tagId = await getOrCreateTagId(tagName);
+    if (!tagId) {
+      return null;
+    }
+    tagIds.push(tagId);
+  }
+
+  return tagIds;
+}
+
 // Получение поста по ID
 export async function getPostById(postId: string): Promise<Post | null> {
   try {
@@ -74,6 +146,7 @@ export async function getPostById(postId: string): Promise<Post | null> {
       id: postData.id,
       title: postData.title,
       content: postData.content,
+      author_id: postData.author_id,
       author: {
         username: author?.username || "Unknown",
         role: author?.role || "student",
@@ -102,7 +175,11 @@ export async function createPost(data: {
   tags: string[];
   source_url?: string;
 }): Promise<string | null> {
+  let postId: string | null = null;
+
   try {
+    const normalizedTags = normalizeTagNames(data.tags);
+
     // Создаем пост
     const { data: postData, error: postError } = await supabase
       .from("posts")
@@ -125,47 +202,37 @@ export async function createPost(data: {
       return null;
     }
 
-    const postId = postData.id;
+    postId = postData.id;
 
-    // Создаем теги и связи с постом
-    for (const tagName of data.tags) {
-      // Проверяем, существует ли тег
-      const { data: existingTag } = await supabase
-        .from("tags")
-        .select("id")
-        .eq("name", tagName)
-        .single();
-
-      let tagId: string;
-
-      if (!existingTag) {
-        // Создаем новый тег
-        const { data: newTag, error: tagError } = await supabase
-          .from("tags")
-          .insert({ name: tagName })
-          .select("id")
-          .single();
-
-        if (tagError || !newTag) {
-          console.error("Error creating tag:", tagError);
-          continue;
-        }
-
-        tagId = newTag.id;
-      } else {
-        tagId = existingTag.id;
+    if (normalizedTags.length > 0) {
+      const tagIds = await resolveTagIds(normalizedTags);
+      if (!tagIds) {
+        throw new Error("Не удалось подготовить теги публикации");
       }
 
-      // Создаем связь поста с тегом
-      await supabase.from("post_tags").insert({
+      const relations = tagIds.map((tagId) => ({
         post_id: postId,
         tag_id: tagId,
-      });
+      }));
+
+      const { error: relationError } = await supabase.from("post_tags").insert(relations);
+
+      if (relationError) {
+        console.error("Error creating post tags relation:", relationError);
+        throw new Error("Не удалось сохранить теги публикации");
+      }
     }
 
     return postId;
   } catch (error) {
     console.error("Error creating post:", error);
+
+    // Компенсация при частичном создании: удаляем пост, если он уже был создан.
+    if (postId) {
+      await supabase.from("post_tags").delete().eq("post_id", postId);
+      await supabase.from("posts").delete().eq("id", postId);
+    }
+
     return null;
   }
 }
@@ -179,6 +246,12 @@ export async function updatePost(data: {
   tags: string[];
 }): Promise<boolean> {
   try {
+    const normalizedTags = normalizeTagNames(data.tags);
+    const newTagIds = await resolveTagIds(normalizedTags);
+    if (!newTagIds) {
+      throw new Error("Не удалось подготовить теги публикации");
+    }
+
     // Обновляем пост
     const { error: postError } = await supabase
       .from("posts")
@@ -195,43 +268,47 @@ export async function updatePost(data: {
       return false;
     }
 
-    // Удаляем старые связи с тегами
-    await supabase.from("post_tags").delete().eq("post_id", data.id);
+    const { data: currentRelations, error: currentRelationsError } = await supabase
+      .from("post_tags")
+      .select("tag_id")
+      .eq("post_id", data.id);
 
-    // Добавляем новые теги
-    for (const tagName of data.tags) {
-      // Проверяем, существует ли тег
-      const { data: existingTag } = await supabase
-        .from("tags")
-        .select("id")
-        .eq("name", tagName)
-        .single();
+    if (currentRelationsError) {
+      console.error("Error fetching current post tags:", currentRelationsError);
+      return false;
+    }
 
-      let tagId: string;
+    const currentTagIds = new Set((currentRelations || []).map((relation) => relation.tag_id));
+    const nextTagIds = new Set(newTagIds);
 
-      if (!existingTag) {
-        // Создаем новый тег
-        const { data: newTag, error: tagError } = await supabase
-          .from("tags")
-          .insert({ name: tagName })
-          .select("id")
-          .single();
+    const toDelete = [...currentTagIds].filter((tagId) => !nextTagIds.has(tagId));
+    const toInsert = [...nextTagIds].filter((tagId) => !currentTagIds.has(tagId));
 
-        if (tagError || !newTag) {
-          console.error("Error creating tag:", tagError);
-          continue;
-        }
+    if (toDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("post_tags")
+        .delete()
+        .eq("post_id", data.id)
+        .in("tag_id", toDelete);
 
-        tagId = newTag.id;
-      } else {
-        tagId = existingTag.id;
+      if (deleteError) {
+        console.error("Error deleting removed post tags:", deleteError);
+        return false;
       }
+    }
 
-      // Создаем связь поста с тегом
-      await supabase.from("post_tags").insert({
+    if (toInsert.length > 0) {
+      const relations = toInsert.map((tagId) => ({
         post_id: data.id,
         tag_id: tagId,
-      });
+      }));
+
+      const { error: insertError } = await supabase.from("post_tags").insert(relations);
+
+      if (insertError) {
+        console.error("Error inserting new post tags:", insertError);
+        return false;
+      }
     }
 
     return true;
