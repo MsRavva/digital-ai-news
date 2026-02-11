@@ -2,7 +2,6 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { clearReturnUrl, getReturnUrl } from "@/lib/auth-helpers";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -22,9 +21,9 @@ export async function GET(request: NextRequest) {
           },
           setAll(cookiesToSet) {
             try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
+              for (const { name, value, options } of cookiesToSet) {
+                cookieStore.set(name, value, options);
+              }
             } catch {
               // Игнорируем ошибки cookie в middleware
             }
@@ -92,7 +91,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  let redirectUrl = getReturnUrl() || "/";
+  const nextPath = requestUrl.searchParams.get("next");
+  let redirectUrl = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/";
 
   // Sanitize redirectUrl
   if (
@@ -102,7 +102,6 @@ export async function GET(request: NextRequest) {
   ) {
     redirectUrl = "/";
   }
-  clearReturnUrl();
 
   return NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
 }

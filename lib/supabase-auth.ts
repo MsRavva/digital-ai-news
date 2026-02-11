@@ -1,7 +1,22 @@
 import type { AuthError, User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/database";
-import { saveReturnUrl } from "./auth-helpers";
 import { supabase } from "./supabase";
+
+function resolveOAuthReturnPath(): string {
+  const pathname = window.location.pathname;
+  const searchParams = new URLSearchParams(window.location.search);
+  const redirectFromQuery = searchParams.get("redirect");
+
+  if (redirectFromQuery?.startsWith("/") && !redirectFromQuery.startsWith("//")) {
+    return redirectFromQuery;
+  }
+
+  if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
+    return pathname;
+  }
+
+  return "/";
+}
 
 // Регистрация нового пользователя
 export const signUp = async (
@@ -70,15 +85,16 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
     // Force sign out first to clear any stale sessions (important for public PCs)
     await supabase.auth.signOut();
 
-    const pathname = window.location.pathname;
-    if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
-      saveReturnUrl(pathname);
+    const returnPath = resolveOAuthReturnPath();
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (returnPath !== "/") {
+      callbackUrl.searchParams.set("next", returnPath);
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     });
 
@@ -100,15 +116,16 @@ export const signInWithGithub = async (): Promise<{ error: AuthError | null }> =
     // Force sign out first to clear any stale sessions (important for public PCs)
     await supabase.auth.signOut();
 
-    const pathname = window.location.pathname;
-    if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
-      saveReturnUrl(pathname);
+    const returnPath = resolveOAuthReturnPath();
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (returnPath !== "/") {
+      callbackUrl.searchParams.set("next", returnPath);
     }
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     });
 

@@ -15,7 +15,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/auth-context";
 import { getPostById, updatePost } from "@/lib/supabase-posts-api";
 import { cn } from "@/lib/utils";
-import type { Post } from "@/types/database";
 
 interface EditPostFormProps {
   postId: string;
@@ -130,8 +129,9 @@ export function EditPostForm({ postId }: EditPostFormProps) {
       toast.success("Публикация успешно обновлена");
       router.push(`/posts/${postId}`);
       router.refresh();
-    } catch (error: any) {
-      toast.error(error.message || "Произошла ошибка при обновлении публикации");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Произошла ошибка при обновлении публикации";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -203,14 +203,6 @@ export function EditPostForm({ postId }: EditPostFormProps) {
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="content">Содержание</Label>
-              <MarkdownEditor
-                value={content}
-                onChange={(value) => setContent(value)}
-                height={500}
-              />
-            </div>
-            <div className="grid gap-3">
               <Label htmlFor="category">Категория</Label>
               <Tabs value={category} onValueChange={setCategory}>
                 <TabsList>
@@ -219,6 +211,14 @@ export function EditPostForm({ postId }: EditPostFormProps) {
                   <TabsTrigger value="project-ideas">Идеи проектов</TabsTrigger>
                 </TabsList>
               </Tabs>
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="content">Содержание</Label>
+              <MarkdownEditor
+                value={content}
+                onChange={(value) => setContent(value)}
+                height={500}
+              />
             </div>
             <div className="grid gap-3">
               <Label htmlFor="tags">Теги</Label>

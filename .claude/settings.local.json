@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__list_tables",
+      "WebSearch",
+      "mcp__supabase__execute_sql",
+      "Bash(npx tsx scripts/fetch-news.ts)",
+      "Bash(npm run fetch-news)",
+      "Bash(taskkill /F /IM tsx.exe /T)",
+      "Bash(tasklist /FI \"IMAGENAME eq node.exe\")",
+      "Bash(wmic process where \"commandline like ''%tsx%''\" get processid,commandline /format:list)",
+      "Bash(tasklist /V /FI \"IMAGENAME eq node.exe\")",
+      "Bash(taskkill /F /IM node.exe /T)",
+      "Bash(powershell \"Get-Process node -ErrorAction SilentlyContinue | Stop-Process -Force\")"
+    ]
+  }
+}

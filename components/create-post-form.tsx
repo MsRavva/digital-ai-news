@@ -22,7 +22,7 @@ export function CreatePostForm() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   const handleAddTag = () => {
@@ -83,9 +83,10 @@ export function CreatePostForm() {
 
       router.push(`/posts/${postId}`);
       router.refresh();
-    } catch (err: any) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Произошла ошибка при создании публикации.";
       toast.error("Ошибка", {
-        description: err.message || "Произошла ошибка при создании публикации.",
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -120,10 +121,6 @@ export function CreatePostForm() {
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="content">Содержание</Label>
-              <MarkdownEditor value={content} onChange={(val) => setContent(val)} height={500} />
-            </div>
-            <div className="grid gap-3">
               <Label htmlFor="category">Категория</Label>
               <Tabs value={category} onValueChange={setCategory} className="w-auto">
                 <TabsList className="bg-muted dark:bg-muted rounded-lg p-1 h-10 flex items-center w-auto shadow-sm">
@@ -147,6 +144,10 @@ export function CreatePostForm() {
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="content">Содержание</Label>
+              <MarkdownEditor value={content} onChange={(val) => setContent(val)} height={500} />
             </div>
             <div className="grid gap-3">
               <Label htmlFor="tags">Теги</Label>

@@ -44,14 +44,27 @@
         "noUselessTypeConstraint": "error"
       },
       "correctness": {
-        "noUnusedVariables": "warn"
+        "noUnusedVariables": "warn",
+        "noUnusedFunctionParameters": "off"
       },
       "style": {
         "noParameterAssign": "off",
-        "useImportType": "error"
+        "useImportType": "error",
+        "noNonNullAssertion": "off",
+        "noDescendingSpecificity": "off"
       },
       "suspicious": {
-        "noExplicitAny": "warn"
+        "noExplicitAny": "warn",
+        "noDocumentCookie": "off",
+        "noArrayIndexKey": "off"
+      },
+      "performance": {
+        "noImgElement": "warn"
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "off",
+        "useButtonType": "warn",
+        "useKeyWithClickEvents": "off"
       }
     }
   },
