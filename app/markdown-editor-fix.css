@@ -1,35 +1,44 @@
 /* Исправление ширины редактора markdown */
-.markdown-editor>.rc-md-editor.rc-md-editor {
-    max-width: 100% !important;
-    width: 100% !important;
+.markdown-editor > .rc-md-editor.rc-md-editor {
+  max-width: 100% !important;
+  width: 100% !important;
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container {
-    display: flex !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    overflow: hidden !important;
+.markdown-editor > .rc-md-editor.rc-md-editor > .editor-container.editor-container {
+  display: flex !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  overflow: hidden !important;
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.section {
-    flex: 1 1 50% !important;
-    max-width: 50% !important;
-    min-width: 0 !important;
-    overflow: auto !important;
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.section {
+  flex: 1 1 50% !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
+  overflow: auto !important;
 }
 
 /* Перенос текста в редакторе */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-md .input {
-    white-space: pre-wrap !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    overflow-x: auto !important;
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-md
+  .input {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow-x: auto !important;
 }
 
 /* Перенос текста в предпросмотре */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap {
-    white-space: normal !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
-    overflow-x: auto !important;
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  overflow-x: auto !important;
 }

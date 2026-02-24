@@ -19,13 +19,19 @@ function resolveOAuthReturnPath(): string {
 }
 
 // Регистрация нового пользователя
+// ВАЖНО: Роль всегда 'student' на этапе регистрации
+// Изменение роли возможно только администратором через admin panel
 export const signUp = async (
   email: string,
   password: string,
   username: string,
-  role: "student" | "teacher" | "admin" = "student"
+  _role?: "student" | "teacher" | "admin"
 ): Promise<{ user: User | null; error: AuthError | null }> => {
   try {
+    // Принудительно устанавливаем роль 'student' - серверная валидация
+    // Любое значение role из клиента игнорируется
+    const role = "student";
+
     // Создаем пользователя в Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -79,11 +85,19 @@ export const signIn = async (
   }
 };
 
+// Генерация CSRF state для OAuth
+function generateCSRFState(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
 // Вход через Google
 export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> => {
   try {
-    // Force sign out first to clear any stale sessions (important for public PCs)
-    await supabase.auth.signOut();
+    // Убираем force signOut чтобы избежать race condition
+    // PKCE flow самостоятельно управляет сессией
+    // Старые сессии будут заменены после успешного OAuth callback
 
     const returnPath = resolveOAuthReturnPath();
     const callbackUrl = new URL("/auth/callback", window.location.origin);
@@ -91,10 +105,17 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
       callbackUrl.searchParams.set("next", returnPath);
     }
 
+    // Генерируем и сохраняем CSRF state
+    const state = generateCSRFState();
+    sessionStorage.setItem("oauth_state", state);
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: callbackUrl.toString(),
+        queryParams: {
+          state: state,
+        },
       },
     });
 
@@ -113,8 +134,9 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
 // Вход через GitHub
 export const signInWithGithub = async (): Promise<{ error: AuthError | null }> => {
   try {
-    // Force sign out first to clear any stale sessions (important for public PCs)
-    await supabase.auth.signOut();
+    // Убираем force signOut чтобы избежать race condition
+    // PKCE flow самостоятельно управляет сессией
+    // Старые сессии будут заменены после успешного OAuth callback
 
     const returnPath = resolveOAuthReturnPath();
     const callbackUrl = new URL("/auth/callback", window.location.origin);
@@ -122,10 +144,17 @@ export const signInWithGithub = async (): Promise<{ error: AuthError | null }> =
       callbackUrl.searchParams.set("next", returnPath);
     }
 
+    // Генерируем и сохраняем CSRF state
+    const state = generateCSRFState();
+    sessionStorage.setItem("oauth_state", state);
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
         redirectTo: callbackUrl.toString(),
+        queryParams: {
+          state: state,
+        },
       },
     });
 
@@ -215,6 +244,8 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
 };
 
 // Обновление профиля пользователя
+// ВАЖНО: Роль (role) не может быть изменена через этот метод
+// Изменение роли возможно только администратором через отдельный admin API
 export const updateUserProfile = async (
   userId: string,
   profileData: Partial<Profile>
@@ -230,8 +261,9 @@ export const updateUserProfile = async (
     if (profileData.email !== undefined) {
       updateData.email = profileData.email;
     }
+    // ВАЖНО: Игнорируем попытки изменить role - это может делать только admin
     if (profileData.role !== undefined) {
-      updateData.role = profileData.role;
+      console.warn("Attempt to update role blocked - role can only be changed by admin");
     }
     if (profileData.bio !== undefined) {
       updateData.bio = profileData.bio;

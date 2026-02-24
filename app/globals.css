@@ -131,168 +131,366 @@
    ============================================ */
 
 /* Скрываем кнопку Full screen */
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button[title="Full screen"],
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button[title="Fullscreen"],
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button.fullscreen,
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button:has(svg[class*="fullscreen"]) {
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button[title="Full screen"],
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button[title="Fullscreen"],
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button.fullscreen,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button:has(svg[class*="fullscreen"]) {
   display: none !important;
 }
 
 /* Основной контейнер - рамка как у input field */
-.markdown-editor>.rc-md-editor.rc-md-editor {
+.markdown-editor > .rc-md-editor.rc-md-editor {
   border: 1px solid hsl(var(--input));
   background-color: hsl(var(--background));
   border-radius: calc(var(--radius));
 }
 
 /* Тулбар - разделитель как у input field */
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation {
+.markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation {
   background-color: hsl(var(--muted));
   border-bottom: 1px solid hsl(var(--input));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button {
   color: hsl(var(--foreground));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button:hover {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button:hover {
   color: hsl(var(--foreground));
   background-color: hsl(var(--accent));
 }
 
 /* Область редактирования (левая панель) */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-md {
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-md {
   background-color: hsl(var(--background));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-md .input {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-md
+  .input {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: inherit;
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-md .input::placeholder {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-md
+  .input::placeholder {
   color: hsl(var(--muted-foreground));
 }
 
 /* Область превью (правая панель) */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html {
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html {
   background-color: hsl(var(--background));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 
 /* Разделитель между панелями - как у input field */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.section {
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.section {
   border-right: 1px solid hsl(var(--input));
 }
 
 /* Код в превью - Ubuntu Mono */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap code,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre code {
-  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  code,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre
+  code {
+  font-family:
+    "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 /* Стили для элементов в превью */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap {
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap {
   color: hsl(var(--foreground));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap p,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap h1,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap h2,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap h3,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap h4,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap h5,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap h6,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap li,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap span,
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap div {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  p,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  h1,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  h2,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  h3,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  h4,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  h5,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  h6,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  li,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  span,
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  div {
   color: hsl(var(--foreground));
 }
 
 /* Блоки кода в превью */
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre {
+.markdown-editor > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre {
   background-color: hsl(var(--muted));
   color: hsl(var(--foreground));
   border-color: hsl(var(--input));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap code {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  code {
   background-color: hsl(var(--muted));
   color: hsl(var(--foreground));
 }
 
-.markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre code {
+.markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre
+  code {
   background-color: transparent;
 }
 
 /* ============================================
    Темная тема
    ============================================ */
-.dark .markdown-editor>.rc-md-editor.rc-md-editor {
+.dark .markdown-editor > .rc-md-editor.rc-md-editor {
   border: 1px solid hsl(var(--input));
   background-color: hsl(var(--background));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation {
+.dark .markdown-editor > .rc-md-editor.rc-md-editor > .rc-md-navigation.rc-md-navigation {
   background-color: hsl(var(--muted));
   border-bottom: 1px solid hsl(var(--input));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button {
   color: hsl(var(--foreground));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.rc-md-navigation.rc-md-navigation .button-wrap .button:hover {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .rc-md-navigation.rc-md-navigation
+  .button-wrap
+  .button:hover {
   color: hsl(var(--foreground));
   background-color: hsl(var(--accent));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-md {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-md {
   background-color: hsl(var(--background));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-md .input {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-md
+  .input {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html {
   background-color: hsl(var(--background));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.section {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.section {
   border-right: 1px solid hsl(var(--input));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap code,
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre,
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre code {
-  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  code,
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre,
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre
+  code {
+  font-family:
+    "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre {
   background-color: hsl(var(--muted));
   color: hsl(var(--foreground));
   border-color: hsl(var(--input));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap code {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  code {
   background-color: hsl(var(--muted));
   color: hsl(var(--foreground));
 }
 
-.dark .markdown-editor>.rc-md-editor.rc-md-editor>.editor-container.editor-container>.section.sec-html .html-wrap pre code {
+.dark
+  .markdown-editor
+  > .rc-md-editor.rc-md-editor
+  > .editor-container.editor-container
+  > .section.sec-html
+  .html-wrap
+  pre
+  code {
   background-color: transparent;
 }
 
@@ -301,35 +499,40 @@
    ============================================ */
 
 /* Стили для HTML от shiki */
-pre>div[class*="shiki"] {
+pre > div[class*="shiki"] {
   background-color: transparent !important;
   padding: 0 !important;
   margin: 0 !important;
 }
 
-pre>div[class*="shiki"]>pre {
+pre > div[class*="shiki"] > pre {
   background-color: transparent !important;
   padding: 0 !important;
   margin: 0 !important;
-  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-family:
+    "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace !important;
 }
 
-pre>div[class*="shiki"] code {
-  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+pre > div[class*="shiki"] code {
+  font-family:
+    "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace !important;
   background-color: transparent !important;
 }
 
 /* Убираем встроенные стили фона от shiki и используем наш серый фон */
 pre[class*="shiki"],
-pre>div[class*="shiki"] {
+pre > div[class*="shiki"] {
   background-color: hsl(var(--muted)) !important;
 }
 
 /* Стили для inline кода */
 code:not(pre code) {
-  font-family: "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-family:
+    "Ubuntu Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace !important;
 }
-
 
 /* ============================================
    Стили для ссылок в markdown (фиолетовый цвет)
@@ -375,11 +578,13 @@ code:not(pre code) {
    ============================================ */
 
 .fade-gradient-light {
-  background: linear-gradient(to top,
-      hsl(var(--background)) 0%,
-      hsl(var(--background)) 50%,
-      oklch(0.5 0.25 303.9 / 0.05) 75%,
-      transparent 100%);
+  background: linear-gradient(
+    to top,
+    hsl(var(--background)) 0%,
+    hsl(var(--background)) 50%,
+    oklch(0.5 0.25 303.9 / 0.05) 75%,
+    transparent 100%
+  );
 }
 
 .fade-gradient-dark {
@@ -392,11 +597,13 @@ code:not(pre code) {
 
 .dark .fade-gradient-dark {
   display: block;
-  background: linear-gradient(to top,
-      hsl(var(--background)) 0%,
-      hsl(var(--background)) 50%,
-      oklch(0.627 0.265 303.9 / 0.08) 75%,
-      transparent 100%);
+  background: linear-gradient(
+    to top,
+    hsl(var(--background)) 0%,
+    hsl(var(--background)) 50%,
+    oklch(0.627 0.265 303.9 / 0.08) 75%,
+    transparent 100%
+  );
 }
 
 /* ============================================

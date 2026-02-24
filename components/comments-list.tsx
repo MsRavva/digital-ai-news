@@ -191,9 +191,9 @@ function CommentsListComponent({ postId }: CommentsListProps) {
                 replies: comment.replies.map((reply) =>
                   reply.id === commentId
                     ? {
-                      ...reply,
-                      likesCount: (reply.likesCount || 0) + (isLiked ? -1 : 1),
-                    }
+                        ...reply,
+                        likesCount: (reply.likesCount || 0) + (isLiked ? -1 : 1),
+                      }
                     : reply
                 ),
               };

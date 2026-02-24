@@ -84,7 +84,8 @@ export function CreatePostForm() {
       router.push(`/posts/${postId}`);
       router.refresh();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Произошла ошибка при создании публикации.";
+      const errorMessage =
+        err instanceof Error ? err.message : "Произошла ошибка при создании публикации.";
       toast.error("Ошибка", {
         description: errorMessage,
       });

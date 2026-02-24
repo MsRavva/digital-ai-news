@@ -1,7 +1,53 @@
+import { randomBytes } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+
+function generateRandomSuffix(): string {
+  return randomBytes(4).toString("hex").slice(0, 6);
+}
+
+async function generateUniqueUsername(
+  supabase: ReturnType<typeof createServerClient>,
+  baseUsername: string
+): Promise<string | null> {
+  const MAX_RETRIES = 3;
+  let username = baseUsername;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    if (attempt > 0) {
+      username = `${baseUsername}_${generateRandomSuffix()}`;
+    }
+
+    const { error } = await supabase.from("profiles").insert({
+      id: crypto.randomUUID(),
+      username,
+      email: null,
+      role: "student",
+    });
+
+    if (!error) {
+      await supabase.from("profiles").delete().eq("username", username);
+      return username;
+    }
+
+    const errorCode = error.code;
+    const errorMessage = (error.message || "").toLowerCase();
+    const isDuplicateError =
+      errorCode === "23505" ||
+      errorMessage.includes("duplicate") ||
+      errorMessage.includes("unique") ||
+      errorMessage.includes("already exists");
+
+    if (!isDuplicateError) {
+      console.error("Unexpected error checking username:", error);
+      return null;
+    }
+  }
+
+  return null;
+}
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -58,12 +104,22 @@ export async function GET(request: NextRequest) {
       if (!existingProfile && !profileError) {
         // Профиль не существует, создаем вручную
         // Для OAuth пользователей используем email как username, если нет метаданных
-        const username =
+        const baseUsername =
           data.user.user_metadata?.username ||
           data.user.user_metadata?.full_name ||
           data.user.user_metadata?.name ||
           data.user.email?.split("@")[0] ||
           "Пользователь";
+
+        // Генерируем уникальный username с retry logic
+        const username = await generateUniqueUsername(supabase, baseUsername);
+
+        if (!username) {
+          console.error("Failed to generate unique username for user:", data.user.id);
+          return NextResponse.redirect(
+            new URL("/login?error=profile_creation_failed", requestUrl.origin)
+          );
+        }
 
         const { error: createError } = await supabase.from("profiles").insert({
           id: data.user.id,
@@ -92,14 +148,24 @@ export async function GET(request: NextRequest) {
   }
 
   const nextPath = requestUrl.searchParams.get("next");
-  let redirectUrl = nextPath?.startsWith("/") && !nextPath.startsWith("//") ? nextPath : "/";
+  let redirectUrl: string;
 
-  // Sanitize redirectUrl
+  // Безопасная валидация redirect URL - только относительные пути
+  // Защита от Open Redirect: запрещаем абсолютные URL и protocol-relative URL
   if (
-    ["/login", "/register", "/forgot-password", "/reset-password"].some((path) =>
-      redirectUrl.includes(path)
-    )
+    nextPath?.startsWith("/") &&
+    !nextPath.startsWith("//") &&
+    !nextPath.startsWith("/\\") &&
+    !/^\/\w+:\/\//i.test(nextPath)
   ) {
+    // Дополнительная проверка - не разрешаем редирект на auth страницы
+    const forbiddenPaths = ["/login", "/register", "/forgot-password", "/reset-password"];
+    const isForbidden = forbiddenPaths.some(
+      (path) => nextPath === path || nextPath.startsWith(`${path}/`)
+    );
+
+    redirectUrl = isForbidden ? "/" : nextPath;
+  } else {
     redirectUrl = "/";
   }
 

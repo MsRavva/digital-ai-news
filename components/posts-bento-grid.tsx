@@ -108,24 +108,24 @@ export function PostsBentoGrid({
   // Фильтрация постов по searchQuery
   const filteredPosts = searchQuery
     ? posts.filter((post) => {
-      const query = searchQuery.toLowerCase().trim();
-      if (!query) return true;
+        const query = searchQuery.toLowerCase().trim();
+        if (!query) return true;
 
-      // Поиск в заголовке
-      const titleMatch = post.title.toLowerCase().includes(query);
+        // Поиск в заголовке
+        const titleMatch = post.title.toLowerCase().includes(query);
 
-      // Поиск в содержимом
-      const contentMatch = post.content.toLowerCase().includes(query);
+        // Поиск в содержимом
+        const contentMatch = post.content.toLowerCase().includes(query);
 
-      // Поиск по тегам - точное совпадение или подстрока
-      const tagsMatch =
-        post.tags?.some((tag) => {
-          const tagLower = tag.toLowerCase();
-          return tagLower === query || tagLower.includes(query);
-        }) || false;
+        // Поиск по тегам - точное совпадение или подстрока
+        const tagsMatch =
+          post.tags?.some((tag) => {
+            const tagLower = tag.toLowerCase();
+            return tagLower === query || tagLower.includes(query);
+          }) || false;
 
-      return titleMatch || contentMatch || tagsMatch;
-    })
+        return titleMatch || contentMatch || tagsMatch;
+      })
     : posts;
 
   // Группируем посты по 2 в строке
