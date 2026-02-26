@@ -78,7 +78,7 @@ function LoginForm() {
     setIsGoogleLoading(true);
 
     try {
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle("/");
 
       if (error) {
         console.error("Google sign in error:", error);
@@ -103,7 +103,7 @@ function LoginForm() {
     setIsGithubLoading(true);
 
     try {
-      const { error } = await signInWithGithub();
+      const { error } = await signInWithGithub("/");
 
       if (error) {
         console.error("GitHub sign in error:", error);

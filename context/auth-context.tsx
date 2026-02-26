@@ -33,8 +33,8 @@ interface AuthContextType {
     username: string,
     role?: "student" | "teacher" | "admin"
   ) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
-  signInWithGithub: () => Promise<{ error: any }>;
+  signInWithGoogle: (next?: string) => Promise<{ error: any }>;
+  signInWithGithub: (next?: string) => Promise<{ error: any }>;
   updateProfile: (profileData: Partial<Profile>) => Promise<{ success: boolean; error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -151,14 +151,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const handleSignInWithGoogle = async () => {
-    const { error } = await signInWithGoogle();
+  const handleSignInWithGoogle = async (next?: string) => {
+    const { error } = await signInWithGoogle(next);
     // OAuth редиректит на callback, который обработает вход
     return { error };
   };
 
-  const handleSignInWithGithub = async () => {
-    const { error } = await signInWithGithub();
+  const handleSignInWithGithub = async (next?: string) => {
+    const { error } = await signInWithGithub(next);
     // OAuth редиректит на callback, который обработает вход
     return { error };
   };

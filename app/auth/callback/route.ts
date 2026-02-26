@@ -166,7 +166,23 @@ export async function GET(request: NextRequest) {
 
     redirectUrl = isForbidden ? "/" : nextPath;
   } else {
-    redirectUrl = "/";
+    // Если nextPath не передан, проверяем есть ли параметр referer
+    // Из страницы откуда пришл от OAuth
+    const referer = request.headers.get("referer");
+    if (referer) {
+      const refererUrl = new URL(referer);
+      const refererPath = refererUrl.pathname;
+
+      // Если referer - это страница login/register, редиректируем на главную
+      const authPaths = ["/login", "/register"];
+      const isAuthPage = authPaths.some(
+        (path) => refererPath === path || refererPath.startsWith(`${path}/`)
+      );
+
+      redirectUrl = isAuthPage ? "/" : refererPath;
+    } else {
+      redirectUrl = "/";
+    }
   }
 
   return NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));

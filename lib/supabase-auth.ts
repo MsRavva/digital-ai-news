@@ -2,10 +2,14 @@ import type { AuthError, User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/database";
 import { supabase } from "./supabase";
 
-function resolveOAuthReturnPath(): string {
+function resolveOAuthReturnPath(next?: string): string {
   const pathname = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   const redirectFromQuery = searchParams.get("redirect");
+
+  if (next) {
+    return next;
+  }
 
   if (redirectFromQuery?.startsWith("/") && !redirectFromQuery.startsWith("//")) {
     return redirectFromQuery;
@@ -93,13 +97,13 @@ function generateCSRFState(): string {
 }
 
 // Вход через Google
-export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> => {
+export const signInWithGoogle = async (next?: string): Promise<{ error: AuthError | null }> => {
   try {
     // Убираем force signOut чтобы избежать race condition
     // PKCE flow самостоятельно управляет сессией
     // Старые сессии будут заменены после успешного OAuth callback
 
-    const returnPath = resolveOAuthReturnPath();
+    const returnPath = resolveOAuthReturnPath(next);
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     if (returnPath !== "/") {
       callbackUrl.searchParams.set("next", returnPath);
@@ -132,13 +136,13 @@ export const signInWithGoogle = async (): Promise<{ error: AuthError | null }> =
 };
 
 // Вход через GitHub
-export const signInWithGithub = async (): Promise<{ error: AuthError | null }> => {
+export const signInWithGithub = async (next?: string): Promise<{ error: AuthError | null }> => {
   try {
     // Убираем force signOut чтобы избежать race condition
     // PKCE flow самостоятельно управляет сессией
     // Старые сессии будут заменены после успешного OAuth callback
 
-    const returnPath = resolveOAuthReturnPath();
+    const returnPath = resolveOAuthReturnPath(next);
     const callbackUrl = new URL("/auth/callback", window.location.origin);
     if (returnPath !== "/") {
       callbackUrl.searchParams.set("next", returnPath);
