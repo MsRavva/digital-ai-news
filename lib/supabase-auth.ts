@@ -178,30 +178,6 @@ export const signInWithGithub = async (next?: string): Promise<{ error: AuthErro
     console.error("Unexpected error during GitHub sign in:", error);
     return { error: error as AuthError };
   }
-};    // Генерируем и сохраняем CSRF state
-    const state = generateCSRFState();
-    sessionStorage.setItem("oauth_state", state);
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: callbackUrl.toString(),
-        queryParams: {
-          state: state,
-        },
-      },
-    });
-
-    if (error) {
-      console.error("Error signing in with GitHub:", error);
-      return { error };
-    }
-
-    return { error: null };
-  } catch (error) {
-    console.error("Unexpected error during GitHub sign in:", error);
-    return { error: error as AuthError };
-  }
 };
 
 // Выход пользователя
