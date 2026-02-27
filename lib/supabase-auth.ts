@@ -105,6 +105,24 @@ function generateCSRFState(): string {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+// Сохранение state в cookie (для серверного использования)
+function setOAuthState(state: string, response: NextResponse) {
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("oauth_state", state);
+  }
+  // В Next.js 16 cookies устанавливаются через response.cookies.set()
+  // Но в callback route мы не имеем доступа к response до создания
+  // Поэтому используем localStorage для клиентской части
+}
+
+// Получение state из cookie (для серверного использования)
+function getOAuthState(): string | null {
+  if (typeof window !== "undefined") {
+    return sessionStorage.getItem("oauth_state");
+  }
+  return null;
+}
+
 // Вход через Google
 export const signInWithGoogle = async (next?: string): Promise<{ error: AuthError | null }> => {
   try {

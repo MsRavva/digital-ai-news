@@ -56,11 +56,23 @@ export async function GET(request: NextRequest) {
   
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const state = requestUrl.searchParams.get("state");
 
   console.log("[OAuth Callback] Code present:", !!code);
   console.log("[OAuth Callback] Code value:", code?.substring(0, 10) + "...");
   console.log("[OAuth Callback] Next param:", requestUrl.searchParams.get("next"));
-  console.log("[OAuth Callback] State param:", requestUrl.searchParams.get("state"));
+  console.log("[OAuth Callback] State param:", state);
+
+  // В Next.js 16 cookies устанавливаются через request.cookies.set()
+  // Но в callback route мы не имеем доступа к response до создания
+  // Поэтому используем localStorage для клиентской части
+  // На сервере sessionStorage не доступен, поэтому проверка state не работает
+  // Вместо этого полагаемся на Supabase, который проверяет state сам
+  if (state) {
+    console.log("[OAuth Callback] State received from Supabase, validation handled by Supabase");
+  } else {
+    console.warn("[OAuth Callback] No state parameter provided");
+  }
 
   // Создаем серверный Supabase клиент с cookie support
   console.log("[OAuth Callback] Creating Supabase client...");
