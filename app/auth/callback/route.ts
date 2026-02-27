@@ -52,6 +52,9 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
+  console.log("[OAuth Callback] Request URL:", requestUrl.toString());
+  console.log("[OAuth Callback] Code present:", !!code);
+
   // Создаем response для установки cookies
   const response = NextResponse.redirect(new URL("/", requestUrl.origin));
 
@@ -65,6 +68,7 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          console.log("[OAuth Callback] Setting cookies:", cookiesToSet.length);
           // Устанавливаем cookies в response
           for (const { name, value, options } of cookiesToSet) {
             response.cookies.set({
@@ -82,7 +86,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error("Error exchanging code for session:", error.message, error);
+      console.error("[OAuth Callback] Error exchanging code:", error.message);
       return NextResponse.redirect(
         new URL(
           `/login?error=auth_failed&details=${encodeURIComponent(error.message)}`,
@@ -90,6 +94,9 @@ export async function GET(request: NextRequest) {
         )
       );
     }
+
+    console.log("[OAuth Callback] Session created:", !!data.session);
+    console.log("[OAuth Callback] User:", data.user?.email);
 
     if (data.session && data.user) {
       console.log("Session created successfully for user:", data.user.email);
@@ -185,6 +192,8 @@ export async function GET(request: NextRequest) {
       redirectUrl = "/";
     }
   }
+
+  console.log("[OAuth Callback] Redirecting to:", redirectUrl);
 
   // Обновляем редирект с учетом nextPath
   const finalResponse = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));

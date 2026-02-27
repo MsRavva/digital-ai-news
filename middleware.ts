@@ -24,13 +24,9 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
+    pathname === "/auth/callback" ||
     publicRoutes.some((route) => pathname.startsWith(route))
   ) {
-    return NextResponse.next();
-  }
-
-  // Если это callback route, пропускаем без изменений
-  if (pathname === "/auth/callback") {
     return NextResponse.next();
   }
 
