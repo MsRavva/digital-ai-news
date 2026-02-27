@@ -148,7 +148,7 @@ export const signInWithGithub = async (next?: string): Promise<{ error: AuthErro
     const returnPath = resolveOAuthReturnPath(next);
     // Используем environment variable для callback URL, если задан
     // Иначе используем window.location.origin
-    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
+    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || (typeof window !== "undefined" ? window.location.origin : "https://digital-ai-news.vercel.app");
     const callbackUrl = new URL("/auth/callback", baseUrl);
     if (returnPath !== "/") {
       callbackUrl.searchParams.set("next", returnPath);

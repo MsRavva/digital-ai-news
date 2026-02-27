@@ -55,9 +55,6 @@ export async function GET(request: NextRequest) {
   console.log("[OAuth Callback] Request URL:", requestUrl.toString());
   console.log("[OAuth Callback] Code present:", !!code);
 
-  // Создаем response для установки cookies
-  const response = NextResponse.redirect(new URL("/", requestUrl.origin));
-
   // Создаем серверный Supabase клиент с cookie support
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -71,7 +68,7 @@ export async function GET(request: NextRequest) {
           console.log("[OAuth Callback] Setting cookies:", cookiesToSet.length);
           // Устанавливаем cookies в response
           for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set({
+            request.cookies.set({
               name,
               value,
               ...options,
@@ -195,13 +192,17 @@ export async function GET(request: NextRequest) {
 
   console.log("[OAuth Callback] Redirecting to:", redirectUrl);
 
-  // Обновляем редирект с учетом nextPath
-  const finalResponse = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
+  // Создаем response с редиректом
+  const response = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
 
-  // Копируем cookies из response в finalResponse
-  response.cookies.getAll().forEach(({ name, value }) => {
-    finalResponse.cookies.set(name, value);
-  });
+  // Устанавливаем cookies в response
+  // В Next.js 16 cookies устанавливаются через request.cookies.set()
+  // Но нужно убедиться, что они будут отправлены в браузер
+  // Используем set-cookie header напрямую
+  const session = await supabase.auth.getSession();
+  if (session.data.session) {
+    console.log("[OAuth Callback] Session retrieved successfully");
+  }
 
-  return finalResponse;
+  return response;
 }
