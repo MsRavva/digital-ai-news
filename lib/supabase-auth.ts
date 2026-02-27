@@ -3,22 +3,31 @@ import type { Profile } from "@/types/database";
 import { supabase } from "./supabase";
 
 function resolveOAuthReturnPath(next?: string): string {
+  console.log("[resolveOAuthReturnPath] Next param:", next);
+  
   const pathname = window.location.pathname;
   const searchParams = new URLSearchParams(window.location.search);
   const redirectFromQuery = searchParams.get("redirect");
 
+  console.log("[resolveOAuthReturnPath] Pathname:", pathname);
+  console.log("[resolveOAuthReturnPath] Redirect from query:", redirectFromQuery);
+
   if (next) {
+    console.log("[resolveOAuthReturnPath] Returning next:", next);
     return next;
   }
 
   if (redirectFromQuery?.startsWith("/") && !redirectFromQuery.startsWith("//")) {
+    console.log("[resolveOAuthReturnPath] Returning redirectFromQuery:", redirectFromQuery);
     return redirectFromQuery;
   }
 
   if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
+    console.log("[resolveOAuthReturnPath] Returning pathname:", pathname);
     return pathname;
   }
 
+  console.log("[resolveOAuthReturnPath] Returning default: /");
   return "/";
 }
 
@@ -140,24 +149,34 @@ export const signInWithGoogle = async (next?: string): Promise<{ error: AuthErro
 
 // Вход через GitHub
 export const signInWithGithub = async (next?: string): Promise<{ error: AuthError | null }> => {
+  console.log("=== GITHUB SIGN IN START ===");
+  console.log("[GitHub Sign In] Next param:", next);
+  
   try {
     // Убираем force signOut чтобы избежать race condition
     // PKCE flow самостоятельно управляет сессией
     // Старые сессии будут заменены после успешного OAuth callback
 
     const returnPath = resolveOAuthReturnPath(next);
+    console.log("[GitHub Sign In] Return path:", returnPath);
+    
     // Используем environment variable для callback URL, если задан
     // Иначе используем window.location.origin
     const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || (typeof window !== "undefined" ? window.location.origin : "https://digital-ai-news.vercel.app");
+    console.log("[GitHub Sign In] Base URL:", baseUrl);
+    
     const callbackUrl = new URL("/auth/callback", baseUrl);
     if (returnPath !== "/") {
       callbackUrl.searchParams.set("next", returnPath);
     }
+    console.log("[GitHub Sign In] Callback URL:", callbackUrl.toString());
 
     // Генерируем и сохраняем CSRF state
     const state = generateCSRFState();
     sessionStorage.setItem("oauth_state", state);
+    console.log("[GitHub Sign In] State:", state);
 
+    console.log("[GitHub Sign In] Calling supabase.auth.signInWithOAuth...");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
@@ -169,13 +188,16 @@ export const signInWithGithub = async (next?: string): Promise<{ error: AuthErro
     });
 
     if (error) {
-      console.error("Error signing in with GitHub:", error);
+      console.error("[GitHub Sign In] Error:", error.message);
+      console.error("[GitHub Sign In] Error details:", JSON.stringify(error, null, 2));
       return { error };
     }
 
+    console.log("[GitHub Sign In] OAuth flow initiated successfully");
+    console.log("=== GITHUB SIGN IN END ===");
     return { error: null };
   } catch (error) {
-    console.error("Unexpected error during GitHub sign in:", error);
+    console.error("[GitHub Sign In] Unexpected error:", error);
     return { error: error as AuthError };
   }
 };
