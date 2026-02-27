@@ -99,24 +99,27 @@ function LoginForm() {
   };
 
   const handleGithubSignIn = async () => {
+    console.log("[Login Page] GitHub sign in clicked");
     setFormError(null);
     setIsGithubLoading(true);
 
     try {
+      console.log("[Login Page] Calling signInWithGithub with next=/");
       const { error } = await signInWithGithub("/");
 
       if (error) {
-        console.error("GitHub sign in error:", error);
+        console.error("[Login Page] GitHub sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
         setIsGithubLoading(false);
         return;
       }
 
+      console.log("[Login Page] GitHub sign in initiated, waiting for redirect...");
       // OAuth редиректит на callback, который обработает вход
       // Toast и редирект будут в callback
     } catch (error) {
-      console.error("Unexpected GitHub sign in error:", error);
+      console.error("[Login Page] Unexpected GitHub sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
       setIsGithubLoading(false);

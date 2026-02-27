@@ -20,6 +20,9 @@ const rateLimitedRoutes = ["/login", "/register", "/forgot-password", "/reset-pa
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  console.log("[Middleware] Request URL:", request.url);
+  console.log("[Middleware] Pathname:", pathname);
+
   // Пропускаем API routes, статические файлы и публичные маршруты
   if (
     pathname.startsWith("/api") ||
@@ -27,6 +30,7 @@ export async function middleware(request: NextRequest) {
     pathname === "/auth/callback" ||
     publicRoutes.some((route) => pathname.startsWith(route))
   ) {
+    console.log("[Middleware] Skipping - public route");
     return NextResponse.next();
   }
 
