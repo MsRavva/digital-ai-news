@@ -104,7 +104,10 @@ export const signInWithGoogle = async (next?: string): Promise<{ error: AuthErro
     // Старые сессии будут заменены после успешного OAuth callback
 
     const returnPath = resolveOAuthReturnPath(next);
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    // Используем environment variable для callback URL, если задан
+    // Иначе используем window.location.origin
+    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
+    const callbackUrl = new URL("/auth/callback", baseUrl);
     if (returnPath !== "/") {
       callbackUrl.searchParams.set("next", returnPath);
     }
@@ -143,12 +146,39 @@ export const signInWithGithub = async (next?: string): Promise<{ error: AuthErro
     // Старые сессии будут заменены после успешного OAuth callback
 
     const returnPath = resolveOAuthReturnPath(next);
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    // Используем environment variable для callback URL, если задан
+    // Иначе используем window.location.origin
+    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
+    const callbackUrl = new URL("/auth/callback", baseUrl);
     if (returnPath !== "/") {
       callbackUrl.searchParams.set("next", returnPath);
     }
 
     // Генерируем и сохраняем CSRF state
+    const state = generateCSRFState();
+    sessionStorage.setItem("oauth_state", state);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: callbackUrl.toString(),
+        queryParams: {
+          state: state,
+        },
+      },
+    });
+
+    if (error) {
+      console.error("Error signing in with GitHub:", error);
+      return { error };
+    }
+
+    return { error: null };
+  } catch (error) {
+    console.error("Unexpected error during GitHub sign in:", error);
+    return { error: error as AuthError };
+  }
+};    // Генерируем и сохраняем CSRF state
     const state = generateCSRFState();
     sessionStorage.setItem("oauth_state", state);
 
