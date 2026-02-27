@@ -165,15 +165,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const handleSignOut = async () => {
     await signOut();
-    setUser(null);
-    setProfile(null);
-    // Используем window.location для полного редиректа после выхода
-    if (isBrowser) {
-      window.location.href = "/login";
-    } else {
-      router.push("/login");
-      router.refresh();
-    }
+    // signOut() делает редирект на /login
+    // setUser и setProfile будут вызваны через onAuthStateChange
   };
 
   const handleUpdateProfile = async (profileData: Partial<Profile>) => {

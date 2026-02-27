@@ -184,6 +184,13 @@ export const signOut = async (): Promise<{ error: AuthError | null }> => {
       return { error };
     }
 
+    // Редирект на страницу входа после выхода
+    // Используем window.location.replace для полного редиректа
+    // Это гарантирует полную очистку состояния и редирект
+    if (typeof window !== "undefined") {
+      window.location.replace("/login");
+    }
+
     return { error: null };
   } catch (error) {
     console.error("Unexpected error during sign out:", error);

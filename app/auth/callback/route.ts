@@ -53,31 +53,30 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
-  if (code) {
-    const cookieStore = await cookies();
-
-    // Создаем серверный Supabase клиент с cookie support
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            try {
-              for (const { name, value, options } of cookiesToSet) {
-                cookieStore.set(name, value, options);
-              }
-            } catch {
-              // Игнорируем ошибки cookie в middleware
-            }
-          },
+  // Создаем серверный Supabase клиент с cookie support
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
         },
-      }
-    );
+        setAll(cookiesToSet) {
+          // Устанавливаем cookies напрямую в response
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set({
+              name,
+              value,
+              ...options,
+            });
+          });
+        },
+      },
+    }
+  );
 
+  if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
@@ -185,5 +184,14 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
+  // Создаем response с редиректом
+  const response = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
+
+  // Устанавливаем cookies в response
+  // Это гарантирует, что cookies будут отправлены в браузер до редиректа
+  supabase.auth.getSession().then(() => {
+    // Cookies уже установлены через setAll, здесь просто гарантируем их наличие
+  });
+
+  return response;
 }

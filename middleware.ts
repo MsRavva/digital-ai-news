@@ -12,7 +12,7 @@ const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password
 const adminRoutes = ["/admin"];
 
 // Маршруты которые не требуют проверки (OAuth callback, API)
-const publicRoutes = ["/auth/callback"];
+const publicRoutes = ["/auth/callback", "/api"];
 
 // Маршруты для rate limiting
 const rateLimitedRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
