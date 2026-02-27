@@ -63,6 +63,12 @@ export async function GET(request: NextRequest) {
   console.log("[OAuth Callback] Next param:", requestUrl.searchParams.get("next"));
   console.log("[OAuth Callback] State param:", state);
 
+  const cookiesToApply: Array<{
+    name: string;
+    value: string;
+    options?: Record<string, unknown>;
+  }> = [];
+
   // Создаем серверный Supabase клиент с cookie support
   console.log("[OAuth Callback] Creating Supabase client...");
   const supabase = createServerClient(
@@ -77,14 +83,10 @@ export async function GET(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           console.log("[OAuth Callback] Setting cookies:", cookiesToSet.length);
-          // Устанавливаем cookies в response
+          // Сохраняем cookies для установки в финальный redirect response
           for (const { name, value, options } of cookiesToSet) {
             console.log("[OAuth Callback] Setting cookie:", name, value?.substring(0, 20) + "...");
-            request.cookies.set({
-              name,
-              value,
-              ...options,
-            });
+            cookiesToApply.push({ name, value, options });
           }
         },
       },
@@ -231,6 +233,11 @@ export async function GET(request: NextRequest) {
 
   // Создаем response с редиректом
   const response = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
+
+  for (const { name, value, options } of cookiesToApply) {
+    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2]);
+  }
+
   console.log("[OAuth Callback] Response status:", response.status);
   console.log("[OAuth Callback] Response headers:", JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
 
