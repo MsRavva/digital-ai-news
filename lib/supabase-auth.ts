@@ -114,17 +114,10 @@ export const signInWithGoogle = async (next?: string): Promise<{ error: AuthErro
       callbackUrl.searchParams.set("next", returnPath);
     }
 
-    // Генерируем и сохраняем CSRF state
-    const state = generateCSRFState();
-    sessionStorage.setItem("oauth_state", state);
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: callbackUrl.toString(),
-        queryParams: {
-          state: state,
-        },
       },
     });
 
