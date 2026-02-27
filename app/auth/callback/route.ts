@@ -1,6 +1,5 @@
 import { randomBytes } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -53,6 +52,9 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
 
+  // Создаем response для установки cookies
+  const response = NextResponse.redirect(new URL("/", requestUrl.origin));
+
   // Создаем серверный Supabase клиент с cookie support
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -63,14 +65,14 @@ export async function GET(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // Устанавливаем cookies напрямую в response
-          cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set({
+          // Устанавливаем cookies в response
+          for (const { name, value, options } of cookiesToSet) {
+            response.cookies.set({
               name,
               value,
               ...options,
             });
-          });
+          }
         },
       },
     }
@@ -184,14 +186,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Создаем response с редиректом
-  const response = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
+  // Обновляем редирект с учетом nextPath
+  const finalResponse = NextResponse.redirect(new URL(redirectUrl, requestUrl.origin));
 
-  // Устанавливаем cookies в response
-  // Это гарантирует, что cookies будут отправлены в браузер до редиректа
-  supabase.auth.getSession().then(() => {
-    // Cookies уже установлены через setAll, здесь просто гарантируем их наличие
+  // Копируем cookies из response в finalResponse
+  response.cookies.getAll().forEach(({ name, value }) => {
+    finalResponse.cookies.set(name, value);
   });
 
-  return response;
+  return finalResponse;
 }

@@ -29,6 +29,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Если это callback route, пропускаем без изменений
+  if (pathname === "/auth/callback") {
+    return NextResponse.next();
+  }
+
   // Rate limiting для auth страниц
   const isRateLimitedRoute = rateLimitedRoutes.some((route) => pathname.startsWith(route));
   if (isRateLimitedRoute && request.method === "POST") {
