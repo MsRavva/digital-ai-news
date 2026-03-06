@@ -44,13 +44,13 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ## 3. Установка зависимостей
 
 ```bash
-npm install
+bun install
 ```
 
 ## 4. Запуск приложения
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Приложение будет доступно по адресу: http://localhost:3000
@@ -90,19 +90,19 @@ npm run dev
 
 ```bash
 # Запуск в режиме разработки
-npm run dev
+bun run dev
 
 # Сборка для продакшена
-npm run build
+bun run build
 
 # Запуск продакшен версии
-npm run start
+bun run start
 
 # Проверка кода
-npm run lint
+bun run lint
 
 # Форматирование кода
-npm run format
+bun run format
 ```
 
 ## Дополнительная информация

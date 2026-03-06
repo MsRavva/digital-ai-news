@@ -183,7 +183,7 @@ import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler"
 
 ## Тестирование
 
-1. Перезапустите dev сервер: `pnpm dev`
+1. Перезапустите dev сервер: `bun run dev`
 2. Откройте `/register`
 3. Создайте тестового пользователя
 4. Проверьте, что профиль создался в Supabase Dashboard → Table Editor → profiles

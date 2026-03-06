@@ -15,13 +15,13 @@
 Зависимости уже установлены. Если нужно переустановить:
 
 ```bash
-pnpm install
+bun install
 ```
 
 ## Запуск
 
 ```bash
-pnpm dev
+bun run dev
 ```
 
 Проект будет доступен по адресу [http://localhost:3000](http://localhost:3000)
@@ -44,12 +44,12 @@ pnpm dev
 ## Добавление компонентов shadcn/ui
 
 ```bash
-pnpm dlx shadcn@latest add [component-name]
+bunx shadcn@latest add [component-name]
 ```
 
 Например:
 ```bash
-pnpm dlx shadcn@latest add button
+bunx shadcn@latest add button
 ```
 
 ## Старые файлы

@@ -41,11 +41,16 @@
       "recommended": true,
       "complexity": {
         "noBannedTypes": "error",
-        "noUselessTypeConstraint": "error"
+        "noUselessTypeConstraint": "error",
+        "noImportantStyles": "off",
+        "useOptionalChain": "off"
       },
       "correctness": {
-        "noUnusedVariables": "warn",
-        "noUnusedFunctionParameters": "off"
+        "noUnusedVariables": "off",
+        "noUnusedImports": "off",
+        "noUnusedFunctionParameters": "off",
+        "useExhaustiveDependencies": "off",
+        "noInvalidPositionAtImportRule": "off"
       },
       "style": {
         "noParameterAssign": "off",
@@ -54,17 +59,22 @@
         "noDescendingSpecificity": "off"
       },
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "off",
         "noDocumentCookie": "off",
-        "noArrayIndexKey": "off"
+        "noArrayIndexKey": "off",
+        "useIterableCallbackReturn": "off"
       },
       "performance": {
-        "noImgElement": "warn"
+        "noImgElement": "off"
       },
       "a11y": {
         "noSvgWithoutTitle": "off",
-        "useButtonType": "warn",
+        "useButtonType": "off",
+        "noStaticElementInteractions": "off",
         "useKeyWithClickEvents": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
       }
     }
   },

@@ -1,34 +1,38 @@
 import type { AuthError, User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/database";
+import { resolveClientOAuthReturnPath } from "./oauth-redirect";
 import { supabase } from "./supabase";
 
-function resolveOAuthReturnPath(next?: string): string {
-  console.log("[resolveOAuthReturnPath] Next param:", next);
-  
-  const pathname = window.location.pathname;
-  const searchParams = new URLSearchParams(window.location.search);
-  const redirectFromQuery = searchParams.get("redirect");
+async function signInWithOAuthProvider(
+  provider: "google" | "github",
+  next?: string
+): Promise<{ error: AuthError | null }> {
+  try {
+    const returnPath = resolveClientOAuthReturnPath(next);
+    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
+    const callbackUrl = new URL("/auth/callback", baseUrl);
 
-  console.log("[resolveOAuthReturnPath] Pathname:", pathname);
-  console.log("[resolveOAuthReturnPath] Redirect from query:", redirectFromQuery);
+    if (returnPath !== "/") {
+      callbackUrl.searchParams.set("next", returnPath);
+    }
 
-  if (next) {
-    console.log("[resolveOAuthReturnPath] Returning next:", next);
-    return next;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: callbackUrl.toString(),
+      },
+    });
+
+    if (error) {
+      console.error(`Error signing in with ${provider}:`, error);
+      return { error };
+    }
+
+    return { error: null };
+  } catch (error) {
+    console.error(`Unexpected error during ${provider} sign in:`, error);
+    return { error: error as AuthError };
   }
-
-  if (redirectFromQuery?.startsWith("/") && !redirectFromQuery.startsWith("//")) {
-    console.log("[resolveOAuthReturnPath] Returning redirectFromQuery:", redirectFromQuery);
-    return redirectFromQuery;
-  }
-
-  if (!["/login", "/register", "/forgot-password", "/reset-password"].includes(pathname)) {
-    console.log("[resolveOAuthReturnPath] Returning pathname:", pathname);
-    return pathname;
-  }
-
-  console.log("[resolveOAuthReturnPath] Returning default: /");
-  return "/";
 }
 
 // Регистрация нового пользователя
@@ -100,84 +104,12 @@ export const signIn = async (
 
 // Вход через Google
 export const signInWithGoogle = async (next?: string): Promise<{ error: AuthError | null }> => {
-  try {
-    // Убираем force signOut чтобы избежать race condition
-    // PKCE flow самостоятельно управляет сессией
-    // Старые сессии будут заменены после успешного OAuth callback
-
-    const returnPath = resolveOAuthReturnPath(next);
-    // Используем environment variable для callback URL, если задан
-    // Иначе используем window.location.origin
-    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
-    const callbackUrl = new URL("/auth/callback", baseUrl);
-    if (returnPath !== "/") {
-      callbackUrl.searchParams.set("next", returnPath);
-    }
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: callbackUrl.toString(),
-      },
-    });
-
-    if (error) {
-      console.error("Error signing in with Google:", error);
-      return { error };
-    }
-
-    return { error: null };
-  } catch (error) {
-    console.error("Unexpected error during Google sign in:", error);
-    return { error: error as AuthError };
-  }
+  return signInWithOAuthProvider("google", next);
 };
 
 // Вход через GitHub
 export const signInWithGithub = async (next?: string): Promise<{ error: AuthError | null }> => {
-  console.log("=== GITHUB SIGN IN START ===");
-  console.log("[GitHub Sign In] Next param:", next);
-  
-  try {
-    // Убираем force signOut чтобы избежать race condition
-    // PKCE flow самостоятельно управляет сессией
-    // Старые сессии будут заменены после успешного OAuth callback
-
-    const returnPath = resolveOAuthReturnPath(next);
-    console.log("[GitHub Sign In] Return path:", returnPath);
-    
-    // Используем environment variable для callback URL, если задан
-    // Иначе используем window.location.origin
-    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || (typeof window !== "undefined" ? window.location.origin : "https://digital-ai-news.vercel.app");
-    console.log("[GitHub Sign In] Base URL:", baseUrl);
-    
-    const callbackUrl = new URL("/auth/callback", baseUrl);
-    if (returnPath !== "/") {
-      callbackUrl.searchParams.set("next", returnPath);
-    }
-    console.log("[GitHub Sign In] Callback URL:", callbackUrl.toString());
-
-    console.log("[GitHub Sign In] Calling supabase.auth.signInWithOAuth...");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: callbackUrl.toString(),
-      },
-    });
-
-    if (error) {
-      console.error("[GitHub Sign In] Error:", error.message);
-      console.error("[GitHub Sign In] Error details:", JSON.stringify(error, null, 2));
-      return { error };
-    }
-
-    console.log("[GitHub Sign In] OAuth flow initiated successfully");
-    console.log("=== GITHUB SIGN IN END ===");
-    return { error: null };
-  } catch (error) {
-    console.error("[GitHub Sign In] Unexpected error:", error);
-    return { error: error as AuthError };
-  }
+  return signInWithOAuthProvider("github", next);
 };
 
 // Выход пользователя

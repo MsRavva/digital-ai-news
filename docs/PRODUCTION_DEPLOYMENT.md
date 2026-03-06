@@ -102,14 +102,14 @@ export default nextConfig
 
 ```bash
 # Проверка перед сборкой
-npm run lint
-npm run format
+bun run lint
+bun run format
 
 # Сборка
-npm run build
+bun run build
 
 # Тест продакшен версии локально
-npm run start
+bun run start
 ```
 
 ## 3. Развертывание
@@ -118,7 +118,7 @@ npm run start
 
 1. Установите Vercel CLI:
 ```bash
-npm i -g vercel
+bun add -g vercel
 ```
 
 2. Войдите в Vercel:
@@ -143,7 +143,7 @@ vercel --prod
 
 1. Установите Netlify CLI:
 ```bash
-npm i -g netlify-cli
+bun add -g netlify-cli
 ```
 
 2. Войдите в Netlify:
@@ -168,14 +168,14 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN bun install --frozen-lockfile
 
 # Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN bun run build
 
 # Production
 FROM base AS runner
@@ -240,7 +240,7 @@ docker-compose up -d
 Установка Sentry:
 
 ```bash
-npm install @sentry/nextjs
+bun add @sentry/nextjs
 ```
 
 Настройка в `sentry.client.config.ts`:
@@ -269,13 +269,13 @@ Sentry.init({
 
 ```bash
 # Проверка уязвимостей
-npm audit
+bun audit
 
 # Обновление зависимостей
-npm update
+bun update
 
 # Проверка устаревших пакетов
-npm outdated
+bun outdated
 ```
 
 ## 6. Резервное копирование
