@@ -18,6 +18,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
+import { clearReturnUrl, getRedirectUrl, getReturnUrl, saveReturnUrl } from "@/lib/auth-helpers";
+import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
 import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 
 function LoginForm() {
@@ -32,12 +34,18 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const resolvePostAuthRedirect = () => {
+    const storedRedirect = getSafePostAuthRedirect(getReturnUrl());
+    const redirect = getRedirectUrl(searchParams, storedRedirect || "/");
+    clearReturnUrl();
+    return redirect;
+  };
+
   // Редирект если уже авторизован
   // Редирект если уже авторизован
   useEffect(() => {
     if (!authLoading && user) {
-      const redirect = searchParams.get("redirect");
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/");
+      router.replace(resolvePostAuthRedirect());
     }
   }, [user, authLoading, router, searchParams]);
 
@@ -61,8 +69,7 @@ function LoginForm() {
         description: "Вы успешно вошли в систему",
       });
 
-      const redirect = searchParams.get("redirect");
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/");
+      router.replace(resolvePostAuthRedirect());
     } catch (error) {
       console.error("Unexpected login error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
@@ -76,14 +83,17 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setFormError(null);
     setIsGoogleLoading(true);
+    const redirect = getRedirectUrl(searchParams, "/");
+    saveReturnUrl(redirect);
 
     try {
-      const { error } = await signInWithGoogle("/");
+      const { error } = await signInWithGoogle(redirect);
 
       if (error) {
         console.error("Google sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
+        clearReturnUrl();
         setIsGoogleLoading(false);
         return;
       }
@@ -94,6 +104,7 @@ function LoginForm() {
       console.error("Unexpected Google sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
+      clearReturnUrl();
       setIsGoogleLoading(false);
     }
   };
@@ -102,15 +113,18 @@ function LoginForm() {
     console.log("[Login Page] GitHub sign in clicked");
     setFormError(null);
     setIsGithubLoading(true);
+    const redirect = getRedirectUrl(searchParams, "/");
+    saveReturnUrl(redirect);
 
     try {
-      console.log("[Login Page] Calling signInWithGithub with next=/");
-      const { error } = await signInWithGithub("/");
+      console.log("[Login Page] Calling signInWithGithub with redirect:", redirect);
+      const { error } = await signInWithGithub(redirect);
 
       if (error) {
         console.error("[Login Page] GitHub sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
+        clearReturnUrl();
         setIsGithubLoading(false);
         return;
       }
@@ -122,6 +136,7 @@ function LoginForm() {
       console.error("[Login Page] Unexpected GitHub sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
+      clearReturnUrl();
       setIsGithubLoading(false);
     }
   };

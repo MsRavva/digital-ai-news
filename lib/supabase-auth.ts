@@ -11,10 +11,7 @@ async function signInWithOAuthProvider(
     const returnPath = resolveClientOAuthReturnPath(next);
     const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
     const callbackUrl = new URL("/auth/callback", baseUrl);
-
-    if (returnPath !== "/") {
-      callbackUrl.searchParams.set("next", returnPath);
-    }
+    callbackUrl.searchParams.set("next", returnPath);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
