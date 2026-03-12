@@ -3,14 +3,15 @@
 ## Текущий фокус
 
 - Система Memory Bank инициализирована в репозитории согласно `AGENTS.md`.
-- Выполнен рефакторинг redirect flow: единый серверный post-login endpoint и cookie-based хранение post-auth redirect.
-- Удалены лишние `console.log` из auth redirect flow.
-- Добавлены unit-тесты для redirect helper и исправлена проверка auth routes с query string.
+- Redirect flow стабилизирован для password login, регистрации, OAuth callback и server-side guard.
+- Закрыты остаточные риски: очистка stale `post_auth_redirect` cookie при ошибке OAuth и server-side сохранение маршрута возврата через `requireAuth(...)`.
+- CSP обновлен для встроенного шрифта `react-markdown-editor-lite`.
 
 ## Активные решения
 
 - Использовать `httpOnly` cookie `post_auth_redirect` как единый источник истины для возврата после авторизации.
 - Финализировать редирект через `app/auth/post-login/route.ts`.
+- Использовать `lib/auth-server.ts` как серверный guard с той же схемой redirect, что и в `middleware.ts`.
 - Поддерживать `docs/README.md` как источник архитектурной правды верхнего уровня.
 
 ## Затронутые файлы
@@ -18,16 +19,19 @@
 - `middleware.ts`
 - `app/auth/callback/route.ts`
 - `app/auth/post-login/route.ts`
+- `app/admin/teachers/layout.tsx`
 - `app/login/page.tsx`
 - `app/register/page.tsx`
+- `lib/auth-server.ts`
 - `lib/post-auth-redirect.ts`
 - `lib/auth-helpers.ts`
 - `lib/post-auth-redirect.test.ts`
+- `next.config.mjs`
 - `package.json`
 - `docs/README.md`
 - `memory_bank/*`
 
 ## Ближайшие шаги
 
-- Проверить рабочее дерево и при необходимости зафиксировать изменения в git.
-- При желании расширить тесты до route-level или e2e сценариев для middleware и OAuth callback.
+- Поддерживать `memory_bank` и `docs/README.md` синхронизированными с auth-flow.
+- При необходимости добавить route-level или e2e проверки для `middleware`, `/auth/callback` и `/auth/post-login`.

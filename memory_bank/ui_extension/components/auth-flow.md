@@ -8,3 +8,4 @@
 - `app/auth/callback/route.ts` - серверный OAuth callback.
 - `app/auth/post-login/route.ts` - единая точка server-side редиректа после входа.
 - `middleware.ts` - первичная защита маршрутов и запись redirect cookie.
+- `lib/auth-server.ts` - server-side guard для layouts и server components с сохранением redirect path.
