@@ -18,8 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
-import { clearReturnUrl, getRedirectUrl, getReturnUrl, saveReturnUrl } from "@/lib/auth-helpers";
-import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
+import { getRedirectUrl } from "@/lib/auth-helpers";
 import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 import { validateUsername } from "@/lib/validation";
 
@@ -37,18 +36,25 @@ export default function Register() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const resolvePostAuthRedirect = () => {
-    const storedRedirect = getSafePostAuthRedirect(getReturnUrl());
-    const redirect = getRedirectUrl(searchParams, storedRedirect || "/");
-    clearReturnUrl();
-    return redirect;
+  const resolvePostAuthRedirectUrl = () => {
+    const params = new URLSearchParams(searchParams?.toString());
+    const redirect = getRedirectUrl(searchParams, "/");
+
+    if (redirect !== "/") {
+      params.set("redirect", redirect);
+    } else {
+      params.delete("redirect");
+    }
+
+    const query = params.toString();
+    return query ? `/auth/post-login?${query}` : "/auth/post-login";
   };
 
   // Редирект если уже авторизован
   // Редирект если уже авторизован
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace(resolvePostAuthRedirect());
+      router.replace(resolvePostAuthRedirectUrl());
     }
   }, [user, authLoading, router, searchParams]);
 
@@ -101,7 +107,7 @@ export default function Register() {
         description: "Вы успешно зарегистрировались",
       });
 
-      router.replace(resolvePostAuthRedirect());
+      router.replace(resolvePostAuthRedirectUrl());
     } catch (error) {
       console.error("Unexpected error during registration:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
@@ -115,17 +121,14 @@ export default function Register() {
   const handleGoogleSignIn = async () => {
     setFormError(null);
     setIsGoogleLoading(true);
-    const redirect = getRedirectUrl(searchParams, "/");
-    saveReturnUrl(redirect);
 
     try {
-      const { error } = await signInWithGoogle(redirect);
+      const { error } = await signInWithGoogle(getRedirectUrl(searchParams, "/"));
 
       if (error) {
         console.error("Google sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
-        clearReturnUrl();
         setIsGoogleLoading(false);
         return;
       }
@@ -135,7 +138,6 @@ export default function Register() {
       console.error("Unexpected Google sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
-      clearReturnUrl();
       setIsGoogleLoading(false);
     }
   };
@@ -144,7 +146,6 @@ export default function Register() {
     setFormError(null);
     setIsGithubLoading(true);
     const redirect = getRedirectUrl(searchParams, "/");
-    saveReturnUrl(redirect);
 
     try {
       const { error } = await signInWithGithub(redirect);
@@ -153,7 +154,6 @@ export default function Register() {
         console.error("GitHub sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
-        clearReturnUrl();
         setIsGithubLoading(false);
         return;
       }
@@ -163,7 +163,6 @@ export default function Register() {
       console.error("Unexpected GitHub sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
-      clearReturnUrl();
       setIsGithubLoading(false);
     }
   };

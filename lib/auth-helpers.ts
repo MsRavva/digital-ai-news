@@ -46,36 +46,3 @@ export function hasRole(
   if (!profile) return false;
   return roles.includes(profile.role);
 }
-
-const RETURN_URL_KEY = "auth_return_url";
-
-export function saveReturnUrl(url: string): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    sessionStorage.setItem(RETURN_URL_KEY, url);
-  } catch (error) {
-    console.error("Failed to save return URL:", error);
-  }
-}
-
-export function getReturnUrl(): string | null {
-  if (typeof window === "undefined") return null;
-
-  try {
-    return sessionStorage.getItem(RETURN_URL_KEY);
-  } catch (error) {
-    console.error("Failed to get return URL:", error);
-    return null;
-  }
-}
-
-export function clearReturnUrl(): void {
-  if (typeof window === "undefined") return;
-
-  try {
-    sessionStorage.removeItem(RETURN_URL_KEY);
-  } catch (error) {
-    console.error("Failed to clear return URL:", error);
-  }
-}

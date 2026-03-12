@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import {
+  buildPostAuthRedirect,
+  getPostAuthRedirectFromRequest,
+  setPostAuthRedirectCookie,
+} from "@/lib/post-auth-redirect";
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 
 // Защищенные маршруты (требуют авторизации)
@@ -109,8 +114,19 @@ export async function middleware(request: NextRequest) {
   // Если пользователь пытается зайти на защищенный маршрут без авторизации
   if (isProtectedRoute && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectTarget = buildPostAuthRedirect(pathname, request.nextUrl.search);
+
+    if (redirectTarget) {
+      loginUrl.searchParams.set("redirect", redirectTarget);
+    }
+
+    const redirectResponse = NextResponse.redirect(loginUrl);
+
+    if (redirectTarget) {
+      setPostAuthRedirectCookie(redirectResponse, redirectTarget);
+    }
+
+    return redirectResponse;
   }
 
   // Проверка доступа к admin маршрутам
@@ -125,13 +141,15 @@ export async function middleware(request: NextRequest) {
 
   // Редирект авторизованных пользователей с guest routes
   // Исключение: /reset-password - разрешаем доступ для восстановления пароля
-  // Если есть параметр redirect, используем его
   if (isGuestRoute && isAuthenticated && pathname !== "/reset-password") {
-    const redirectTo = request.nextUrl.searchParams.get("redirect");
-    if (redirectTo && redirectTo.startsWith("/")) {
-      return NextResponse.redirect(new URL(redirectTo, request.url));
+    const redirectTo = getPostAuthRedirectFromRequest(request);
+    const postLoginUrl = new URL("/auth/post-login", request.url);
+
+    if (redirectTo) {
+      postLoginUrl.searchParams.set("redirect", redirectTo);
     }
-    return NextResponse.redirect(new URL("/", request.url));
+
+    return NextResponse.redirect(postLoginUrl);
   }
 
   return response;

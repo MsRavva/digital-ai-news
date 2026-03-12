@@ -18,8 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
-import { clearReturnUrl, getRedirectUrl, getReturnUrl, saveReturnUrl } from "@/lib/auth-helpers";
-import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
+import { getRedirectUrl } from "@/lib/auth-helpers";
 import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 
 function LoginForm() {
@@ -34,18 +33,25 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const resolvePostAuthRedirect = () => {
-    const storedRedirect = getSafePostAuthRedirect(getReturnUrl());
-    const redirect = getRedirectUrl(searchParams, storedRedirect || "/");
-    clearReturnUrl();
-    return redirect;
+  const resolvePostAuthRedirectUrl = () => {
+    const params = new URLSearchParams(searchParams?.toString());
+    const redirect = getRedirectUrl(searchParams, "/");
+
+    if (redirect !== "/") {
+      params.set("redirect", redirect);
+    } else {
+      params.delete("redirect");
+    }
+
+    const query = params.toString();
+    return query ? `/auth/post-login?${query}` : "/auth/post-login";
   };
 
   // Редирект если уже авторизован
   // Редирект если уже авторизован
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace(resolvePostAuthRedirect());
+      router.replace(resolvePostAuthRedirectUrl());
     }
   }, [user, authLoading, router, searchParams]);
 
@@ -69,7 +75,7 @@ function LoginForm() {
         description: "Вы успешно вошли в систему",
       });
 
-      router.replace(resolvePostAuthRedirect());
+      router.replace(resolvePostAuthRedirectUrl());
     } catch (error) {
       console.error("Unexpected login error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
@@ -83,17 +89,14 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setFormError(null);
     setIsGoogleLoading(true);
-    const redirect = getRedirectUrl(searchParams, "/");
-    saveReturnUrl(redirect);
 
     try {
-      const { error } = await signInWithGoogle(redirect);
+      const { error } = await signInWithGoogle(getRedirectUrl(searchParams, "/"));
 
       if (error) {
         console.error("Google sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
-        clearReturnUrl();
         setIsGoogleLoading(false);
         return;
       }
@@ -104,7 +107,6 @@ function LoginForm() {
       console.error("Unexpected Google sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
-      clearReturnUrl();
       setIsGoogleLoading(false);
     }
   };
@@ -114,7 +116,6 @@ function LoginForm() {
     setFormError(null);
     setIsGithubLoading(true);
     const redirect = getRedirectUrl(searchParams, "/");
-    saveReturnUrl(redirect);
 
     try {
       console.log("[Login Page] Calling signInWithGithub with redirect:", redirect);
@@ -124,7 +125,6 @@ function LoginForm() {
         console.error("[Login Page] GitHub sign in error:", error);
         const errorMessage = getSupabaseErrorMessage(error);
         setFormError(errorMessage);
-        clearReturnUrl();
         setIsGithubLoading(false);
         return;
       }
@@ -136,7 +136,6 @@ function LoginForm() {
       console.error("[Login Page] Unexpected GitHub sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
-      clearReturnUrl();
       setIsGithubLoading(false);
     }
   };

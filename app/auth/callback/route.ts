@@ -3,6 +3,10 @@ import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
+import {
+  clearPostAuthRedirectCookie,
+  getPostAuthRedirectFromRequest,
+} from "@/lib/post-auth-redirect";
 
 function generateRandomSuffix(): string {
   return randomBytes(4).toString("hex").slice(0, 6);
@@ -71,6 +75,19 @@ export async function GET(request: NextRequest) {
 
   const createRedirectResponse = (path: string) => {
     const response = NextResponse.redirect(new URL(path, requestUrl.origin));
+    applyCookies(response);
+    return response;
+  };
+
+  const createPostLoginRedirectResponse = (redirect?: string | null) => {
+    const postLoginUrl = new URL("/auth/post-login", requestUrl.origin);
+
+    if (redirect) {
+      postLoginUrl.searchParams.set("redirect", redirect);
+    }
+
+    const response = NextResponse.redirect(postLoginUrl);
+
     applyCookies(response);
     return response;
   };
@@ -157,22 +174,9 @@ export async function GET(request: NextRequest) {
   }
 
   const nextRedirect = getSafePostAuthRedirect(requestUrl.searchParams.get("next"));
-  if (nextRedirect) {
-    return createRedirectResponse(nextRedirect);
-  }
-
-  const referer = request.headers.get("referer");
-  if (referer) {
-    try {
-      const refererPath = new URL(referer).pathname;
-      const refererRedirect = getSafePostAuthRedirect(refererPath);
-      if (refererRedirect) {
-        return createRedirectResponse(refererRedirect);
-      }
-    } catch {
-      // Ignore invalid referer and fallback to home page.
-    }
-  }
-
-  return createRedirectResponse("/");
+  const fallbackRedirect = getPostAuthRedirectFromRequest(request);
+  const redirectTo = nextRedirect || fallbackRedirect;
+  const response = createPostLoginRedirectResponse(redirectTo);
+  clearPostAuthRedirectCookie(response);
+  return response;
 }
