@@ -17,7 +17,7 @@ const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password
 const adminRoutes = ["/admin"];
 
 // Маршруты которые не требуют проверки (OAuth callback, API)
-const publicRoutes = ["/auth/callback", "/api"];
+const publicRoutes = ["/auth/callback", "/auth/post-login", "/api"];
 
 // Маршруты для rate limiting
 const rateLimitedRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
     pathname === "/auth/callback" ||
+    pathname === "/auth/post-login" ||
     publicRoutes.some((route) => pathname.startsWith(route))
   ) {
     return NextResponse.next();

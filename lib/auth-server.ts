@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { buildPostAuthRedirect } from "./post-auth-redirect";
 import { createServerSupabaseClient } from "./supabase-server";
 
 /**
@@ -23,10 +24,17 @@ export async function checkAuth(): Promise<boolean> {
  * Редирект если не авторизован
  * Используется для защищенных страниц (профиль, создание поста и т.д.)
  */
-export async function requireAuth(redirectTo = "/login"): Promise<void> {
+export async function requireAuth(currentPath?: string, search = ""): Promise<void> {
   const isAuthenticated = await checkAuth();
   if (!isAuthenticated) {
-    redirect(redirectTo);
+    const loginUrl = new URL("http://localhost/login");
+    const redirectTarget = currentPath ? buildPostAuthRedirect(currentPath, search) : null;
+
+    if (redirectTarget) {
+      loginUrl.searchParams.set("redirect", redirectTarget);
+    }
+
+    redirect(`${loginUrl.pathname}${loginUrl.search}`);
   }
 }
 

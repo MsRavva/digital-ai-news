@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
   const createRedirectResponse = (path: string) => {
     const response = NextResponse.redirect(new URL(path, requestUrl.origin));
     applyCookies(response);
+    clearPostAuthRedirectCookie(response);
     return response;
   };
 
