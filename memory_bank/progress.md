@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `5ab531f3e66e0c4c821b77bafad4bce31ef82f25`
+- last_checked_commit: `289671c8816b4b6c42f1d6f6d5ee46d44f7fdef1`
 - checked_at: `2026-03-12`
 
 ## Current Status
@@ -26,3 +26,4 @@
 - 2026-03-12: Централизован post-auth redirect через cookie и `app/auth/post-login/route.ts`.
 - 2026-03-12: Создан commit `5ab531f` с актуальным набором изменений перед финальной синхронизацией памяти.
 - 2026-03-12: Удалены лишние `console.log`, добавлены unit-тесты `lib/post-auth-redirect.test.ts`, исправлена фильтрация auth routes с query string.
+- 2026-03-12: Создан commit `289671c` с очисткой auth логов и тестами redirect flow.
