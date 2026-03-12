@@ -14,8 +14,9 @@ export function isSafeRelativePath(path: string | null | undefined): path is str
 export function getSafePostAuthRedirect(path: string | null | undefined): string | null {
   if (!isSafeRelativePath(path)) return null;
 
+  const pathname = path.split(/[?#]/, 1)[0];
   const isAuthRoute = AUTH_ROUTES.some(
-    (authRoute) => path === authRoute || path.startsWith(`${authRoute}/`)
+    (authRoute) => pathname === authRoute || pathname.startsWith(`${authRoute}/`)
   );
 
   return isAuthRoute ? null : path;

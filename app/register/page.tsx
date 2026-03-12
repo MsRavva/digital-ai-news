@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { getRedirectUrl } from "@/lib/auth-helpers";
+import { buildPostLoginRedirectPath } from "@/lib/post-auth-redirect";
 import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 import { validateUsername } from "@/lib/validation";
 
@@ -36,25 +37,11 @@ export default function Register() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const resolvePostAuthRedirectUrl = () => {
-    const params = new URLSearchParams(searchParams?.toString());
-    const redirect = getRedirectUrl(searchParams, "/");
-
-    if (redirect !== "/") {
-      params.set("redirect", redirect);
-    } else {
-      params.delete("redirect");
-    }
-
-    const query = params.toString();
-    return query ? `/auth/post-login?${query}` : "/auth/post-login";
-  };
-
   // Редирект если уже авторизован
   // Редирект если уже авторизован
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace(resolvePostAuthRedirectUrl());
+      router.replace(buildPostLoginRedirectPath(searchParams, "/"));
     }
   }, [user, authLoading, router, searchParams]);
 
@@ -107,7 +94,7 @@ export default function Register() {
         description: "Вы успешно зарегистрировались",
       });
 
-      router.replace(resolvePostAuthRedirectUrl());
+      router.replace(buildPostLoginRedirectPath(searchParams, "/"));
     } catch (error) {
       console.error("Unexpected error during registration:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);

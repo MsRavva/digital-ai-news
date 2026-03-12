@@ -7,14 +7,38 @@ export function buildPostAuthRedirect(pathname: string, search = ""): string | n
   return getSafePostAuthRedirect(`${pathname}${search}`);
 }
 
+export function resolvePostAuthRedirect(
+  redirectFromCookie?: string | null,
+  redirectFromQuery?: string | null
+): string | null {
+  const safeCookieRedirect = getSafePostAuthRedirect(redirectFromCookie);
+  if (safeCookieRedirect) return safeCookieRedirect;
+
+  return getSafePostAuthRedirect(redirectFromQuery);
+}
+
 export function getPostAuthRedirectFromRequest(request: NextRequest): string | null {
-  const redirectFromCookie = request.cookies.get(POST_AUTH_REDIRECT_COOKIE)?.value;
-  if (redirectFromCookie) {
-    const safeRedirect = getSafePostAuthRedirect(redirectFromCookie);
-    if (safeRedirect) return safeRedirect;
+  return resolvePostAuthRedirect(
+    request.cookies.get(POST_AUTH_REDIRECT_COOKIE)?.value,
+    request.nextUrl.searchParams.get("redirect")
+  );
+}
+
+export function buildPostLoginRedirectPath(
+  searchParams: URLSearchParams | null,
+  fallback = "/"
+): string {
+  const params = new URLSearchParams(searchParams?.toString());
+  const redirect = getSafePostAuthRedirect(params.get("redirect")) || fallback;
+
+  if (redirect !== "/") {
+    params.set("redirect", redirect);
+  } else {
+    params.delete("redirect");
   }
 
-  return getSafePostAuthRedirect(request.nextUrl.searchParams.get("redirect"));
+  const query = params.toString();
+  return query ? `/auth/post-login?${query}` : "/auth/post-login";
 }
 
 export function setPostAuthRedirectCookie(response: NextResponse, redirect: string): void {
