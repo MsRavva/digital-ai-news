@@ -1,29 +1,73 @@
 import type { AuthError, User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/database";
+import {
+  OAUTH_DEBUG_QUERY_FLAG,
+  OAUTH_DEBUG_QUERY_FLOW,
+  OAUTH_DEBUG_QUERY_PROVIDER,
+  type OAuthDebugProvider,
+} from "./oauth-debug";
 import { resolveClientOAuthReturnPath } from "./oauth-redirect";
 import { supabase } from "./supabase";
 
+export async function getOAuthRedirectUrl(
+  provider: OAuthDebugProvider,
+  next?: string,
+  options?: {
+    flowId?: string;
+    debug?: boolean;
+  }
+): Promise<{ url: string | null; callbackUrl: string; error: AuthError | null }> {
+  const returnPath = resolveClientOAuthReturnPath(next);
+  const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
+  const callbackUrl = new URL("/auth/callback", baseUrl);
+  callbackUrl.searchParams.set("next", returnPath);
+
+  if (options?.debug && options.flowId) {
+    callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_FLAG, "1");
+    callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_FLOW, options.flowId);
+    callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_PROVIDER, provider);
+  }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: callbackUrl.toString(),
+      skipBrowserRedirect: true,
+    },
+  });
+
+  if (error) {
+    return { url: null, callbackUrl: callbackUrl.toString(), error };
+  }
+
+  if (!data?.url) {
+    return {
+      url: null,
+      callbackUrl: callbackUrl.toString(),
+      error: { message: "Supabase не вернул URL OAuth провайдера" } as AuthError,
+    };
+  }
+
+  return { url: data.url, callbackUrl: callbackUrl.toString(), error: null };
+}
+
 async function signInWithOAuthProvider(
-  provider: "google" | "github",
+  provider: OAuthDebugProvider,
   next?: string
 ): Promise<{ error: AuthError | null }> {
   try {
-    const returnPath = resolveClientOAuthReturnPath(next);
-    const baseUrl = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || window.location.origin;
-    const callbackUrl = new URL("/auth/callback", baseUrl);
-    callbackUrl.searchParams.set("next", returnPath);
+    const { url, error } = await getOAuthRedirectUrl(provider, next);
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: callbackUrl.toString(),
-      },
-    });
-
-    if (error) {
+    if (error || !url) {
       console.error(`Error signing in with ${provider}:`, error);
-      return { error };
+      return {
+        error:
+          error ||
+          ({ message: `Не удалось получить URL для OAuth провайдера ${provider}` } as AuthError),
+      };
     }
+
+    window.location.assign(url);
 
     return { error: null };
   } catch (error) {

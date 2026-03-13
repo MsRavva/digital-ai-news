@@ -22,9 +22,12 @@
 - Клиентские страницы auth больше не зависят от `sessionStorage` для возврата после логина.
 - Server-side guard `lib/auth-server.ts` использует тот же redirect helper, что и middleware.
 - Технический маршрут `/auth/post-login` должен оставаться публичным.
+- Для debug OAuth на `/login` используется `sessionStorage` только как диагностическое хранилище UI-состояния, не как источник истины для боевого редиректа.
+- `lib/supabase-auth.ts` теперь умеет возвращать provider URL через `skipBrowserRedirect: true`, после чего клиент сам инициирует навигацию.
 
 ## Проверки в текущей сессии
 
 - `bunx tsc --noEmit` - успешно.
 - `npx tsc --noEmit --pretty false` - успешно.
+- `bun test` - успешно.
 - `bun run check` - неуспешно из-за существующих форматных проблем в репозитории, не связанных только с текущими файлами.

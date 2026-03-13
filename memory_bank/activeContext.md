@@ -6,6 +6,8 @@
 - Redirect flow стабилизирован для password login, регистрации, OAuth callback и server-side guard.
 - Закрыты остаточные риски: очистка stale `post_auth_redirect` cookie при ошибке OAuth и server-side сохранение маршрута возврата через `requireAuth(...)`.
 - CSP обновлен для встроенного шрифта `react-markdown-editor-lite`.
+- В работе диагностическая панель на `/login` для GitHub OAuth: пошаговый статус flow и задержка финального редиректа до отображения последнего успешного шага.
+- Реализован диагностический OAuth flow на `/login`: клиентский контроль provider URL, возврат callback обратно на `/login` и ручная ссылка на GitHub/Google при заблокированном переходе.
 
 ## Активные решения
 
@@ -23,6 +25,8 @@
 - `app/login/page.tsx`
 - `app/register/page.tsx`
 - `lib/auth-server.ts`
+- `components/auth-oauth-debug-panel.tsx`
+- `lib/oauth-debug.ts`
 - `lib/post-auth-redirect.ts`
 - `lib/auth-helpers.ts`
 - `lib/post-auth-redirect.test.ts`
@@ -33,5 +37,6 @@
 
 ## Ближайшие шаги
 
-- Поддерживать `memory_bank` и `docs/README.md` синхронизированными с auth-flow.
-- При необходимости добавить route-level или e2e проверки для `middleware`, `/auth/callback` и `/auth/post-login`.
+- Реализовать persisted debug-state для OAuth между кликом, уходом на GitHub, callback и возвратом на `/login`.
+- Добавить визуальный пошаговый трекер на `/login` и перевести финальный redirect в управляемый клиентом этап после последнего чека.
+- Проверить реальное поведение GitHub OAuth на ученических устройствах и понять, запускается ли автоматический переход или нужен ручной fallback.

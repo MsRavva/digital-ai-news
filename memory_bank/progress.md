@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `f071fff02eb03b92bcac967e98a38e3e5e8cb40c`
-- checked_at: `2026-03-12`
+- last_checked_commit: `7b9e97a`
+- checked_at: `2026-03-13`
 
 ## Current Status
 
@@ -16,12 +16,14 @@
 - `requireAuth(...)` синхронизирован с основным redirect flow и сохраняет маршрут возврата.
 - OAuth callback очищает stale redirect-cookie при ошибке, чтобы исключить ложный redirect в следующей попытке входа.
 - CSP разрешает `data:`-шрифты для встроенного шрифта markdown-редактора.
+- На `/login` добавлен диагностический OAuth panel с persisted шагами, ручным fallback и задержкой финального редиректа до последнего успешного чека.
 
 ## Known Issues
 
 - `bun run check` падает на уже существующих форматных расхождениях в репозитории, включая файлы вне текущей задачи.
 - В рабочем дереве присутствует удаление `CLAUDE.md`; это изменение не было откатано.
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
+- GitHub OAuth diagnostic flow требует живой проверки на ученических устройствах; код теперь умеет отличать «браузер не ушел на провайдера» от ошибок callback.
 
 ## Changelog
 
@@ -34,3 +36,4 @@
 - 2026-03-12: Исправлен OAuth callback redirect через явную установку auth cookies в redirect response.
 - 2026-03-12: Устранены остаточные риски auth-flow: stale redirect-cookie при ошибке OAuth, публичность `/auth/post-login`, server-side redirect через `requireAuth(...)`.
 - 2026-03-12: Обновлен CSP для `react-markdown-editor-lite` (`font-src 'self' data:`) и синхронизирован `memory_bank` с commit `f071fff`.
+- 2026-03-13: Добавлен диагностический OAuth режим на `/login` с правой панелью шагов, возвратом callback на `/login` и ручным fallback на provider URL.

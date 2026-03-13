@@ -2,6 +2,13 @@ import { randomBytes } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import {
+  buildOAuthDebugLoginPath,
+  isOAuthDebugProvider,
+  OAUTH_DEBUG_QUERY_FLAG,
+  OAUTH_DEBUG_QUERY_FLOW,
+  OAUTH_DEBUG_QUERY_PROVIDER,
+} from "@/lib/oauth-debug";
 import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
 import {
   clearPostAuthRedirectCookie,
@@ -56,6 +63,12 @@ async function generateUniqueUsername(
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const oauthDebugEnabled = requestUrl.searchParams.get(OAUTH_DEBUG_QUERY_FLAG) === "1";
+  const oauthDebugFlowId = requestUrl.searchParams.get(OAUTH_DEBUG_QUERY_FLOW);
+  const oauthDebugProviderValue = requestUrl.searchParams.get(OAUTH_DEBUG_QUERY_PROVIDER);
+  const oauthDebugProvider = isOAuthDebugProvider(oauthDebugProviderValue)
+    ? oauthDebugProviderValue
+    : null;
   const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> =
     [];
 
@@ -78,6 +91,33 @@ export async function GET(request: NextRequest) {
     applyCookies(response);
     clearPostAuthRedirectCookie(response);
     return response;
+  };
+
+  const createOAuthDebugResponse = ({
+    status,
+    step,
+    redirectTo,
+    message,
+  }: {
+    status: "success" | "error";
+    step: "callback_reached" | "code_exchanged" | "profile_checked" | "final_redirect_ready";
+    redirectTo?: string | null;
+    message?: string;
+  }) => {
+    if (!oauthDebugEnabled || !oauthDebugFlowId || !oauthDebugProvider) {
+      return null;
+    }
+
+    return createRedirectResponse(
+      buildOAuthDebugLoginPath({
+        flowId: oauthDebugFlowId,
+        provider: oauthDebugProvider,
+        redirectTo,
+        status,
+        step,
+        message,
+      })
+    );
   };
 
   const createPostLoginRedirectResponse = (redirect?: string | null) => {
@@ -112,6 +152,19 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
+      const debugResponse = createOAuthDebugResponse({
+        status: "error",
+        step: "code_exchanged",
+        redirectTo:
+          getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
+          getPostAuthRedirectFromRequest(request),
+        message: error.message,
+      });
+
+      if (debugResponse) {
+        return debugResponse;
+      }
+
       return createRedirectResponse(
         `/login?error=auth_failed&details=${encodeURIComponent(error.message)}`
       );
@@ -145,6 +198,20 @@ export async function GET(request: NextRequest) {
 
         if (!username) {
           console.error("Failed to generate unique username for user:", data.user.id);
+
+          const debugResponse = createOAuthDebugResponse({
+            status: "error",
+            step: "profile_checked",
+            redirectTo:
+              getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
+              getPostAuthRedirectFromRequest(request),
+            message: "Не удалось подготовить профиль пользователя",
+          });
+
+          if (debugResponse) {
+            return debugResponse;
+          }
+
           return createRedirectResponse("/login?error=profile_creation_failed");
         }
 
@@ -172,11 +239,41 @@ export async function GET(request: NextRequest) {
         }
       }
     }
+  } else {
+    const callbackError =
+      requestUrl.searchParams.get("error_description") ||
+      requestUrl.searchParams.get("error") ||
+      "OAuth callback пришел без code";
+
+    const debugResponse = createOAuthDebugResponse({
+      status: "error",
+      step: "callback_reached",
+      redirectTo:
+        getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
+        getPostAuthRedirectFromRequest(request),
+      message: callbackError,
+    });
+
+    if (debugResponse) {
+      return debugResponse;
+    }
   }
 
   const nextRedirect = getSafePostAuthRedirect(requestUrl.searchParams.get("next"));
   const fallbackRedirect = getPostAuthRedirectFromRequest(request);
   const redirectTo = nextRedirect || fallbackRedirect;
+
+  const debugSuccessResponse = createOAuthDebugResponse({
+    status: "success",
+    step: "final_redirect_ready",
+    redirectTo,
+    message: "Callback обработан, последний чек получен.",
+  });
+
+  if (debugSuccessResponse) {
+    return debugSuccessResponse;
+  }
+
   const response = createPostLoginRedirectResponse(redirectTo);
   clearPostAuthRedirectCookie(response);
   return response;
