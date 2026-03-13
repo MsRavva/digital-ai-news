@@ -6,8 +6,8 @@
 - Redirect flow стабилизирован для password login, регистрации, OAuth callback и server-side guard.
 - Закрыты остаточные риски: очистка stale `post_auth_redirect` cookie при ошибке OAuth и server-side сохранение маршрута возврата через `requireAuth(...)`.
 - CSP обновлен для встроенного шрифта `react-markdown-editor-lite`.
-- В работе диагностическая панель на `/login` для GitHub OAuth: пошаговый статус flow и задержка финального редиректа до отображения последнего успешного шага.
 - Реализован диагностический OAuth flow на `/login`: клиентский контроль provider URL, возврат callback обратно на `/login` и ручная ссылка на GitHub/Google при заблокированном переходе.
+- Исправлен блок с логотипами на главной: четвертая иконка GitHub переведена с внешнего URL на локальный SVG.
 
 ## Активные решения
 
@@ -23,6 +23,7 @@
 - `app/auth/post-login/route.ts`
 - `app/admin/teachers/layout.tsx`
 - `app/login/page.tsx`
+- `components/hero-section.tsx`
 - `app/register/page.tsx`
 - `lib/auth-server.ts`
 - `components/auth-oauth-debug-panel.tsx`
@@ -32,11 +33,10 @@
 - `lib/post-auth-redirect.test.ts`
 - `next.config.mjs`
 - `package.json`
+- `public/github-icon.svg`
 - `docs/README.md`
 - `memory_bank/*`
 
 ## Ближайшие шаги
 
-- Реализовать persisted debug-state для OAuth между кликом, уходом на GitHub, callback и возвратом на `/login`.
-- Добавить визуальный пошаговый трекер на `/login` и перевести финальный redirect в управляемый клиентом этап после последнего чека.
 - Проверить реальное поведение GitHub OAuth на ученических устройствах и понять, запускается ли автоматический переход или нужен ручной fallback.

@@ -523,10 +523,10 @@ export default function HeroSection() {
               <div className="flex items-center justify-center">
                 <img
                   className="h-8 w-fit dark:invert"
-                  src="https://html.tailus.io/blocks/customers/github.svg"
+                  src="/github-icon.svg"
                   alt="GitHub Logo"
                   height="32"
-                  width="auto"
+                  width="32"
                 />
               </div>
               <div className="flex items-center justify-center">

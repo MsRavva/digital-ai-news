@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `7b9e97a`
+- last_checked_commit: `264f4a8`
 - checked_at: `2026-03-13`
 
 ## Current Status
@@ -17,6 +17,7 @@
 - OAuth callback очищает stale redirect-cookie при ошибке, чтобы исключить ложный redirect в следующей попытке входа.
 - CSP разрешает `data:`-шрифты для встроенного шрифта markdown-редактора.
 - На `/login` добавлен диагностический OAuth panel с persisted шагами, ручным fallback и задержкой финального редиректа до последнего успешного чека.
+- На главной странице четвертая иконка в нижнем блоке логотипов больше не зависит от внешнего URL и берется из локального SVG.
 
 ## Known Issues
 
@@ -37,3 +38,4 @@
 - 2026-03-12: Устранены остаточные риски auth-flow: stale redirect-cookie при ошибке OAuth, публичность `/auth/post-login`, server-side redirect через `requireAuth(...)`.
 - 2026-03-12: Обновлен CSP для `react-markdown-editor-lite` (`font-src 'self' data:`) и синхронизирован `memory_bank` с commit `f071fff`.
 - 2026-03-13: Добавлен диагностический OAuth режим на `/login` с правой панелью шагов, возвратом callback на `/login` и ручным fallback на provider URL.
+- 2026-03-13: Исправлена сломанная четвертая иконка в нижнем блоке главной страницы через замену внешнего GitHub SVG на локальный `public/github-icon.svg`.
