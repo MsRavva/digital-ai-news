@@ -47,6 +47,47 @@ export interface OAuthAuditLog {
   updated_at: string;
 }
 
+export interface OrphanProfileCandidate {
+  profileId: string;
+  email: string;
+  username: string;
+  role: "student" | "teacher" | "admin";
+  createdAt: string;
+  updatedAt?: string | null;
+  emailExistsInAuth: boolean;
+  idExistsInAuth: boolean;
+  postsCount: number;
+  commentsCount: number;
+  likesCount: number;
+  viewsCount: number;
+  commentLikesCount: number;
+  totalReferences: number;
+}
+
+export interface OrphanProfilesSnapshot {
+  totalProfilesWithEmail: number;
+  totalAuthUsersWithEmail: number;
+  orphanProfilesCount: number;
+  authWithoutProfileCount: number;
+  candidates: OrphanProfileCandidate[];
+}
+
+export interface OrphanProfileBackfillResult {
+  profileId: string;
+  email: string;
+  status: "success" | "error" | "skipped";
+  message: string;
+  newUserId?: string;
+}
+
+export interface OrphanProfileBackfillRun {
+  processed: number;
+  succeeded: number;
+  failed: number;
+  skipped: number;
+  results: OrphanProfileBackfillResult[];
+}
+
 export interface Post {
   id: string;
   title: string;

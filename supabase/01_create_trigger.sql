@@ -7,8 +7,25 @@ DECLARE
   role_value text;
   attempt integer := 0;
   max_attempts integer := 10;
+  violated_constraint_name text;
 BEGIN
   IF EXISTS (SELECT 1 FROM public.profiles WHERE id::text = new.id::text) THEN
+    RETURN new;
+  END IF;
+
+  IF lower(
+       COALESCE(
+         new.raw_app_meta_data ->> 'legacy_profile_backfill',
+         new.raw_user_meta_data ->> 'legacy_profile_backfill',
+         'false'
+       )
+     ) = 'true'
+     AND new.email IS NOT NULL
+     AND EXISTS (
+       SELECT 1
+       FROM public.profiles
+       WHERE lower(email) = lower(new.email)
+     ) THEN
     RETURN new;
   END IF;
 
@@ -40,11 +57,17 @@ BEGIN
       RETURN new;
     EXCEPTION
       WHEN unique_violation THEN
+        GET STACKED DIAGNOSTICS violated_constraint_name = CONSTRAINT_NAME;
+
         IF EXISTS (SELECT 1 FROM public.profiles WHERE id::text = new.id::text) THEN
           RETURN new;
         END IF;
 
-        attempt := attempt + 1;
+        IF violated_constraint_name = 'unique_username' THEN
+          attempt := attempt + 1;
+        ELSE
+          RAISE;
+        END IF;
     END;
   END LOOP;
 

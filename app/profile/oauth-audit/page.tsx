@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import { HeroHeader } from "@/components/header";
+import { OAuthOrphanBackfillCard } from "@/components/oauth-orphan-backfill-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAuth } from "@/lib/auth-server";
 import { getOAuthAuditLogs } from "@/lib/oauth-audit";
+import { getOrphanProfilesSnapshot } from "@/lib/orphan-auth-backfill";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +51,7 @@ export default async function OAuthAuditPage() {
   }
 
   const logs = await getOAuthAuditLogs(100);
+  const orphanSnapshot = await getOrphanProfilesSnapshot(25);
   const successCount = logs.filter((log) => log.status === "success").length;
   const errorCount = logs.filter((log) => log.status === "error").length;
   const runningCount = logs.filter((log) => log.status === "running").length;
@@ -80,6 +83,8 @@ export default async function OAuthAuditPage() {
               </div>
             </CardContent>
           </Card>
+
+          <OAuthOrphanBackfillCard snapshot={orphanSnapshot} />
 
           <Card>
             <CardHeader>

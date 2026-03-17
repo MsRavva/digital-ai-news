@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `0329033`
+- last_checked_commit: `d4491b3`
 - checked_at: `2026-03-17`
 
 ## Current Status
@@ -25,6 +25,16 @@
 - Для `teacher`/`admin` добавлена отдельная страница `/profile/oauth-audit` и пункт меню профиля для просмотра последних OAuth-flow.
 - По реальным логам ошибок найден повторяющийся паттерн `Database error saving new user` еще до `code exchange`; исправление смещено в SQL trigger `handle_new_user()`.
 - Миграция `fix_handle_new_user_unique_username` успешно применена в Supabase MCP; в базе уже стоит новая версия `public.handle_new_user()`.
+- Повторная серверная диагностика через Supabase MCP подтвердила, что после фикса остались два паттерна ошибок: прямой `unique_email` и ложный финальный `failed to create unique profile username`, возникающий из-за слишком широкого `unique_violation` retry в trigger.
+- Собрана количественная картина по данным: `150` профилей с email, `48` auth-пользователей с email, `104` orphan-профиля без `auth.users`; только `2` orphan-профиля участвуют в контентных связях через `posts`.
+- Подтверждено, что `auth.users` без профиля сейчас всего `2`; основная проблема — именно legacy `profiles` без записей в Auth.
+- Реализован серверный backfill orphan-профилей через `supabase.auth.admin.createUser` и SQL-функцию `reassign_profile_id(...)`, доступный для `teacher`/`admin` на странице `/profile/oauth-audit`.
+- Миграция `prepare_legacy_profile_backfill` применена в Supabase; trigger `handle_new_user()` теперь читает backfill-флаг из обоих metadata-источников и не маскирует `unique_email` под `username`.
+- Выполнен первый боевой backfill-тест на безопасном orphan-профиле без контентных ссылок: `h.nukuta@gmail.com` успешно перенесен в `auth.users`, orphan-профилей осталось `103`, auth users с email стало `49`.
+- Автоматический backfill ужесточен по бизнес-правилу: профили с публикациями (`postsCount > 0`) исключаются из пакетного восстановления.
+- Массовый backfill для всех orphan-профилей без публикаций завершен успешно: обработано `101` пользователя без ошибок, итог в базе — `150` auth users с email и только `2` оставшихся orphan-профиля, оба с публикациями.
+- По отдельному решению пользователя вручную восстановлены и оба оставшихся orphan-автора публикаций: `svasya@ro.ru` (`10` постов) и `eg20master11@gmail.com` (`1` пост) успешно перенесены в `auth.users` с перепривязкой `posts.author_id`.
+- Итоговое состояние базы: `0` orphan-профилей, `150` профилей с email выровнены по `auth.users.id`, авторство всех публикаций сохранено.
 
 ## Known Issues
 
@@ -36,6 +46,11 @@
 - Для полноценной работы нового аудита SQL из `supabase/03_create_oauth_audit_logs.sql` должен быть применен в базе Supabase.
 - Для исправления текущего корня OAuth-сбоя нужно применить SQL из `supabase/04_fix_handle_new_user_unique_username.sql`.
 - Нужна повторная живая проверка GitHub OAuth после применения trigger-фикса, чтобы убедиться, что основной паттерн ошибки исчез.
+- Для окончательного исправления OAuth нужен backfill отсутствующих `auth.users` для orphan-профилей; без этого automatic identity linking Supabase не сможет использовать существующие email из `public.profiles`.
+- Текущий SQL trigger `handle_new_user()` маскирует часть `unique_email` конфликтов как ошибки `username`; это нужно исправить до следующего цикла тестирования.
+- Основной объем legacy-проблемы еще не исчерпан: в базе остается `103` orphan-профиля, включая `2` профиля с публикациями, поэтому GitHub OAuth для этих email продолжит падать, пока backfill не будет доведен хотя бы до активных пользователей.
+- На текущем этапе legacy-проблема почти исчерпана: остаются только `2` orphan-профиля-автора публикаций, которых нельзя трогать автоматически без отдельного плана миграции контента.
+- Legacy-проблема orphan-профилей закрыта; остаточный вопрос — `2` auth users без профиля, не влияющие на текущий OAuth-сбой с `unique_email`.
 
 ## Changelog
 
@@ -56,3 +71,8 @@
 - 2026-03-17: Добавлена постоянная запись OAuth-сессий в `oauth_audit_logs` и teacher/admin страница `/profile/oauth-audit` для просмотра логов.
 - 2026-03-17: По логам OAuth выявлен trigger-level сбой `Database error saving new user`; добавлена SQL-правка `handle_new_user()` с retry по уникальному username и уточненная диагностика callback.
 - 2026-03-17: Через Supabase MCP применена миграция `fix_handle_new_user_unique_username`, подтверждено обновленное определение функции `public.handle_new_user()`.
+- 2026-03-17: Дополнительная диагностика через Supabase MCP показала, что после trigger-фикса сохранились конфликты `unique_email`; собрана карта зависимостей `profiles.id` и подтверждена системная проблема `104` orphan-профилей без `auth.users`.
+- 2026-03-17: Добавлены `lib/orphan-auth-backfill.ts`, API `/api/admin/orphan-profiles/backfill` и teacher/admin блок на `/profile/oauth-audit` для пакетного восстановления orphan-профилей.
+- 2026-03-17: Применена миграция `prepare_legacy_profile_backfill`; первый живой backfill успешно перепривязал профиль `h.nukuta@gmail.com` к новому `auth.users.id`.
+- 2026-03-17: По уточнению пользователя автоматический backfill ограничен только профилями без публикаций; затем массово восстановлены все такие orphan-пользователи (`101` успешный перенос, `0` ошибок).
+- 2026-03-17: По отдельному указанию пользователя вручную восстановлены два orphan-автора публикаций; публикации успешно перепривязаны на новые `auth.users.id`, orphan legacy-профили в базе устранены полностью.
