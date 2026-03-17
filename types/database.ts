@@ -16,6 +16,37 @@ export interface Profile {
   preferredCategory?: string; // Предпочтительная категория публикаций
 }
 
+export interface OAuthAuditLogEvent {
+  at: string;
+  step: string;
+  status: "running" | "success" | "error";
+  message?: string;
+}
+
+export interface OAuthAuditLog {
+  id: string;
+  flow_id: string;
+  provider: "github" | "google";
+  source: "login" | "register" | "unknown";
+  source_path?: string | null;
+  redirect_to?: string | null;
+  status: "running" | "success" | "error";
+  current_step: string;
+  last_message?: string | null;
+  user_id?: string | null;
+  username?: string | null;
+  step_details: Record<string, string>;
+  diagnostics: string[];
+  events: OAuthAuditLogEvent[];
+  ip_address?: string | null;
+  user_agent?: string | null;
+  started_at: string;
+  last_event_at: string;
+  completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Post {
   id: string;
   title: string;

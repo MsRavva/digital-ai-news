@@ -19,7 +19,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { getRedirectUrl } from "@/lib/auth-helpers";
+import { createOAuthFlowId, recordOAuthAuditClientEvent } from "@/lib/oauth-audit-client";
 import { buildPostLoginRedirectPath } from "@/lib/post-auth-redirect";
+import { getOAuthRedirectUrl } from "@/lib/supabase-auth";
 import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
 import { validateUsername } from "@/lib/validation";
 
@@ -33,7 +35,7 @@ export default function Register() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGithubLoading, setIsGithubLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const { signUp, signInWithGoogle, signInWithGithub, user, isLoading: authLoading } = useAuth();
+  const { signUp, user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -108,23 +110,80 @@ export default function Register() {
   const handleGoogleSignIn = async () => {
     setFormError(null);
     setIsGoogleLoading(true);
+    const redirect = getRedirectUrl(searchParams, "/");
+    const flowId = createOAuthFlowId();
+
+    await recordOAuthAuditClientEvent({
+      flowId,
+      provider: "google",
+      source: "register",
+      sourcePath: "/register",
+      redirectTo: redirect,
+      step: "start_requested",
+      status: "running",
+      message: "Пользователь инициировал OAuth через google со страницы регистрации.",
+      diagnostics: ["[client] старт OAuth на /register для provider=google"],
+    });
 
     try {
-      const { error } = await signInWithGoogle(getRedirectUrl(searchParams, "/"));
+      const { error, url } = await getOAuthRedirectUrl("google", redirect, {
+        flowId,
+        source: "register",
+      });
 
-      if (error) {
+      if (error || !url) {
         console.error("Google sign in error:", error);
-        const errorMessage = getSupabaseErrorMessage(error);
+        const errorMessage = getSupabaseErrorMessage(
+          error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
+        );
         setFormError(errorMessage);
+
+        await recordOAuthAuditClientEvent({
+          flowId,
+          provider: "google",
+          source: "register",
+          sourcePath: "/register",
+          redirectTo: redirect,
+          step: "provider_url_ready",
+          status: "error",
+          message: errorMessage,
+          diagnostics: [`[client] не удалось получить OAuth URL для google: ${errorMessage}`],
+        });
+
         setIsGoogleLoading(false);
         return;
       }
 
-      // OAuth редиректит на callback, который обработает вход
+      await recordOAuthAuditClientEvent({
+        flowId,
+        provider: "google",
+        source: "register",
+        sourcePath: "/register",
+        redirectTo: redirect,
+        step: "redirect_triggered",
+        status: "running",
+        message: "Браузеру передан переход на Google OAuth.",
+        diagnostics: ["[client] provider URL получен, redirect на google запущен"],
+      });
+
+      window.location.assign(url);
     } catch (error) {
       console.error("Unexpected Google sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
+
+      await recordOAuthAuditClientEvent({
+        flowId,
+        provider: "google",
+        source: "register",
+        sourcePath: "/register",
+        redirectTo: redirect,
+        step: "redirect_triggered",
+        status: "error",
+        message: errorMessage,
+        diagnostics: [`[client] неожиданная ошибка перед redirect на google: ${errorMessage}`],
+      });
+
       setIsGoogleLoading(false);
     }
   };
@@ -133,23 +192,79 @@ export default function Register() {
     setFormError(null);
     setIsGithubLoading(true);
     const redirect = getRedirectUrl(searchParams, "/");
+    const flowId = createOAuthFlowId();
+
+    await recordOAuthAuditClientEvent({
+      flowId,
+      provider: "github",
+      source: "register",
+      sourcePath: "/register",
+      redirectTo: redirect,
+      step: "start_requested",
+      status: "running",
+      message: "Пользователь инициировал OAuth через github со страницы регистрации.",
+      diagnostics: ["[client] старт OAuth на /register для provider=github"],
+    });
 
     try {
-      const { error } = await signInWithGithub(redirect);
+      const { error, url } = await getOAuthRedirectUrl("github", redirect, {
+        flowId,
+        source: "register",
+      });
 
-      if (error) {
+      if (error || !url) {
         console.error("GitHub sign in error:", error);
-        const errorMessage = getSupabaseErrorMessage(error);
+        const errorMessage = getSupabaseErrorMessage(
+          error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
+        );
         setFormError(errorMessage);
+
+        await recordOAuthAuditClientEvent({
+          flowId,
+          provider: "github",
+          source: "register",
+          sourcePath: "/register",
+          redirectTo: redirect,
+          step: "provider_url_ready",
+          status: "error",
+          message: errorMessage,
+          diagnostics: [`[client] не удалось получить OAuth URL для github: ${errorMessage}`],
+        });
+
         setIsGithubLoading(false);
         return;
       }
 
-      // OAuth редиректит на callback, который обработает вход
+      await recordOAuthAuditClientEvent({
+        flowId,
+        provider: "github",
+        source: "register",
+        sourcePath: "/register",
+        redirectTo: redirect,
+        step: "redirect_triggered",
+        status: "running",
+        message: "Браузеру передан переход на GitHub OAuth.",
+        diagnostics: ["[client] provider URL получен, redirect на github запущен"],
+      });
+
+      window.location.assign(url);
     } catch (error) {
       console.error("Unexpected GitHub sign in error:", error);
       const errorMessage = getSupabaseErrorMessage(error as any);
       setFormError(errorMessage);
+
+      await recordOAuthAuditClientEvent({
+        flowId,
+        provider: "github",
+        source: "register",
+        sourcePath: "/register",
+        redirectTo: redirect,
+        step: "redirect_triggered",
+        status: "error",
+        message: errorMessage,
+        diagnostics: [`[client] неожиданная ошибка перед redirect на github: ${errorMessage}`],
+      });
+
       setIsGithubLoading(false);
     }
   };

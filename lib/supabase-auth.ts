@@ -1,5 +1,6 @@
 import type { AuthError, User } from "@supabase/supabase-js";
 import type { Profile } from "@/types/database";
+import { OAUTH_AUDIT_QUERY_SOURCE, type OAuthAuditSource } from "./oauth-audit";
 import {
   OAUTH_DEBUG_QUERY_FLAG,
   OAUTH_DEBUG_QUERY_FLOW,
@@ -15,6 +16,7 @@ export async function getOAuthRedirectUrl(
   options?: {
     flowId?: string;
     debug?: boolean;
+    source?: OAuthAuditSource;
   }
 ): Promise<{ url: string | null; callbackUrl: string; error: AuthError | null }> {
   const returnPath = resolveClientOAuthReturnPath(next);
@@ -22,10 +24,17 @@ export async function getOAuthRedirectUrl(
   const callbackUrl = new URL("/auth/callback", baseUrl);
   callbackUrl.searchParams.set("next", returnPath);
 
-  if (options?.debug && options.flowId) {
-    callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_FLAG, "1");
+  if (options?.flowId) {
     callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_FLOW, options.flowId);
     callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_PROVIDER, provider);
+  }
+
+  if (options?.debug && options.flowId) {
+    callbackUrl.searchParams.set(OAUTH_DEBUG_QUERY_FLAG, "1");
+  }
+
+  if (options?.source) {
+    callbackUrl.searchParams.set(OAUTH_AUDIT_QUERY_SOURCE, options.source);
   }
 
   const { data, error } = await supabase.auth.signInWithOAuth({

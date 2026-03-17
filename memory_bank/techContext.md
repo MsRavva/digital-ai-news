@@ -24,6 +24,9 @@
 - Технический маршрут `/auth/post-login` должен оставаться публичным.
 - Для debug OAuth на `/login` используется `sessionStorage` только как диагностическое хранилище UI-состояния, не как источник истины для боевого редиректа.
 - `lib/supabase-auth.ts` теперь умеет возвращать provider URL через `skipBrowserRedirect: true`, после чего клиент сам инициирует навигацию.
+- Подтверждение профиля после OAuth вынесено в серверный helper `lib/oauth-profile.ts`; клиентский `AuthProvider` использует retry helper для дозагрузки профиля после появления сессии.
+- OAuth audit использует новую таблицу `oauth_audit_logs`, route handler `app/api/oauth-audit/route.ts` и серверный helper `lib/oauth-audit.ts`.
+- Учительская страница просмотра логов построена как server-rendered маршрут с чтением через admin client после проверки роли пользователя.
 
 ## Проверки в текущей сессии
 

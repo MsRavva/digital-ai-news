@@ -43,6 +43,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const PROFILE_RETRY_DELAYS_MS = [0, 300, 800, 1500];
+
+async function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function loadUserProfileWithRetry(userId: string): Promise<Profile | null> {
+  for (const delayMs of PROFILE_RETRY_DELAYS_MS) {
+    if (delayMs > 0) {
+      await wait(delayMs);
+    }
+
+    const userProfile = await getUserProfile(userId);
+
+    if (userProfile) {
+      return userProfile;
+    }
+  }
+
+  return null;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -74,10 +96,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then(async ({ data: { session } }) => {
         if (session?.user) {
           setUser(session.user);
-          // Загружаем профиль сразу после получения сессии
+
           try {
-            const userProfile = await getUserProfile(session.user.id);
+            const userProfile = await loadUserProfileWithRetry(session.user.id);
             setProfile(userProfile);
+
+            if (!userProfile) {
+              console.warn(
+                `[AuthProvider] Не удалось загрузить профиль после восстановления сессии. user.id=${session.user.id}`
+              );
+            }
           } catch (error) {
             console.error("Error loading profile:", error);
           }
@@ -101,24 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(supabaseUser);
 
         if (supabaseUser) {
-          // Получаем профиль пользователя
-          // Для OAuth пользователей профиль может создаваться с задержкой через триггер
-          // Делаем несколько попыток с небольшими задержками
-          let userProfile = await getUserProfile(supabaseUser.id);
-
-          // Если профиль не найден, ждем немного и пробуем еще раз (для OAuth)
-          if (!userProfile) {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            userProfile = await getUserProfile(supabaseUser.id);
-          }
-
-          // Еще одна попытка через секунду
-          if (!userProfile) {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            userProfile = await getUserProfile(supabaseUser.id);
-          }
+          const userProfile = await loadUserProfileWithRetry(supabaseUser.id);
 
           setProfile(userProfile);
+
+          if (!userProfile) {
+            console.warn(
+              `[AuthProvider] Профиль не найден после auth state change. user.id=${supabaseUser.id}`
+            );
+          }
         } else {
           setProfile(null);
         }

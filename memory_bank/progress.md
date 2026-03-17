@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `264f4a8`
-- checked_at: `2026-03-13`
+- last_checked_commit: `845011b`
+- checked_at: `2026-03-17`
 
 ## Current Status
 
@@ -18,6 +18,11 @@
 - CSP разрешает `data:`-шрифты для встроенного шрифта markdown-редактора.
 - На `/login` добавлен диагностический OAuth panel с persisted шагами, ручным fallback и задержкой финального редиректа до последнего успешного чека.
 - На главной странице четвертая иконка в нижнем блоке логотипов больше не зависит от внешнего URL и берется из локального SVG.
+- OAuth callback упрощен для ветки GitHub/Google профиля: подтверждение `profiles` теперь идет через линейный `select -> upsert -> confirm` helper без временного `insert/delete`.
+- Диагностическое окно OAuth теперь показывает серверные детали по работе с `profiles` в Supabase, включая попытки подтверждения профиля и duplicate-конфликты.
+- `AuthProvider` использует единый retry helper для дозагрузки профиля после появления сессии.
+- Каждая OAuth-сессия теперь пишется в таблицу `oauth_audit_logs` через клиентский route handler и серверный callback независимо от результата.
+- Для `teacher`/`admin` добавлена отдельная страница `/profile/oauth-audit` и пункт меню профиля для просмотра последних OAuth-flow.
 
 ## Known Issues
 
@@ -25,6 +30,8 @@
 - В рабочем дереве присутствует удаление `CLAUDE.md`; это изменение не было откатано.
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
 - GitHub OAuth diagnostic flow требует живой проверки на ученических устройствах; код теперь умеет отличать «браузер не ушел на провайдера» от ошибок callback.
+- В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
+- Для полноценной работы нового аудита SQL из `supabase/03_create_oauth_audit_logs.sql` должен быть применен в базе Supabase.
 
 ## Changelog
 
@@ -39,3 +46,7 @@
 - 2026-03-12: Обновлен CSP для `react-markdown-editor-lite` (`font-src 'self' data:`) и синхронизирован `memory_bank` с commit `f071fff`.
 - 2026-03-13: Добавлен диагностический OAuth режим на `/login` с правой панелью шагов, возвратом callback на `/login` и ручным fallback на provider URL.
 - 2026-03-13: Исправлена сломанная четвертая иконка в нижнем блоке главной страницы через замену внешнего GitHub SVG на локальный `public/github-icon.svg`.
+- 2026-03-17: Упрощен OAuth profile flow после GitHub/Google callback через новый helper `lib/oauth-profile.ts` с диагностикой `select/upsert/confirm` для Supabase `profiles`.
+- 2026-03-17: OAuth debug panel расширен серверными диагностическими сообщениями по шагам callback и состоянию профиля.
+- 2026-03-17: `AuthProvider` переведен на единый retry helper загрузки профиля после появления Supabase session.
+- 2026-03-17: Добавлена постоянная запись OAuth-сессий в `oauth_audit_logs` и teacher/admin страница `/profile/oauth-audit` для просмотра логов.

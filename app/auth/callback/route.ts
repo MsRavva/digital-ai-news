@@ -1,7 +1,7 @@
-import { randomBytes } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { OAUTH_AUDIT_QUERY_SOURCE, recordOAuthAuditEvent } from "@/lib/oauth-audit";
 import {
   buildOAuthDebugLoginPath,
   isOAuthDebugProvider,
@@ -9,56 +9,12 @@ import {
   OAUTH_DEBUG_QUERY_FLOW,
   OAUTH_DEBUG_QUERY_PROVIDER,
 } from "@/lib/oauth-debug";
+import { ensureOAuthProfile } from "@/lib/oauth-profile";
 import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
 import {
   clearPostAuthRedirectCookie,
   getPostAuthRedirectFromRequest,
 } from "@/lib/post-auth-redirect";
-
-function generateRandomSuffix(): string {
-  return randomBytes(4).toString("hex").slice(0, 6);
-}
-
-async function generateUniqueUsername(
-  supabase: ReturnType<typeof createServerClient>,
-  baseUsername: string
-): Promise<string | null> {
-  const MAX_RETRIES = 3;
-  let username = baseUsername;
-
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    if (attempt > 0) {
-      username = `${baseUsername}_${generateRandomSuffix()}`;
-    }
-
-    const { error } = await supabase.from("profiles").insert({
-      id: crypto.randomUUID(),
-      username,
-      email: null,
-      role: "student",
-    });
-
-    if (!error) {
-      await supabase.from("profiles").delete().eq("username", username);
-      return username;
-    }
-
-    const errorCode = error.code;
-    const errorMessage = (error.message || "").toLowerCase();
-    const isDuplicateError =
-      errorCode === "23505" ||
-      errorMessage.includes("duplicate") ||
-      errorMessage.includes("unique") ||
-      errorMessage.includes("already exists");
-
-    if (!isDuplicateError) {
-      console.error("Unexpected error checking username:", error);
-      return null;
-    }
-  }
-
-  return null;
-}
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -69,6 +25,14 @@ export async function GET(request: NextRequest) {
   const oauthDebugProvider = isOAuthDebugProvider(oauthDebugProviderValue)
     ? oauthDebugProviderValue
     : null;
+  const oauthAuditSourceValue = requestUrl.searchParams.get(OAUTH_AUDIT_QUERY_SOURCE);
+  const oauthAuditSource =
+    oauthAuditSourceValue === "login" || oauthAuditSourceValue === "register"
+      ? oauthAuditSourceValue
+      : "unknown";
+  let successfulUserId: string | null = null;
+  let successfulProfileDiagnostics: string[] = [];
+  let successfulProfileMessage: string | null = null;
   const cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }> =
     [];
 
@@ -98,11 +62,20 @@ export async function GET(request: NextRequest) {
     step,
     redirectTo,
     message,
+    stepDetails,
+    diagnostics,
   }: {
     status: "success" | "error";
     step: "callback_reached" | "code_exchanged" | "profile_checked" | "final_redirect_ready";
     redirectTo?: string | null;
     message?: string;
+    stepDetails?: Partial<
+      Record<
+        "callback_reached" | "code_exchanged" | "profile_checked" | "final_redirect_ready",
+        string
+      >
+    >;
+    diagnostics?: string[];
   }) => {
     if (!oauthDebugEnabled || !oauthDebugFlowId || !oauthDebugProvider) {
       return null;
@@ -116,6 +89,8 @@ export async function GET(request: NextRequest) {
         status,
         step,
         message,
+        stepDetails,
+        diagnostics,
       })
     );
   };
@@ -131,6 +106,55 @@ export async function GET(request: NextRequest) {
 
     applyCookies(response);
     return response;
+  };
+
+  const ipAddress =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip");
+  const userAgent = request.headers.get("user-agent");
+  const auditFlowId = oauthDebugFlowId;
+  const auditProvider = oauthDebugProvider;
+  const auditRedirectTo =
+    getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
+    getPostAuthRedirectFromRequest(request);
+
+  const recordAudit = async ({
+    step,
+    status,
+    message,
+    diagnostics,
+    stepDetails,
+    userId,
+    username,
+  }: {
+    step: string;
+    status: "running" | "success" | "error";
+    message?: string;
+    diagnostics?: string[];
+    stepDetails?: Record<string, string>;
+    userId?: string | null;
+    username?: string | null;
+  }) => {
+    if (!auditFlowId || !auditProvider) {
+      return;
+    }
+
+    await recordOAuthAuditEvent({
+      flowId: auditFlowId,
+      provider: auditProvider,
+      source: oauthAuditSource,
+      sourcePath: oauthAuditSource === "register" ? "/register" : "/login",
+      redirectTo: auditRedirectTo,
+      step,
+      status,
+      message,
+      diagnostics,
+      stepDetails,
+      userId,
+      username,
+      ipAddress,
+      userAgent,
+    });
   };
 
   const supabase = createServerClient(
@@ -149,9 +173,33 @@ export async function GET(request: NextRequest) {
   );
 
   if (code) {
+    await recordAudit({
+      step: "callback_reached",
+      status: "running",
+      message: "OAuth callback достиг приложения.",
+      diagnostics: ["[callback] callback route получил code от провайдера"],
+      stepDetails: {
+        callback_reached: "Callback приложения достигнут, начинаем обмен code на session.",
+      },
+    });
+
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
+      await recordAudit({
+        step: "code_exchanged",
+        status: "error",
+        message: error.message,
+        diagnostics: [
+          "[callback] code получен, но exchangeCodeForSession завершился ошибкой",
+          `[callback] ${error.code || "no_code"} ${error.message}`,
+        ],
+        stepDetails: {
+          callback_reached: "Callback приложения достигнут, начинаем обмен code на session.",
+          code_exchanged: `Ошибка обмена code на session: ${error.message}`,
+        },
+      });
+
       const debugResponse = createOAuthDebugResponse({
         status: "error",
         step: "code_exchanged",
@@ -159,6 +207,14 @@ export async function GET(request: NextRequest) {
           getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
           getPostAuthRedirectFromRequest(request),
         message: error.message,
+        stepDetails: {
+          callback_reached: "Callback приложения достигнут, начинаем обмен code на session.",
+          code_exchanged: `Ошибка обмена code на session: ${error.message}`,
+        },
+        diagnostics: [
+          `[callback] code получен, но exchangeCodeForSession завершился ошибкой`,
+          `[callback] ${error.code || "no_code"} ${error.message}`,
+        ],
       });
 
       if (debugResponse) {
@@ -171,79 +227,104 @@ export async function GET(request: NextRequest) {
     }
 
     if (data.session && data.user) {
-      // Проверяем и создаем профиль, если его нет (для OAuth пользователей)
-      // Триггер должен создать профиль автоматически, но на случай задержки проверяем
-      const { data: existingProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", data.user.id)
-        .maybeSingle();
+      successfulUserId = data.user.id;
+      await recordAudit({
+        step: "code_exchanged",
+        status: "running",
+        message: `Code exchange выполнен для user.id=${data.user.id}.`,
+        diagnostics: [`[callback] code exchange успешен, user.id=${data.user.id}`],
+        stepDetails: {
+          callback_reached: "Callback приложения достигнут.",
+          code_exchanged: `Code exchange выполнен, session получена для user.id=${data.user.id}.`,
+        },
+        userId: data.user.id,
+      });
 
-      if (profileError) {
-        console.error("[OAuth Callback] Profile check error:", profileError.message);
-      }
+      const profileResult = await ensureOAuthProfile(supabase, data.user);
 
-      if (!existingProfile && !profileError) {
-        // Профиль не существует, создаем вручную
-        // Для OAuth пользователей используем email как username, если нет метаданных
-        const baseUsername =
-          data.user.user_metadata?.username ||
-          data.user.user_metadata?.full_name ||
-          data.user.user_metadata?.name ||
-          data.user.email?.split("@")[0] ||
-          "Пользователь";
-
-        // Генерируем уникальный username с retry logic
-        const username = await generateUniqueUsername(supabase, baseUsername);
-
-        if (!username) {
-          console.error("Failed to generate unique username for user:", data.user.id);
-
-          const debugResponse = createOAuthDebugResponse({
-            status: "error",
-            step: "profile_checked",
-            redirectTo:
-              getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
-              getPostAuthRedirectFromRequest(request),
-            message: "Не удалось подготовить профиль пользователя",
-          });
-
-          if (debugResponse) {
-            return debugResponse;
-          }
-
-          return createRedirectResponse("/login?error=profile_creation_failed");
-        }
-
-        const { error: createError } = await supabase.from("profiles").insert({
-          id: data.user.id,
-          username,
-          email: data.user.email || null,
-          role: data.user.user_metadata?.role || "student",
+      if (!profileResult.ok) {
+        console.error("[OAuth Callback] Failed to ensure profile:", profileResult.diagnostics);
+        await recordAudit({
+          step: "profile_checked",
+          status: "error",
+          message: "Не удалось подтвердить профиль пользователя в Supabase",
+          diagnostics: [
+            `[callback] code exchange успешен, user.id=${data.user.id}`,
+            ...profileResult.diagnostics,
+          ],
+          stepDetails: {
+            callback_reached: "Callback приложения достигнут.",
+            code_exchanged: `Code exchange выполнен, session получена для user.id=${data.user.id}.`,
+            profile_checked: "Проверка или создание профиля завершились ошибкой.",
+          },
+          userId: data.user.id,
         });
 
-        if (createError) {
-          // Игнорируем ошибки дубликатов (профиль мог быть создан между проверкой и вставкой)
-          const errorCode = createError.code;
-          const errorMessage = (createError.message || "").toLowerCase();
-          const isDuplicateError =
-            errorCode === "23505" ||
-            errorCode === "PGRST301" ||
-            errorMessage.includes("duplicate") ||
-            errorMessage.includes("unique") ||
-            errorMessage.includes("already exists");
+        const debugResponse = createOAuthDebugResponse({
+          status: "error",
+          step: "profile_checked",
+          redirectTo:
+            getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
+            getPostAuthRedirectFromRequest(request),
+          message: "Не удалось подтвердить профиль пользователя в Supabase",
+          stepDetails: {
+            callback_reached: "Callback приложения достигнут.",
+            code_exchanged: `Code exchange выполнен, session получена для user.id=${data.user.id}.`,
+            profile_checked: "Проверка или создание профиля завершились ошибкой.",
+          },
+          diagnostics: [
+            `[callback] code exchange успешен, user.id=${data.user.id}`,
+            ...profileResult.diagnostics,
+          ],
+        });
 
-          if (!isDuplicateError) {
-            console.error("Error creating profile:", createError);
-          }
+        if (debugResponse) {
+          return debugResponse;
         }
+
+        return createRedirectResponse("/login?error=profile_creation_failed");
       }
+
+      successfulProfileDiagnostics = profileResult.diagnostics;
+      successfulProfileMessage = profileResult.profile
+        ? `Профиль подтвержден: ${profileResult.outcome}, username="${profileResult.profile.username}".`
+        : `Профиль подтвержден: ${profileResult.outcome}.`;
+
+      await recordAudit({
+        step: "final_redirect_ready",
+        status: "success",
+        message: "OAuth callback успешно завершен, готовим финальный редирект.",
+        diagnostics: [
+          `[callback] code exchange успешен, user.id=${data.user.id}`,
+          ...successfulProfileDiagnostics,
+        ],
+        stepDetails: {
+          callback_reached: "Callback приложения достигнут.",
+          code_exchanged: `Code exchange выполнен, session получена для user.id=${data.user.id}.`,
+          profile_checked:
+            successfulProfileMessage || "Профиль пользователя подтвержден в Supabase.",
+          final_redirect_ready:
+            "Последний серверный чек пройден, можно выполнять финальный редирект.",
+        },
+        userId: data.user.id,
+        username: profileResult.profile?.username || null,
+      });
     }
   } else {
     const callbackError =
       requestUrl.searchParams.get("error_description") ||
       requestUrl.searchParams.get("error") ||
       "OAuth callback пришел без code";
+
+    await recordAudit({
+      step: "callback_reached",
+      status: "error",
+      message: callbackError,
+      diagnostics: [`[callback] OAuth callback пришел без валидного code: ${callbackError}`],
+      stepDetails: {
+        callback_reached: callbackError,
+      },
+    });
 
     const debugResponse = createOAuthDebugResponse({
       status: "error",
@@ -252,6 +333,10 @@ export async function GET(request: NextRequest) {
         getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
         getPostAuthRedirectFromRequest(request),
       message: callbackError,
+      stepDetails: {
+        callback_reached: callbackError,
+      },
+      diagnostics: [`[callback] OAuth callback пришел без валидного code: ${callbackError}`],
     });
 
     if (debugResponse) {
@@ -268,6 +353,22 @@ export async function GET(request: NextRequest) {
     step: "final_redirect_ready",
     redirectTo,
     message: "Callback обработан, последний чек получен.",
+    stepDetails: successfulUserId
+      ? {
+          callback_reached: "Callback приложения достигнут.",
+          code_exchanged: `Code exchange выполнен, session получена для user.id=${successfulUserId}.`,
+          profile_checked:
+            successfulProfileMessage || "Профиль пользователя подтвержден в Supabase.",
+          final_redirect_ready:
+            "Последний серверный чек пройден, можно выполнять финальный редирект.",
+        }
+      : undefined,
+    diagnostics: successfulUserId
+      ? [
+          `[callback] code exchange успешен, user.id=${successfulUserId}`,
+          ...successfulProfileDiagnostics,
+        ]
+      : undefined,
   });
 
   if (debugSuccessResponse) {
