@@ -133,6 +133,17 @@ export function AuthOAuthDebugPanel({
           </div>
           <div className="truncate">Flow ID: {state?.flowId || "еще не создан"}</div>
         </div>
+
+        {state?.diagnostics?.length ? (
+          <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+            <div className="text-sm font-medium">Диагностика Supabase</div>
+            <div className="max-h-48 space-y-1 overflow-auto font-mono text-xs text-muted-foreground">
+              {state.diagnostics.map((item, index) => (
+                <div key={`${state.flowId}-diag-${index}`}>{item}</div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );

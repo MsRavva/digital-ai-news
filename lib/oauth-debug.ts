@@ -7,6 +7,8 @@ export const OAUTH_DEBUG_QUERY_PROVIDER = "oauth_provider";
 export const OAUTH_DEBUG_QUERY_STATUS = "oauth_status";
 export const OAUTH_DEBUG_QUERY_STEP = "oauth_step";
 export const OAUTH_DEBUG_QUERY_MESSAGE = "oauth_message";
+export const OAUTH_DEBUG_QUERY_STEP_DETAILS = "oauth_step_details";
+export const OAUTH_DEBUG_QUERY_DIAGNOSTICS = "oauth_diagnostics";
 export const OAUTH_DEBUG_REDIRECT_TIMEOUT_MS = 1500;
 export const OAUTH_DEBUG_FINAL_REDIRECT_DELAY_MS = 1200;
 
@@ -41,6 +43,7 @@ export interface OAuthDebugState {
   message?: string;
   updatedAt: string;
   steps: Record<OAuthDebugStepId, OAuthDebugStepState>;
+  diagnostics: string[];
 }
 
 type SearchParamsLike = { toString(): string } | null | undefined;
@@ -84,6 +87,7 @@ export function createOAuthDebugState({
     status: "idle",
     updatedAt: nowIso(),
     steps: createEmptySteps(),
+    diagnostics: [],
   };
 }
 
@@ -138,6 +142,17 @@ export function setOAuthDebugProviderUrl(
   };
 }
 
+export function setOAuthDebugDiagnostics(
+  state: OAuthDebugState,
+  diagnostics: string[]
+): OAuthDebugState {
+  return {
+    ...state,
+    diagnostics,
+    updatedAt: nowIso(),
+  };
+}
+
 export function finalizeOAuthDebugSuccess(
   state: OAuthDebugState,
   message = "OAuth завершен, финальный редирект готов."
@@ -160,6 +175,8 @@ export function buildOAuthDebugLoginPath({
   status,
   step,
   message,
+  stepDetails,
+  diagnostics,
 }: {
   flowId: string;
   provider: OAuthDebugProvider;
@@ -167,6 +184,8 @@ export function buildOAuthDebugLoginPath({
   status: OAuthDebugQueryStatus;
   step: OAuthDebugStepId;
   message?: string;
+  stepDetails?: Partial<Record<OAuthDebugStepId, string>>;
+  diagnostics?: string[];
 }): string {
   const params = new URLSearchParams();
   params.set(OAUTH_DEBUG_QUERY_FLAG, "1");
@@ -184,7 +203,25 @@ export function buildOAuthDebugLoginPath({
     params.set(OAUTH_DEBUG_QUERY_MESSAGE, message);
   }
 
+  if (stepDetails && Object.keys(stepDetails).length > 0) {
+    params.set(OAUTH_DEBUG_QUERY_STEP_DETAILS, JSON.stringify(stepDetails));
+  }
+
+  if (diagnostics && diagnostics.length > 0) {
+    params.set(OAUTH_DEBUG_QUERY_DIAGNOSTICS, JSON.stringify(diagnostics));
+  }
+
   return `/login?${params.toString()}`;
+}
+
+function parseJsonParam<T>(value: string | null): T | null {
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
 }
 
 export function parseOAuthDebugPayload(searchParams: SearchParamsLike): {
@@ -195,11 +232,18 @@ export function parseOAuthDebugPayload(searchParams: SearchParamsLike): {
   step: OAuthDebugStepId | null;
   message: string | null;
   redirectTo: string;
+  stepDetails: Partial<Record<OAuthDebugStepId, string>>;
+  diagnostics: string[];
 } {
   const params = new URLSearchParams(searchParams?.toString());
   const provider = params.get(OAUTH_DEBUG_QUERY_PROVIDER);
   const status = params.get(OAUTH_DEBUG_QUERY_STATUS);
   const step = params.get(OAUTH_DEBUG_QUERY_STEP);
+  const stepDetails =
+    parseJsonParam<Partial<Record<OAuthDebugStepId, string>>>(
+      params.get(OAUTH_DEBUG_QUERY_STEP_DETAILS)
+    ) || {};
+  const diagnostics = parseJsonParam<string[]>(params.get(OAUTH_DEBUG_QUERY_DIAGNOSTICS)) || [];
 
   return {
     enabled: params.get(OAUTH_DEBUG_QUERY_FLAG) === "1",
@@ -209,6 +253,8 @@ export function parseOAuthDebugPayload(searchParams: SearchParamsLike): {
     step: OAUTH_DEBUG_STEPS.some((item) => item.id === step) ? (step as OAuthDebugStepId) : null,
     message: params.get(OAUTH_DEBUG_QUERY_MESSAGE),
     redirectTo: getSafeOAuthDebugRedirect(params.get("redirect")),
+    stepDetails,
+    diagnostics: Array.isArray(diagnostics) ? diagnostics : [],
   };
 }
 
