@@ -10,6 +10,8 @@
 - Исправлен блок с логотипами на главной: четвертая иконка GitHub переведена с внешнего URL на локальный SVG.
 - В работу взята детальная диагностика редкого сбоя GitHub OAuth после успешного callback: проверяем ветку `exchangeCodeForSession -> profiles select/create/update -> client profile load` и упрощаем ее при необходимости.
 - В работу взят следующий этап: вместо экранной диагностики хранить все OAuth-сессии в Supabase и вывести их на отдельную страницу для ролей `teacher`/`admin`.
+- По реальным логам подтвержден новый корень проблемы: неуспешные GitHub OAuth сессии падают еще до `code exchange` с сообщением Supabase `Database error saving new user`, вероятный источник — trigger `handle_new_user()` при вставке в `profiles`.
+- SQL-фикс trigger `handle_new_user()` уже применен в Supabase как миграция `fix_handle_new_user_unique_username`; новые OAuth signup flow должны переживать коллизии `username`.
 
 ## Активные решения
 
@@ -45,6 +47,8 @@
 - `app/profile/oauth-audit/page.tsx`
 - `app/register/page.tsx`
 - `supabase/03_create_oauth_audit_logs.sql`
+- `supabase/01_create_trigger.sql`
+- `supabase/04_fix_handle_new_user_unique_username.sql`
 - `memory_bank/ui_extension/pages/auth-pages.md`
 - `memory_bank/ui_extension/pages/oauth-audit.md`
 - `public/github-icon.svg`
@@ -53,5 +57,5 @@
 
 ## Ближайшие шаги
 
-- Добавить таблицу аудита OAuth-сессий и писать туда каждый flow независимо от результата.
-- Создать отдельную страницу просмотра логов OAuth для `teacher`/`admin` и добавить ссылку в меню профиля.
+- Прогнать новую серию GitHub OAuth тестов и проверить, ушли ли ошибки `Database error saving new user` из `oauth_audit_logs`.
+- Если останутся новые неуспешные flow, разбирать уже следующий по частоте паттерн на основе свежих логов.

@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `845011b`
+- last_checked_commit: `0329033`
 - checked_at: `2026-03-17`
 
 ## Current Status
@@ -23,6 +23,8 @@
 - `AuthProvider` использует единый retry helper для дозагрузки профиля после появления сессии.
 - Каждая OAuth-сессия теперь пишется в таблицу `oauth_audit_logs` через клиентский route handler и серверный callback независимо от результата.
 - Для `teacher`/`admin` добавлена отдельная страница `/profile/oauth-audit` и пункт меню профиля для просмотра последних OAuth-flow.
+- По реальным логам ошибок найден повторяющийся паттерн `Database error saving new user` еще до `code exchange`; исправление смещено в SQL trigger `handle_new_user()`.
+- Миграция `fix_handle_new_user_unique_username` успешно применена в Supabase MCP; в базе уже стоит новая версия `public.handle_new_user()`.
 
 ## Known Issues
 
@@ -32,6 +34,8 @@
 - GitHub OAuth diagnostic flow требует живой проверки на ученических устройствах; код теперь умеет отличать «браузер не ушел на провайдера» от ошибок callback.
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
 - Для полноценной работы нового аудита SQL из `supabase/03_create_oauth_audit_logs.sql` должен быть применен в базе Supabase.
+- Для исправления текущего корня OAuth-сбоя нужно применить SQL из `supabase/04_fix_handle_new_user_unique_username.sql`.
+- Нужна повторная живая проверка GitHub OAuth после применения trigger-фикса, чтобы убедиться, что основной паттерн ошибки исчез.
 
 ## Changelog
 
@@ -50,3 +54,5 @@
 - 2026-03-17: OAuth debug panel расширен серверными диагностическими сообщениями по шагам callback и состоянию профиля.
 - 2026-03-17: `AuthProvider` переведен на единый retry helper загрузки профиля после появления Supabase session.
 - 2026-03-17: Добавлена постоянная запись OAuth-сессий в `oauth_audit_logs` и teacher/admin страница `/profile/oauth-audit` для просмотра логов.
+- 2026-03-17: По логам OAuth выявлен trigger-level сбой `Database error saving new user`; добавлена SQL-правка `handle_new_user()` с retry по уникальному username и уточненная диагностика callback.
+- 2026-03-17: Через Supabase MCP применена миграция `fix_handle_new_user_unique_username`, подтверждено обновленное определение функции `public.handle_new_user()`.

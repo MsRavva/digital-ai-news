@@ -157,6 +157,29 @@ export async function GET(request: NextRequest) {
     });
   };
 
+  const buildCallbackErrorDiagnostics = (callbackError: string) => {
+    const diagnostics = [`[callback] OAuth callback пришел без валидного code: ${callbackError}`];
+    const stepDetails: Record<string, string> = {
+      callback_reached: callbackError,
+    };
+    let userMessage = callbackError;
+
+    if (callbackError.toLowerCase().includes("database error saving new user")) {
+      diagnostics.push(
+        "[callback] вероятный источник: Supabase Auth создал callback-ошибку во время trigger handle_new_user() или вставки в profiles"
+      );
+      diagnostics.push(
+        "[callback] проверьте SQL функции public.handle_new_user() и уникальность username в таблице profiles"
+      );
+      stepDetails.callback_reached =
+        "Supabase вернул ошибку создания пользователя на стороне базы до выдачи code. Вероятен сбой trigger handle_new_user() или конфликт username в profiles.";
+      userMessage =
+        "Supabase не смог сохранить нового пользователя в базе. Вероятен конфликт профиля или ошибка trigger handle_new_user().";
+    }
+
+    return { diagnostics, stepDetails, userMessage };
+  };
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
@@ -315,15 +338,14 @@ export async function GET(request: NextRequest) {
       requestUrl.searchParams.get("error_description") ||
       requestUrl.searchParams.get("error") ||
       "OAuth callback пришел без code";
+    const callbackErrorDetails = buildCallbackErrorDiagnostics(callbackError);
 
     await recordAudit({
       step: "callback_reached",
       status: "error",
-      message: callbackError,
-      diagnostics: [`[callback] OAuth callback пришел без валидного code: ${callbackError}`],
-      stepDetails: {
-        callback_reached: callbackError,
-      },
+      message: callbackErrorDetails.userMessage,
+      diagnostics: callbackErrorDetails.diagnostics,
+      stepDetails: callbackErrorDetails.stepDetails,
     });
 
     const debugResponse = createOAuthDebugResponse({
@@ -332,11 +354,9 @@ export async function GET(request: NextRequest) {
       redirectTo:
         getSafePostAuthRedirect(requestUrl.searchParams.get("next")) ||
         getPostAuthRedirectFromRequest(request),
-      message: callbackError,
-      stepDetails: {
-        callback_reached: callbackError,
-      },
-      diagnostics: [`[callback] OAuth callback пришел без валидного code: ${callbackError}`],
+      message: callbackErrorDetails.userMessage,
+      stepDetails: callbackErrorDetails.stepDetails,
+      diagnostics: callbackErrorDetails.diagnostics,
     });
 
     if (debugResponse) {

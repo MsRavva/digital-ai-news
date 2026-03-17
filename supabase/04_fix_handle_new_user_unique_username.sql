@@ -1,4 +1,7 @@
--- Функция для создания профиля при регистрации пользователя
+-- ============================================
+-- Fix OAuth/profile trigger for duplicate usernames
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 DECLARE
@@ -52,13 +55,5 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Удаляем старый trigger если существует
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-
--- Создаем trigger для автоматического создания профиля
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Комментарий
-COMMENT ON FUNCTION public.handle_new_user() IS 'Автоматически создает профиль пользователя при регистрации через Supabase Auth';
+COMMENT ON FUNCTION public.handle_new_user() IS
+  'Автоматически создает профиль пользователя при регистрации через Supabase Auth и безопасно переживает коллизии username';
