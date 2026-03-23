@@ -30,13 +30,14 @@ export function EditPostForm({ postId }: EditPostFormProps) {
   const [isLoadingPost, setIsLoadingPost] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [canEdit, setCanEdit] = useState(false);
+  const [isPostLoaded, setIsPostLoaded] = useState(false);
   const { user, profile } = useAuth();
   const router = useRouter();
 
   // Загрузка данных поста
   useEffect(() => {
     const fetchPost = async () => {
-      if (!user) return;
+      if (!user || isPostLoaded) return;
 
       try {
         setIsLoadingPost(true);
@@ -65,6 +66,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
         setContent(postData.content);
         setCategory(postData.category);
         setTags(postData.tags || []);
+        setIsPostLoaded(true);
       } catch (error) {
         console.error("Ошибка при загрузке публикации:", error);
         setError("Ошибка при загрузке публикации");
@@ -74,7 +76,7 @@ export function EditPostForm({ postId }: EditPostFormProps) {
     };
 
     fetchPost();
-  }, [postId, user, profile]);
+  }, [postId, user, profile, isPostLoaded]);
 
   // Обработчик добавления тега
   const handleAddTag = () => {
