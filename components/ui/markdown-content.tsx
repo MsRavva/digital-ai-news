@@ -154,8 +154,9 @@ export function MarkdownContent({
             if (!src || typeof src !== "string") return null;
 
             const isUrl = src.startsWith("http://") || src.startsWith("https://");
+            const isEmbeddedImage = src.startsWith("data:image/");
 
-            if (!isUrl) {
+            if (!isUrl && !isEmbeddedImage) {
               return null;
             }
 

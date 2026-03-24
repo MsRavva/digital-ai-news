@@ -2,6 +2,7 @@
 
 ## Текущий фокус
 
+- Завершен перевод редактора публикаций на Supabase Storage: Markdown-тулбар работает, изображения загружаются через API в bucket `post-images`, а bucket/policies применены в проект Supabase через MCP.
 - Обновлен `AGENTS.md` из актуального источника (Ravva/projects-tracker/main).
 - Синхронизирован `memory_bank/projectbrief.md` с реальным состоянием проекта: добавлены детализированные deliverables с корректными весами (сумма = 100).
 - Исправлена критическая проблема в форме редактирования постов: несохраненные изменения больше не теряются при потере фокуса окна (Alt-Tab).
@@ -52,14 +53,18 @@
 - `lib/orphan-auth-backfill.ts`
 - `components/oauth-orphan-backfill-card.tsx`
 - `app/api/admin/orphan-profiles/backfill/route.ts`
+- `app/api/uploads/post-image/route.ts`
 - `memory_bank/ui_extension/pages/auth-pages.md`
 - `memory_bank/ui_extension/pages/oauth-audit.md`
+- `memory_bank/ui_extension/pages/post-editor.md`
+- `supabase/06_create_post_images_bucket.sql`
 - `public/github-icon.svg`
 - `docs/README.md`
 - `memory_bank/*`
 
 ## Ближайшие шаги
 
+- Проверить UX редактора на длинных публикациях и при необходимости добавить drag-and-drop вставку изображений отдельной задачей.
 - Построить карту зависимостей по `profiles.id` во всех контентных таблицах и понять, что именно нужно обновлять при восстановлении `auth.users`.
 - Сформировать безопасную стратегию миграции orphan-профилей в реальные записи `auth.users`, чтобы Supabase OAuth мог линковать существующие email автоматически.
 - Подготовить точечный SQL/кодовый фикс trigger `handle_new_user()`, чтобы конфликты `unique_email` логировались как есть и не маскировались веткой retry по `username`.

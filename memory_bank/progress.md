@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `текущий`
-- checked_at: `2026-03-23`
+- last_checked_commit: `2d23bef`
+- checked_at: `2026-03-24`
 
 ## Current Status
 
@@ -35,6 +35,8 @@
 - Массовый backfill для всех orphan-профилей без публикаций завершен успешно: обработано `101` пользователя без ошибок, итог в базе — `150` auth users с email и только `2` оставшихся orphan-профиля, оба с публикациями.
 - По отдельному решению пользователя вручную восстановлены и оба оставшихся orphan-автора публикаций: `svasya@ro.ru` (`10` постов) и `eg20master11@gmail.com` (`1` пост) успешно перенесены в `auth.users` с перепривязкой `posts.author_id`.
 - Итоговое состояние базы: `0` orphan-профилей, `150` профилей с email выровнены по `auth.users.id`, авторство всех публикаций сохранено.
+- Общий Markdown-редактор для `/create` и `/edit/[id]` получил тулбар быстрых действий и переведен на upload изображений в Supabase Storage bucket `post-images`.
+- Через Supabase MCP успешно применена миграция `create_post_images_bucket`: bucket `post-images` теперь имеет лимит `4 МБ`, whitelist MIME и storage policies для пользовательских папок.
 
 ## Known Issues
 
@@ -79,3 +81,6 @@
 - 2026-03-23: Обновлен `AGENTS.md` из актуального источника GitHub (Ravva/projects-tracker).
 - 2026-03-23: Обновлен `memory_bank/projectbrief.md` с детализированными deliverables на основе `docs/README.md` и фактического состояния проекта.
 - 2026-03-23: Исправлена проблема потери несохраненных изменений в редакторе постов при потере фокуса (Alt-Tab) через добавление флага `isPostLoaded` в `components/edit-post-form.tsx`.
+- 2026-03-24: Добавлены Markdown-тулбар и встроенная вставка изображений в общий `components/ui/markdown-editor.tsx`; рендер `components/ui/markdown-content.tsx` расширен поддержкой `data:image/...`, обновлены `docs/README.md` и `memory_bank/ui_extension/pages/post-editor.md`.
+- 2026-03-24: Вставка изображений переведена на upload в Supabase Storage через `app/api/uploads/post-image/route.ts`; добавлен SQL `supabase/06_create_post_images_bucket.sql` для bucket `post-images` и storage policies, обновлены `docs/README.md` и `memory_bank`.
+- 2026-03-24: Через Supabase MCP применена миграция `create_post_images_bucket`; подтверждены лимит `4 МБ`, whitelist типов и policies `SELECT/INSERT/UPDATE/DELETE` для bucket `post-images`.
