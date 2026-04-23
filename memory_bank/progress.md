@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `2d61b8c3d1217e797c94e0ce4c933502e84413d4`
+- last_checked_commit: `004af03fe82ea0e07f8a2ca48ba843d21364231f`
 - checked_at: `2026-04-23`
 
 ## Current Status
