@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
-import { createOAuthFlowId, recordOAuthAuditClientEvent } from "@/lib/oauth-audit-client";
 import { buildPostLoginRedirectPath } from "@/lib/post-auth-redirect";
 import { getOAuthRedirectUrl } from "@/lib/supabase-auth";
 import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
@@ -82,43 +81,15 @@ function LoginForm() {
     }
 
     const redirectTo = searchParams.get("redirect") || "/";
-    const flowId = createOAuthFlowId();
-
-    await recordOAuthAuditClientEvent({
-      flowId,
-      provider,
-      source: "login",
-      sourcePath: "/login",
-      redirectTo,
-      step: "start_requested",
-      status: "running",
-      message: `Пользователь инициировал OAuth через ${provider}.`,
-      diagnostics: [`[client] старт OAuth на /login для provider=${provider}`],
-    });
 
     try {
-      const { error, url } = await getOAuthRedirectUrl(provider, redirectTo, {
-        flowId,
-        source: "login",
-      });
+      const { error, url } = await getOAuthRedirectUrl(provider, redirectTo);
 
       if (error || !url) {
         const errorMessage = getSupabaseErrorMessage(
           error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
-
-        await recordOAuthAuditClientEvent({
-          flowId,
-          provider,
-          source: "login",
-          sourcePath: "/login",
-          redirectTo,
-          step: "provider_url_ready",
-          status: "error",
-          message: errorMessage,
-          diagnostics: [`[client] не удалось получить URL OAuth провайдера: ${errorMessage}`],
-        });
 
         if (provider === "google") {
           setIsGoogleLoading(false);
@@ -128,35 +99,11 @@ function LoginForm() {
         return;
       }
 
-      await recordOAuthAuditClientEvent({
-        flowId,
-        provider,
-        source: "login",
-        sourcePath: "/login",
-        redirectTo,
-        step: "redirect_triggered",
-        status: "running",
-        message: "Браузеру передан переход на OAuth провайдера.",
-        diagnostics: [`[client] получен provider URL и запущен redirect для ${provider}`],
-      });
-
       window.location.assign(url);
     } catch (error) {
       console.error(`Unexpected ${provider} sign in error:`, error);
       const errorMessage = getSupabaseErrorMessage(error as never);
       setFormError(errorMessage);
-
-      await recordOAuthAuditClientEvent({
-        flowId,
-        provider,
-        source: "login",
-        sourcePath: "/login",
-        redirectTo,
-        step: "redirect_triggered",
-        status: "error",
-        message: errorMessage,
-        diagnostics: [`[client] неожиданная ошибка перед redirect: ${errorMessage}`],
-      });
 
       if (provider === "google") {
         setIsGoogleLoading(false);

@@ -24,8 +24,6 @@ const rateLimitedRoutes = ["/login", "/register", "/forgot-password", "/reset-pa
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isOAuthDebugLoginView =
-    pathname === "/login" && request.nextUrl.searchParams.get("oauth_debug") === "1";
 
   // Пропускаем API routes, статические файлы и публичные маршруты
   if (
@@ -140,7 +138,7 @@ export async function middleware(request: NextRequest) {
 
   // Редирект авторизованных пользователей с guest routes
   // Исключение: /reset-password - разрешаем доступ для восстановления пароля
-  if (isGuestRoute && isAuthenticated && pathname !== "/reset-password" && !isOAuthDebugLoginView) {
+  if (isGuestRoute && isAuthenticated && pathname !== "/reset-password") {
     const redirectTo = getPostAuthRedirectFromRequest(request);
     const postLoginUrl = new URL("/auth/post-login", request.url);
 

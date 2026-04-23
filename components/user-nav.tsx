@@ -1,6 +1,6 @@
 "use client";
 
-import { History, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { SimpleAvatar } from "@/components/simple-avatar";
 import { Button } from "@/components/ui/button";
@@ -54,14 +54,6 @@ export function UserNav() {
               Профиль
             </Link>
           </DropdownMenuItem>
-          {profile.role === "teacher" || profile.role === "admin" ? (
-            <DropdownMenuItem asChild>
-              <Link href="/profile/oauth-audit" className="flex items-center w-full">
-                <History className="mr-2 h-4 w-4" />
-                Логи OAuth
-              </Link>
-            </DropdownMenuItem>
-          ) : null}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

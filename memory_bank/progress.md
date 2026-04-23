@@ -2,33 +2,30 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `8ec54faef4018e0b6e1aa0f7ef9dde193cd73542`
+- last_checked_commit: `6ce6746a089858d926a6573a41ea6d7a1bf6bf5d`
 - checked_at: `2026-04-23`
 
 ## Current Status
 
 - Инициализирован `memory_bank` по структуре из `AGENTS.md`.
 - Создан `docs/README.md` как верхнеуровневый источник архитектурной правды.
+- Локальное TypeScript-окружение восстановлено: зависимости установлены через `bun`, удалены остаточные debug-компоненты, `bunx tsc --noEmit` снова проходит.
 - Redirect flow упрощен до server-driven схемы с `post_auth_redirect` cookie и `/auth/post-login`.
 - Лишние auth debug logs удалены из middleware и login flow.
 - Redirect helper покрыт unit-тестами через `bun test`.
 - Исправлена валидация auth routes: query string больше не обходит защиту `getSafePostAuthRedirect`.
 - `requireAuth(...)` синхронизирован с основным redirect flow и сохраняет маршрут возврата.
 - OAuth callback очищает stale redirect-cookie при ошибке, чтобы исключить ложный redirect в следующей попытке входа.
+- Временный диагностический слой вокруг OAuth полностью удален из кода, маршрутов, типов, SQL и документации.
 - CSP разрешает `data:`-шрифты для встроенного шрифта markdown-редактора.
-- На `/login` добавлен диагностический OAuth panel с persisted шагами, ручным fallback и задержкой финального редиректа до последнего успешного чека.
 - На главной странице четвертая иконка в нижнем блоке логотипов больше не зависит от внешнего URL и берется из локального SVG.
 - OAuth callback упрощен для ветки GitHub/Google профиля: подтверждение `profiles` теперь идет через линейный `select -> upsert -> confirm` helper без временного `insert/delete`.
-- Диагностическое окно OAuth теперь показывает серверные детали по работе с `profiles` в Supabase, включая попытки подтверждения профиля и duplicate-конфликты.
 - `AuthProvider` использует единый retry helper для дозагрузки профиля после появления сессии.
-- Каждая OAuth-сессия теперь пишется в таблицу `oauth_audit_logs` через клиентский route handler и серверный callback независимо от результата.
-- Для `teacher`/`admin` добавлена отдельная страница `/profile/oauth-audit` и пункт меню профиля для просмотра последних OAuth-flow.
 - По реальным логам ошибок найден повторяющийся паттерн `Database error saving new user` еще до `code exchange`; исправление смещено в SQL trigger `handle_new_user()`.
 - Миграция `fix_handle_new_user_unique_username` успешно применена в Supabase MCP; в базе уже стоит новая версия `public.handle_new_user()`.
 - Повторная серверная диагностика через Supabase MCP подтвердила, что после фикса остались два паттерна ошибок: прямой `unique_email` и ложный финальный `failed to create unique profile username`, возникающий из-за слишком широкого `unique_violation` retry в trigger.
 - Собрана количественная картина по данным: `150` профилей с email, `48` auth-пользователей с email, `104` orphan-профиля без `auth.users`; только `2` orphan-профиля участвуют в контентных связях через `posts`.
 - Подтверждено, что `auth.users` без профиля сейчас всего `2`; основная проблема — именно legacy `profiles` без записей в Auth.
-- Реализован серверный backfill orphan-профилей через `supabase.auth.admin.createUser` и SQL-функцию `reassign_profile_id(...)`, доступный для `teacher`/`admin` на странице `/profile/oauth-audit`.
 - Миграция `prepare_legacy_profile_backfill` применена в Supabase; trigger `handle_new_user()` теперь читает backfill-флаг из обоих metadata-источников и не маскирует `unique_email` под `username`.
 - Выполнен первый боевой backfill-тест на безопасном orphan-профиле без контентных ссылок: `h.nukuta@gmail.com` успешно перенесен в `auth.users`, orphan-профилей осталось `103`, auth users с email стало `49`.
 - Автоматический backfill ужесточен по бизнес-правилу: профили с публикациями (`postsCount > 0`) исключаются из пакетного восстановления.
@@ -42,13 +39,15 @@
 - `bun run check` падает на уже существующих форматных расхождениях в репозитории, включая файлы вне текущей задачи.
 - В рабочем дереве присутствует удаление `CLAUDE.md`; это изменение не было откатано.
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
-- GitHub OAuth diagnostic flow требует живой проверки на ученических устройствах; код теперь умеет отличать «браузер не ушел на провайдера» от ошибок callback.
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
 - Legacy-проблема orphan-профилей закрыта; остаточный вопрос — `2` auth users без профиля, не влияющие на текущий OAuth-сбой с `unique_email`.
 - Код загрузки изображений постов в Supabase Storage удален из репозитория; дальнейшая работа с изображениями в публикациях возможна только через внешние URL в Markdown.
 
 ## Changelog
 
+- 2026-04-23: Восстановлено локальное TypeScript-окружение через `bun install`, удален последний забытый debug-компонент OAuth, актуализирован `memory_bank`, подтвержден успешный `bunx tsc --noEmit`.
+- 2026-04-23: Из проекта удален временный диагностический слой вокруг OAuth, включая дополнительные UI/API-маршруты, служебные SQL-файлы, типы и документацию; боевой auth-flow сохранен.
+- 2026-04-23: В `memory_bank/other/appwrite-migration-plan.md` сохранен поэтапный план миграции БД и auth с Supabase на Appwrite с рисками, этапами и порядком cutover.
 - 2026-03-12: Добавлен `memory_bank` и синхронизирован с текущим состоянием проекта.
 - 2026-03-12: Добавлен `docs/README.md` с описанием архитектуры и auth redirect flow.
 - 2026-03-12: Централизован post-auth redirect через cookie и `app/auth/post-login/route.ts`.
@@ -58,16 +57,16 @@
 - 2026-03-12: Исправлен OAuth callback redirect через явную установку auth cookies в redirect response.
 - 2026-03-12: Устранены остаточные риски auth-flow: stale redirect-cookie при ошибке OAuth, публичность `/auth/post-login`, server-side redirect через `requireAuth(...)`.
 - 2026-03-12: Обновлен CSP для `react-markdown-editor-lite` (`font-src 'self' data:`) и синхронизирован `memory_bank` с commit `f071fff`.
-- 2026-03-13: Добавлен диагностический OAuth режим на `/login` с правой панелью шагов, возвратом callback на `/login` и ручным fallback на provider URL.
+- 2026-03-13: В проект временно добавлялся диагностический режим OAuth на `/login` для расследования проблем callback и redirect.
 - 2026-03-13: Исправлена сломанная четвертая иконка в нижнем блоке главной страницы через замену внешнего GitHub SVG на локальный `public/github-icon.svg`.
 - 2026-03-17: Упрощен OAuth profile flow после GitHub/Google callback через новый helper `lib/oauth-profile.ts` с диагностикой `select/upsert/confirm` для Supabase `profiles`.
-- 2026-03-17: OAuth debug panel расширен серверными диагностическими сообщениями по шагам callback и состоянию профиля.
+- 2026-03-17: Временный диагностический UI для OAuth был расширен серверными сообщениями по шагам callback и состоянию профиля.
 - 2026-03-17: `AuthProvider` переведен на единый retry helper загрузки профиля после появления Supabase session.
-- 2026-03-17: Добавлена постоянная запись OAuth-сессий в `oauth_audit_logs` и teacher/admin страница `/profile/oauth-audit` для просмотра логов.
+- 2026-03-17: Для расследования сбоев вокруг OAuth временно были добавлены серверная трассировка flow и отдельная teacher/admin страница просмотра логов.
 - 2026-03-17: По логам OAuth выявлен trigger-level сбой `Database error saving new user`; добавлена SQL-правка `handle_new_user()` с retry по уникальному username и уточненная диагностика callback.
 - 2026-03-17: Через Supabase MCP применена миграция `fix_handle_new_user_unique_username`, подтверждено обновленное определение функции `public.handle_new_user()`.
 - 2026-03-17: Дополнительная диагностика через Supabase MCP показала, что после trigger-фикса сохранились конфликты `unique_email`; собрана карта зависимостей `profiles.id` и подтверждена системная проблема `104` orphan-профилей без `auth.users`.
-- 2026-03-17: Добавлены `lib/orphan-auth-backfill.ts`, API `/api/admin/orphan-profiles/backfill` и teacher/admin блок на `/profile/oauth-audit` для пакетного восстановления orphan-профилей.
+- 2026-03-17: Для закрытия legacy-рассинхронизации между `profiles` и `auth.users` был добавлен временный пакетный инструмент восстановления orphan-профилей.
 - 2026-03-17: Применена миграция `prepare_legacy_profile_backfill`; первый живой backfill успешно перепривязал профиль `h.nukuta@gmail.com` к новому `auth.users.id`.
 - 2026-03-17: По уточнению пользователя автоматический backfill ограничен только профилями без публикаций; затем массово восстановлены все такие orphan-пользователи (`101` успешный перенос, `0` ошибок).
 - 2026-03-17: По отдельному указанию пользователя вручную восстановлены два orphan-автора публикаций; публикации успешно перепривязаны на новые `auth.users.id`, orphan legacy-профили в базе устранены полностью.
