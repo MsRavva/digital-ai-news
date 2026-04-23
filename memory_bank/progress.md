@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `2d23bef`
-- checked_at: `2026-03-24`
+- last_checked_commit: `8ec54faef4018e0b6e1aa0f7ef9dde193cd73542`
+- checked_at: `2026-04-23`
 
 ## Current Status
 
@@ -35,8 +35,7 @@
 - Массовый backfill для всех orphan-профилей без публикаций завершен успешно: обработано `101` пользователя без ошибок, итог в базе — `150` auth users с email и только `2` оставшихся orphan-профиля, оба с публикациями.
 - По отдельному решению пользователя вручную восстановлены и оба оставшихся orphan-автора публикаций: `svasya@ro.ru` (`10` постов) и `eg20master11@gmail.com` (`1` пост) успешно перенесены в `auth.users` с перепривязкой `posts.author_id`.
 - Итоговое состояние базы: `0` orphan-профилей, `150` профилей с email выровнены по `auth.users.id`, авторство всех публикаций сохранено.
-- Общий Markdown-редактор для `/create` и `/edit/[id]` получил тулбар быстрых действий и переведен на upload изображений в Supabase Storage bucket `post-images`.
-- Через Supabase MCP успешно применена миграция `create_post_images_bucket`: bucket `post-images` теперь имеет лимит `4 МБ`, whitelist MIME и storage policies для пользовательских папок.
+- Общий Markdown-редактор для `/create` и `/edit/[id]` использует тулбар быстрых действий без встроенной загрузки изображений в Supabase Storage.
 
 ## Known Issues
 
@@ -45,14 +44,8 @@
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
 - GitHub OAuth diagnostic flow требует живой проверки на ученических устройствах; код теперь умеет отличать «браузер не ушел на провайдера» от ошибок callback.
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
-- Для полноценной работы нового аудита SQL из `supabase/03_create_oauth_audit_logs.sql` должен быть применен в базе Supabase.
-- Для исправления текущего корня OAuth-сбоя нужно применить SQL из `supabase/04_fix_handle_new_user_unique_username.sql`.
-- Нужна повторная живая проверка GitHub OAuth после применения trigger-фикса, чтобы убедиться, что основной паттерн ошибки исчез.
-- Для окончательного исправления OAuth нужен backfill отсутствующих `auth.users` для orphan-профилей; без этого automatic identity linking Supabase не сможет использовать существующие email из `public.profiles`.
-- Текущий SQL trigger `handle_new_user()` маскирует часть `unique_email` конфликтов как ошибки `username`; это нужно исправить до следующего цикла тестирования.
-- Основной объем legacy-проблемы еще не исчерпан: в базе остается `103` orphan-профиля, включая `2` профиля с публикациями, поэтому GitHub OAuth для этих email продолжит падать, пока backfill не будет доведен хотя бы до активных пользователей.
-- На текущем этапе legacy-проблема почти исчерпана: остаются только `2` orphan-профиля-автора публикаций, которых нельзя трогать автоматически без отдельного плана миграции контента.
 - Legacy-проблема orphan-профилей закрыта; остаточный вопрос — `2` auth users без профиля, не влияющие на текущий OAuth-сбой с `unique_email`.
+- Код загрузки изображений постов в Supabase Storage удален из репозитория; дальнейшая работа с изображениями в публикациях возможна только через внешние URL в Markdown.
 
 ## Changelog
 
@@ -84,3 +77,6 @@
 - 2026-03-24: Добавлены Markdown-тулбар и встроенная вставка изображений в общий `components/ui/markdown-editor.tsx`; рендер `components/ui/markdown-content.tsx` расширен поддержкой `data:image/...`, обновлены `docs/README.md` и `memory_bank/ui_extension/pages/post-editor.md`.
 - 2026-03-24: Вставка изображений переведена на upload в Supabase Storage через `app/api/uploads/post-image/route.ts`; добавлен SQL `supabase/06_create_post_images_bucket.sql` для bucket `post-images` и storage policies, обновлены `docs/README.md` и `memory_bank`.
 - 2026-03-24: Через Supabase MCP применена миграция `create_post_images_bucket`; подтверждены лимит `4 МБ`, whitelist типов и policies `SELECT/INSERT/UPDATE/DELETE` для bucket `post-images`.
+- 2026-04-23: Удален встроенный upload изображений постов в Supabase Storage: из редактора убраны file picker и API `/api/uploads/post-image`, из репозитория удален SQL `supabase/06_create_post_images_bucket.sql`, документация синхронизирована под использование только внешних URL в Markdown.
+- 2026-04-23: Добавлен `supabase/06_drop_post_images_bucket.sql` для ручного удаления legacy bucket `post-images`, его объектов и storage policies в окружении Supabase.
+- 2026-04-23: Через Supabase MCP и Storage API удален legacy bucket `post-images`; дополнительной проверкой подтверждено, что bucket и связанные policies больше не существуют в проекте Supabase.
