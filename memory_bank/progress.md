@@ -2,13 +2,18 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `6ce6746a089858d926a6573a41ea6d7a1bf6bf5d`
+- last_checked_commit: `2d61b8c3d1217e797c94e0ce4c933502e84413d4`
 - checked_at: `2026-04-23`
 
 ## Current Status
 
 - Инициализирован `memory_bank` по структуре из `AGENTS.md`.
 - Создан `docs/README.md` как верхнеуровневый источник архитектурной правды.
+- Подтвержден новый проектный scope: миграция backend-слоя с Supabase на Appwrite.
+- Подготовлен отдельный `Appwrite technical blueprint`; Appwrite endpoint/project id вынесены в локальный `.env`, чтобы не хранить их в коммитящихся docs/memory.
+- Добавлен provider-agnostic service layer (`lib/services/*`) и каркас `lib/appwrite/*`; основные UI-страницы и компоненты переведены на внутренние сервисы вместо прямых импортов Supabase helper-файлов.
+- Appwrite TablesDB schema создана idempotent-скриптом `scripts/setup-appwrite-schema.ts`; локальный `.env` обновлен database/table ids.
+- Runtime приложения пока остается на Supabase: `NEXT_PUBLIC_BACKEND_PROVIDER` не установлен в `appwrite`, а provider-agnostic слой делегирует в Supabase по умолчанию.
 - Локальное TypeScript-окружение восстановлено: зависимости установлены через `bun`, удалены остаточные debug-компоненты, `bunx tsc --noEmit` снова проходит.
 - Redirect flow упрощен до server-driven схемы с `post_auth_redirect` cookie и `/auth/post-login`.
 - Лишние auth debug logs удалены из middleware и login flow.
@@ -37,6 +42,7 @@
 ## Known Issues
 
 - `bun run check` падает на уже существующих форматных расхождениях в репозитории, включая файлы вне текущей задачи.
+- Для полного серверного Appwrite cutover еще не реализованы session endpoints, middleware integration и profile relink logic.
 - В рабочем дереве присутствует удаление `CLAUDE.md`; это изменение не было откатано.
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
@@ -45,6 +51,10 @@
 
 ## Changelog
 
+- 2026-04-23: Подтверждены Appwrite endpoint/project id, создан `docs/APPWRITE_TECHNICAL_BLUEPRINT.md`, обновлены `docs/README.md` и `memory_bank` под новый scope миграции с Supabase на Appwrite.
+- 2026-04-23: По замечанию пользователя Appwrite endpoint/project id удалены из коммитящихся docs/memory и перенесены в локальный `.env`; Appwrite SDK helpers переведены на `TablesDB` согласно `appwrite-typescript` skill.
+- 2026-04-23: Добавлен и выполнен `scripts/setup-appwrite-schema.ts`; в Appwrite создана TablesDB schema для `profiles`, `posts`, `tags`, `post_tags`, `comments`, `likes`, `views`, а локальный `.env` дополнен ids ресурсов.
+- 2026-04-23: Установлены `appwrite` и `node-appwrite`, добавлены `lib/appwrite/*` и `lib/services/*`, auth/posts/comments/admin UI переведены на provider-agnostic слой; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
 - 2026-04-23: Восстановлено локальное TypeScript-окружение через `bun install`, удален последний забытый debug-компонент OAuth, актуализирован `memory_bank`, подтвержден успешный `bunx tsc --noEmit`.
 - 2026-04-23: Из проекта удален временный диагностический слой вокруг OAuth, включая дополнительные UI/API-маршруты, служебные SQL-файлы, типы и документацию; боевой auth-flow сохранен.
 - 2026-04-23: В `memory_bank/other/appwrite-migration-plan.md` сохранен поэтапный план миграции БД и auth с Supabase на Appwrite с рисками, этапами и порядком cutover.

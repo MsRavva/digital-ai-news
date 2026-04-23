@@ -19,8 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { buildPostLoginRedirectPath } from "@/lib/post-auth-redirect";
-import { getOAuthRedirectUrl } from "@/lib/supabase-auth";
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
+import { getOAuthRedirectUrl } from "@/lib/services/auth";
+import { getAuthErrorMessage } from "@/lib/services/auth-errors";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -52,7 +52,7 @@ function LoginForm() {
 
       if (error) {
         console.error("Login error:", error);
-        setFormError(getSupabaseErrorMessage(error));
+        setFormError(getAuthErrorMessage(error));
         setIsLoading(false);
         return;
       }
@@ -64,7 +64,7 @@ function LoginForm() {
       router.replace(getPostLoginPath());
     } catch (error) {
       console.error("Unexpected login error:", error);
-      setFormError(getSupabaseErrorMessage(error as never));
+      setFormError(getAuthErrorMessage(error as never));
       setIsLoading(false);
     } finally {
       setIsLoading(false);
@@ -86,7 +86,7 @@ function LoginForm() {
       const { error, url } = await getOAuthRedirectUrl(provider, redirectTo);
 
       if (error || !url) {
-        const errorMessage = getSupabaseErrorMessage(
+        const errorMessage = getAuthErrorMessage(
           error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
@@ -102,7 +102,7 @@ function LoginForm() {
       window.location.assign(url);
     } catch (error) {
       console.error(`Unexpected ${provider} sign in error:`, error);
-      const errorMessage = getSupabaseErrorMessage(error as never);
+      const errorMessage = getAuthErrorMessage(error as never);
       setFormError(errorMessage);
 
       if (provider === "google") {

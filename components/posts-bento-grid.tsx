@@ -37,8 +37,13 @@ import {
 import { MarkdownContent } from "@/components/ui/markdown-content";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/auth-context";
-import { archivePost, deletePost, togglePinPost, unarchivePost } from "@/lib/supabase-post-actions";
-import { getPosts } from "@/lib/supabase-posts";
+import {
+  archivePost,
+  deletePost,
+  getPosts,
+  togglePinPost,
+  unarchivePost,
+} from "@/lib/services/posts";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/types/database";
 

@@ -62,8 +62,13 @@ import {
   saveCategoryToCookie,
   saveCategoryToProfile,
 } from "@/lib/category-storage";
-import { archivePost, deletePost, togglePinPost, unarchivePost } from "@/lib/supabase-post-actions";
-import { getPosts } from "@/lib/supabase-posts";
+import {
+  archivePost,
+  deletePost,
+  getPosts,
+  togglePinPost,
+  unarchivePost,
+} from "@/lib/services/posts";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/types/database";
 

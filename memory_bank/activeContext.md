@@ -5,6 +5,11 @@
 - Завершено удаление временного диагностического слоя вокруг OAuth; в проекте оставлен только боевой auth-flow с безопасным redirect.
 - Локальное TypeScript-окружение восстановлено через `bun install`; `bunx tsc --noEmit` снова проходит успешно.
 - Подготовлен и сохранен в `memory_bank` поэтапный план миграции БД и auth с Supabase на Appwrite.
+- Пользователь подтвердил целевое Appwrite-окружение; конкретные endpoint/project id вынесены в локальный `.env` и не должны храниться в коммитящихся docs/memory.
+- В работу взята phase 1 миграции: `Appwrite technical blueprint` и provider-agnostic service layer.
+- UI-слой уже переведен на внутренние фасады `lib/services/auth|posts|comments|admin`; прямые импорты `@/lib/supabase-*` из `app/`, `components/` и `context/` для основных сценариев убраны.
+- Appwrite TablesDB schema создана через `scripts/setup-appwrite-schema.ts`; локальный `.env` дополнен database/table ids без фиксации значений в docs/memory.
+- Приложение пока должно оставаться на Supabase: `NEXT_PUBLIC_BACKEND_PROVIDER` не задан и `getBackendProvider()` возвращает `supabase` по умолчанию.
 - Markdown-редактор публикаций использует локальный тулбар форматирования без встроенной загрузки изображений в Supabase Storage.
 - Документация синхронизирована с удалением `app/api/uploads/post-image` и SQL-конфигурации bucket `post-images` из репозитория.
 - Legacy bucket `post-images` и связанные storage policies уже удалены из проекта Supabase через Storage API и SQL cleanup.
@@ -22,6 +27,8 @@
 - Использовать `lib/auth-server.ts` как серверный guard с той же схемой redirect, что и в `middleware.ts`.
 - Поддерживать `docs/README.md` как источник архитектурной правды верхнего уровня.
 - Для изображений в публикациях использовать стандартный Markdown с внешними URL, без встроенного upload в Supabase Storage.
+- Строить миграцию на Appwrite через внутренние сервисы `lib/services/*`, не переподключая UI напрямую к новому SDK.
+- Полный auth cutover выполнять только после реализации Appwrite session endpoints и server guards; текущий рабочий Supabase auth пока не переключать.
 
 ## Затронутые файлы
 
@@ -50,6 +57,8 @@
 
 ## Ближайшие шаги
 
-- При подтверждении пользователя подготовить детальный `Appwrite technical blueprint` с коллекциями, mapping user IDs, стратегией ролей и cutover-порядком.
+- Зафиксировать детальный `Appwrite technical blueprint` в `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и синхронизировать `memory_bank`.
+- Вынести provider-agnostic слой для auth, posts, comments и admin сценариев.
+- Следующий технический шаг: реализовать Appwrite read adapters для posts/comments/admin через `TablesDB`, не переключая auth.
 - Проверить UX редактора на длинных публикациях и при необходимости отдельно спроектировать новую стратегию работы с изображениями.
 - Следующий возможный этап, если понадобится: разобраться с `2` auth users без профильной записи, хотя текущий OAuth-корень по orphan legacy-профилям уже закрыт.

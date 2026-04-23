@@ -1,6 +1,16 @@
 {
   "version": 1,
   "skills": {
+    "appwrite-cli": {
+      "source": "appwrite/agent-skills",
+      "sourceType": "github",
+      "computedHash": "94192e618ce1fd4272046775a86a341fbc0c4f277b888f00b4051804aead12f4"
+    },
+    "appwrite-typescript": {
+      "source": "appwrite/agent-skills",
+      "sourceType": "github",
+      "computedHash": "c2654d10a77e48197df43d29b3dcfe230b6f3b8efc81c5566f0f45afffb28e09"
+    },
     "supabase": {
       "source": "supabase/agent-skills",
       "sourceType": "github",

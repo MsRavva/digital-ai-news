@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
+import { getAuthErrorMessage } from "@/lib/services/auth-errors";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -66,7 +66,7 @@ export default function ResetPassword() {
 
       if (error) {
         console.error("Password update error:", error);
-        const errorMessage = getSupabaseErrorMessage(error);
+        const errorMessage = getAuthErrorMessage(error);
         setFormError(errorMessage);
         setIsLoading(false);
         return;
@@ -83,7 +83,7 @@ export default function ResetPassword() {
       }, 2000);
     } catch (error) {
       console.error("Unexpected password update error:", error);
-      const errorMessage = getSupabaseErrorMessage(error as any);
+      const errorMessage = getAuthErrorMessage(error as any);
       setFormError(errorMessage);
       setIsLoading(false);
     } finally {

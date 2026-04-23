@@ -24,8 +24,13 @@ import { MarkdownContent } from "@/components/ui/markdown-content";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/auth-context";
-import { deletePost, hasUserLikedPost, likePost } from "@/lib/supabase-post-actions";
-import { getPostById, recordView } from "@/lib/supabase-posts-api";
+import {
+  deletePost,
+  getPostById,
+  hasUserLikedPost,
+  likePost,
+  recordView,
+} from "@/lib/services/posts";
 import { cn } from "@/lib/utils";
 import type { Post } from "@/types/database";
 

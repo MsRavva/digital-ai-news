@@ -24,7 +24,7 @@ import {
   hasUserLikedComment,
   likeComment,
   unlikeComment,
-} from "@/lib/supabase-comments";
+} from "@/lib/services/comments";
 import type { Comment } from "@/types/database";
 import { CommentForm } from "./comment-form";
 

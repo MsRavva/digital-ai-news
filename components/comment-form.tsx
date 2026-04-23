@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/auth-context";
-import { addComment } from "@/lib/supabase-comments";
+import { addComment } from "@/lib/services/comments";
 
 interface CommentFormProps {
   postId: string;

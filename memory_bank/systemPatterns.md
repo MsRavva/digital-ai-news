@@ -6,6 +6,7 @@
 - Auth state на клиенте держится в `context/auth-context.tsx`.
 - Middleware выполняет серверную авторизационную проверку до рендера защищенных маршрутов.
 - Доступ к данным и auth API инкапсулирован в `lib/supabase-*.ts`.
+- На phase 1 миграции вводится provider-agnostic слой `lib/services/*`, который становится единственной точкой входа для UI, pages и route handlers.
 
 ## Паттерн post-auth redirect
 
@@ -37,6 +38,22 @@
 - Middleware ограничивает гостевые и защищенные маршруты.
 - Admin-маршруты дополнительно проверяют роль профиля.
 - Роли профиля читаются из таблицы `profiles`.
+
+## Паттерн миграции на Appwrite
+
+- Текущий runtime остается на Supabase до отдельного cutover.
+- Новые точки интеграции строятся через `lib/services/*`, чтобы не привязывать UI к `lib/supabase-*`.
+- Appwrite рассматривается как целевой backend provider для auth и data.
+- Для Appwrite вводится отдельный слой конфигурации и SDK helpers (`lib/appwrite/*`), но он не подключается напрямую к UI до завершения read/auth migration.
+- Mapping `legacySupabaseUserId -> Appwrite userId` считается обязательной частью целевой модели.
+
+## Паттерн service layer
+
+- `lib/services/auth.ts` инкапсулирует sign-in, sign-up, OAuth, session, profile updates и password recovery.
+- `lib/services/posts.ts` инкапсулирует чтение и запись публикаций, статистику и post actions.
+- `lib/services/comments.ts` инкапсулирует дерево комментариев и comment likes.
+- `lib/services/admin.ts` инкапсулирует административные выборки пользователей и ролей.
+- Внутри phase 1 сервисы еще делегируют в Supabase, но контракты уже не зависят от конкретного провайдера.
 
 ## Паттерн CSP
 

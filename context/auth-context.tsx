@@ -4,8 +4,8 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import {
+  getCurrentUser,
   getUserProfile,
   resetPassword,
   signIn,
@@ -16,10 +16,9 @@ import {
   subscribeToAuthChanges,
   updatePassword,
   updateUserProfile,
-} from "@/lib/supabase-auth";
+} from "@/lib/services/auth";
 import type { Profile } from "@/types/database";
 
-// Проверка, что код выполняется в браузере
 const isBrowser = typeof window !== "undefined";
 
 interface AuthContextType {
@@ -73,37 +72,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isSubscribedRef = useRef(false);
 
   useEffect(() => {
-    // Выполняем только на клиенте
     if (!isBrowser) {
       setIsLoading(false);
       return;
     }
 
-    // Защита от повторных подписок
     if (isSubscribedRef.current) {
       return;
     }
     isSubscribedRef.current = true;
 
-    // Таймаут для isLoading
     const loadingTimeout = setTimeout(() => {
       setIsLoading(false);
     }, 5000);
 
-    // Получаем текущую сессию
-    supabase.auth
-      .getSession()
-      .then(async ({ data: { session } }) => {
-        if (session?.user) {
-          setUser(session.user);
+    getCurrentUser()
+      .then(async (currentUser) => {
+        if (currentUser) {
+          setUser(currentUser);
 
           try {
-            const userProfile = await loadUserProfileWithRetry(session.user.id);
+            const userProfile = await loadUserProfileWithRetry(currentUser.id);
             setProfile(userProfile);
 
             if (!userProfile) {
               console.warn(
-                `[AuthProvider] Не удалось загрузить профиль после восстановления сессии. user.id=${session.user.id}`
+                `[AuthProvider] Failed to load profile after session recovery. user.id=${currentUser.id}`
               );
             }
           } catch (error) {
@@ -122,20 +116,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(loadingTimeout);
       });
 
-    // Подписываемся на изменения состояния аутентификации
-    const unsubscribe = subscribeToAuthChanges(async (supabaseUser) => {
+    const unsubscribe = subscribeToAuthChanges(async (providerUser) => {
       try {
         clearTimeout(loadingTimeout);
-        setUser(supabaseUser);
+        setUser(providerUser);
 
-        if (supabaseUser) {
-          const userProfile = await loadUserProfileWithRetry(supabaseUser.id);
+        if (providerUser) {
+          const userProfile = await loadUserProfileWithRetry(providerUser.id);
 
           setProfile(userProfile);
 
           if (!userProfile) {
             console.warn(
-              `[AuthProvider] Профиль не найден после auth state change. user.id=${supabaseUser.id}`
+              `[AuthProvider] Profile was not found after auth state change. user.id=${providerUser.id}`
             );
           }
         } else {
@@ -156,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const handleSignIn = async (email: string, password: string) => {
-    const { user: signedInUser, error } = await signIn(email, password);
+    const { error } = await signIn(email, password);
     return { error };
   };
 
@@ -166,26 +159,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     username: string,
     role: "student" | "teacher" | "admin" = "student"
   ) => {
-    const { user: signedUpUser, error } = await signUp(email, password, username, role);
+    const { error } = await signUp(email, password, username, role);
     return { error };
   };
 
   const handleSignInWithGoogle = async (next?: string) => {
     const { error } = await signInWithGoogle(next);
-    // OAuth редиректит на callback, который обработает вход
     return { error };
   };
 
   const handleSignInWithGithub = async (next?: string) => {
     const { error } = await signInWithGithub(next);
-    // OAuth редиректит на callback, который обработает вход
     return { error };
   };
 
   const handleSignOut = async () => {
     await signOut();
-    // signOut() делает редирект на /login
-    // setUser и setProfile будут вызваны через onAuthStateChange
   };
 
   const handleUpdateProfile = async (profileData: Partial<Profile>) => {
@@ -195,7 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const result = await updateUserProfile(user.id, profileData);
 
-    // Если обновление прошло успешно, обновляем локальный профиль
     if (result.success && profile) {
       setProfile({ ...profile, ...profileData });
     }
@@ -204,11 +192,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleResetPassword = async (email: string) => {
-    return await resetPassword(email);
+    return resetPassword(email);
   };
 
   const handleUpdatePassword = async (newPassword: string) => {
-    return await updatePassword(newPassword);
+    return updatePassword(newPassword);
   };
 
   return (

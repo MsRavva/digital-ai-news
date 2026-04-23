@@ -5,7 +5,7 @@ import { HeroHeader } from "@/components/header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { supabase } from "@/lib/supabase";
+import { getTeachers } from "@/lib/services/admin";
 import type { Profile } from "@/types/database";
 
 export default function TeachersPage() {
@@ -16,34 +16,7 @@ export default function TeachersPage() {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const { data: teachersData, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("role", "teacher");
-
-        if (error) {
-          console.error("Error fetching teachers:", error);
-          setError("Ошибка при загрузке данных");
-          setLoading(false);
-          return;
-        }
-
-        const teachersList = (teachersData || []).map((teacher) => ({
-          id: teacher.id,
-          username: teacher.username,
-          email: teacher.email,
-          role: teacher.role,
-          created_at: teacher.created_at,
-          updated_at: teacher.updated_at,
-          bio: teacher.bio,
-          location: teacher.location,
-          website: teacher.website,
-          social: teacher.social,
-          avatar_url: teacher.avatar_url,
-          preferredCategory: teacher.preferred_category,
-        })) as Profile[];
-
-        setTeachers(teachersList);
+        setTeachers(await getTeachers());
       } catch (err) {
         console.error("Error fetching teachers:", err);
         setError("Ошибка при загрузке данных");

@@ -20,8 +20,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
 import { getRedirectUrl } from "@/lib/auth-helpers";
 import { buildPostLoginRedirectPath } from "@/lib/post-auth-redirect";
-import { getOAuthRedirectUrl } from "@/lib/supabase-auth";
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
+import { getOAuthRedirectUrl } from "@/lib/services/auth";
+import { getAuthErrorMessage } from "@/lib/services/auth-errors";
 import { validateUsername } from "@/lib/validation";
 
 export default function Register() {
@@ -85,7 +85,7 @@ export default function Register() {
 
       if (error) {
         console.error("Registration error:", error);
-        const errorMessage = getSupabaseErrorMessage(error);
+        const errorMessage = getAuthErrorMessage(error);
         setFormError(errorMessage);
         setIsLoading(false);
         return;
@@ -98,7 +98,7 @@ export default function Register() {
       router.replace(buildPostLoginRedirectPath(searchParams, "/"));
     } catch (error) {
       console.error("Unexpected error during registration:", error);
-      const errorMessage = getSupabaseErrorMessage(error as any);
+      const errorMessage = getAuthErrorMessage(error as any);
       setFormError(errorMessage);
       setIsLoading(false);
     } finally {
@@ -116,7 +116,7 @@ export default function Register() {
 
       if (error || !url) {
         console.error("Google sign in error:", error);
-        const errorMessage = getSupabaseErrorMessage(
+        const errorMessage = getAuthErrorMessage(
           error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
@@ -128,7 +128,7 @@ export default function Register() {
       window.location.assign(url);
     } catch (error) {
       console.error("Unexpected Google sign in error:", error);
-      const errorMessage = getSupabaseErrorMessage(error as any);
+      const errorMessage = getAuthErrorMessage(error as any);
       setFormError(errorMessage);
 
       setIsGoogleLoading(false);
@@ -145,7 +145,7 @@ export default function Register() {
 
       if (error || !url) {
         console.error("GitHub sign in error:", error);
-        const errorMessage = getSupabaseErrorMessage(
+        const errorMessage = getAuthErrorMessage(
           error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
@@ -157,7 +157,7 @@ export default function Register() {
       window.location.assign(url);
     } catch (error) {
       console.error("Unexpected GitHub sign in error:", error);
-      const errorMessage = getSupabaseErrorMessage(error as any);
+      const errorMessage = getAuthErrorMessage(error as any);
       setFormError(errorMessage);
 
       setIsGithubLoading(false);

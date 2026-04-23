@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/auth-context";
-import { getSupabaseErrorMessage } from "@/lib/supabase-error-handler";
+import { getAuthErrorMessage } from "@/lib/services/auth-errors";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -35,7 +35,7 @@ export default function ForgotPassword() {
 
       if (error) {
         console.error("Password reset error:", error);
-        const errorMessage = getSupabaseErrorMessage(error);
+        const errorMessage = getAuthErrorMessage(error);
         setFormError(errorMessage);
         setIsLoading(false);
         return;
@@ -47,7 +47,7 @@ export default function ForgotPassword() {
       });
     } catch (error) {
       console.error("Unexpected password reset error:", error);
-      const errorMessage = getSupabaseErrorMessage(error as any);
+      const errorMessage = getAuthErrorMessage(error as any);
       setFormError(errorMessage);
       setIsLoading(false);
     } finally {
