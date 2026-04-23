@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `004af03fe82ea0e07f8a2ca48ba843d21364231f`
+- last_checked_commit: `7f96f46c38691522eb26a90ab6726e84929c717c`
 - checked_at: `2026-04-23`
 
 ## Current Status
@@ -14,6 +14,7 @@
 - Добавлен provider-agnostic service layer (`lib/services/*`) и каркас `lib/appwrite/*`; основные UI-страницы и компоненты переведены на внутренние сервисы вместо прямых импортов Supabase helper-файлов.
 - Appwrite TablesDB schema создана idempotent-скриптом `scripts/setup-appwrite-schema.ts`; локальный `.env` обновлен database/table ids.
 - Runtime приложения пока остается на Supabase: `NEXT_PUBLIC_BACKEND_PROVIDER` не установлен в `appwrite`, а provider-agnostic слой делегирует в Supabase по умолчанию.
+- По подтверждению пользователя удаляются legacy-хвосты локальных agent/editor/CI-настроек: `.claude`, `.cursor`, `.github`, `.kiro`, `.vscode`.
 - Локальное TypeScript-окружение восстановлено: зависимости установлены через `bun`, удалены остаточные debug-компоненты, `bunx tsc --noEmit` снова проходит.
 - Redirect flow упрощен до server-driven схемы с `post_auth_redirect` cookie и `/auth/post-login`.
 - Лишние auth debug logs удалены из middleware и login flow.
@@ -55,6 +56,7 @@
 - 2026-04-23: По замечанию пользователя Appwrite endpoint/project id удалены из коммитящихся docs/memory и перенесены в локальный `.env`; Appwrite SDK helpers переведены на `TablesDB` согласно `appwrite-typescript` skill.
 - 2026-04-23: Добавлен и выполнен `scripts/setup-appwrite-schema.ts`; в Appwrite создана TablesDB schema для `profiles`, `posts`, `tags`, `post_tags`, `comments`, `likes`, `views`, а локальный `.env` дополнен ids ресурсов.
 - 2026-04-23: Установлены `appwrite` и `node-appwrite`, добавлены `lib/appwrite/*` и `lib/services/*`, auth/posts/comments/admin UI переведены на provider-agnostic слой; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
+- 2026-04-23: По подтверждению пользователя удалены legacy-хвосты локальных agent/editor/CI-настроек: `.claude`, `.cursor`, `.github`, `.kiro`, `.vscode`.
 - 2026-04-23: Восстановлено локальное TypeScript-окружение через `bun install`, удален последний забытый debug-компонент OAuth, актуализирован `memory_bank`, подтвержден успешный `bunx tsc --noEmit`.
 - 2026-04-23: Из проекта удален временный диагностический слой вокруг OAuth, включая дополнительные UI/API-маршруты, служебные SQL-файлы, типы и документацию; боевой auth-flow сохранен.
 - 2026-04-23: В `memory_bank/other/appwrite-migration-plan.md` сохранен поэтапный план миграции БД и auth с Supabase на Appwrite с рисками, этапами и порядком cutover.

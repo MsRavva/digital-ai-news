@@ -10,6 +10,7 @@
 - UI-слой уже переведен на внутренние фасады `lib/services/auth|posts|comments|admin`; прямые импорты `@/lib/supabase-*` из `app/`, `components/` и `context/` для основных сценариев убраны.
 - Appwrite TablesDB schema создана через `scripts/setup-appwrite-schema.ts`; локальный `.env` дополнен database/table ids без фиксации значений в docs/memory.
 - Приложение пока должно оставаться на Supabase: `NEXT_PUBLIC_BACKEND_PROVIDER` не задан и `getBackendProvider()` возвращает `supabase` по умолчанию.
+- По подтверждению пользователя удаляются legacy-хвосты локальных agent/editor/CI-настроек: `.claude`, `.cursor`, `.github`, `.kiro`, `.vscode`.
 - Markdown-редактор публикаций использует локальный тулбар форматирования без встроенной загрузки изображений в Supabase Storage.
 - Документация синхронизирована с удалением `app/api/uploads/post-image` и SQL-конфигурации bucket `post-images` из репозитория.
 - Legacy bucket `post-images` и связанные storage policies уже удалены из проекта Supabase через Storage API и SQL cleanup.
@@ -44,6 +45,13 @@
 - `lib/auth-helpers.ts`
 - `lib/supabase-auth.ts`
 - `bun.lock`
+- `.claude/settings.local.json`
+- `.cursor/mcp.json`
+- `.cursor/rules/ts.mdc`
+- `.github/workflows/fetch-news.yml`
+- `.kiro/settings/mcp.json`
+- `.kiro/steering/ts.md`
+- `.vscode/settings.json`
 - `lib/post-auth-redirect.test.ts`
 - `next.config.mjs`
 - `types/database.ts`
