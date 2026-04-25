@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       }
 
       const next = requestUrl.searchParams.get("next") || undefined;
-      const result = await getAppwriteOAuthRedirectUrl(oauthProvider, next);
+      const result = await getAppwriteOAuthRedirectUrl(oauthProvider, next, requestUrl.origin);
       return NextResponse.json(result);
     }
 

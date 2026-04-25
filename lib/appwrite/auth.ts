@@ -2,7 +2,11 @@ import { cookies } from "next/headers";
 import { Account, OAuthProvider, Query } from "node-appwrite";
 import { createAdminClient as createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { Profile } from "@/types/database";
-import { getAppwritePublicConfig, getAppwriteSessionCookieName } from "./env";
+import {
+  getAppwritePublicConfig,
+  getAppwriteServerConfig,
+  getAppwriteSessionCookieName,
+} from "./env";
 import { createAppwriteAdminClient, createAppwriteSessionClient } from "./server";
 import { getAppwriteDatabaseId, getAppwriteTableId } from "./tables";
 
@@ -333,9 +337,13 @@ export async function ensureAppwriteProfileForCurrentUser() {
   return getAppwriteProfile(sessionUser.id);
 }
 
-export async function getAppwriteOAuthRedirectUrl(provider: "github" | "google", next?: string) {
+export async function getAppwriteOAuthRedirectUrl(
+  provider: "github" | "google",
+  next?: string,
+  origin?: string
+) {
   const admin = createAppwriteAdminClient();
-  const config = getAppwritePublicConfig();
+  const config = getAppwriteServerConfig();
 
   if (!admin || !config) {
     return {
@@ -345,14 +353,15 @@ export async function getAppwriteOAuthRedirectUrl(provider: "github" | "google",
     };
   }
 
-  const origin = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || "http://localhost:3000";
-  const successUrl = new URL("/auth/callback", origin);
+  const callbackBaseUrl =
+    process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || origin || "http://localhost:3000";
+  const successUrl = new URL("/auth/callback", callbackBaseUrl);
   successUrl.searchParams.set("provider", "appwrite");
   if (next) {
     successUrl.searchParams.set("next", next);
   }
 
-  const failureUrl = new URL("/login", origin);
+  const failureUrl = new URL("/login", callbackBaseUrl);
   failureUrl.searchParams.set("error", "auth_failed");
 
   try {

@@ -45,6 +45,7 @@
 - Реализован Appwrite write-path: добавлены `lib/appwrite/write.ts`, route handlers для write-сценариев posts/comments/profile, а `lib/services/posts.ts`, `lib/services/comments.ts`, `lib/services/auth.ts` и preference helpers переведены на Appwrite endpoints при `NEXT_PUBLIC_BACKEND_PROVIDER=appwrite`.
 - Appwrite schema и runtime финализированы для cutover: добавлена поддержка `comment_likes`, default provider переключен на Appwrite, `docs/README.md` и `memory_bank` синхронизированы под финальное состояние.
 - Rollback window остается открытым: Supabase fallback helpers и SQL-артефакты сознательно сохранены в репозитории, хотя основной runtime уже переведен на Appwrite.
+- Исправлен server-side Appwrite OAuth init: `/auth/callback?provider=appwrite-init` больше не требует public Appwrite config и корректно строит success/failure URLs от фактического origin запроса.
 - Устранен build warning про deprecated `middleware` convention: guard перенесен в `proxy.ts`; production build проходит без этого предупреждения.
 
 ## Known Issues
@@ -109,3 +110,4 @@
 - 2026-04-25: Выполнен `DA-13`: Appwrite schema расширена таблицей `comment_likes`, comment-like flow переведен на Appwrite, provider по умолчанию переключен на Appwrite через `lib/backend-provider.ts`, а `docs/README.md` и `memory_bank` синхронизированы под финальное состояние cutover; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
 - 2026-04-25: Выполнен rollback-friendly cleanup: устаревшие указания про Supabase как основной runtime удалены из `docs/README.md`, `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и `memory_bank`, при этом Supabase fallback-код и зависимости сохранены для быстрого отката.
 - 2026-04-25: Для совместимости с актуальным Next runtime guard перенесен из `middleware.ts` в `proxy.ts`, CSP в `next.config.mjs` расширен под Appwrite endpoint, а dev dependency `baseline-browser-mapping` обновлена до `2.10.22`; `bunx tsc --noEmit` и `bun run build` проходят успешно.
+- 2026-04-25: Исправлена ошибка `Appwrite config is not available.` при Appwrite GitHub/Google OAuth init: `getAppwriteOAuthRedirectUrl(...)` переведен на server config и origin текущего запроса; `bunx tsc --noEmit` и `bun run build` проходят успешно.

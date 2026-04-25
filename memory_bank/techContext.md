@@ -42,6 +42,7 @@
 - Для текущего этапа `read-path` Appwrite читается сервером через `node-appwrite` и `APPWRITE_API_KEY`; клиент получает данные через Next route handlers `app/api/appwrite/*`.
 - Appwrite auth runtime использует SSR-подход из `appwrite-typescript` skill: email/password и OAuth создают cookie `a_session_<projectId>` через серверные endpoints, а текущий пользователь читается через per-request session client.
 - Password recovery в Appwrite проходит через `createRecovery`/`updateRecovery`, а OAuth через `createOAuth2Token` + `/auth/callback` + `createSession`.
+- Инициализация Appwrite OAuth должна опираться на server config (`APPWRITE_*`) и `request.origin`; нельзя требовать наличие `NEXT_PUBLIC_APPWRITE_*` в server-only init path, иначе возможен ложный `Appwrite config is not available.`.
 - Прямой browser-read из Appwrite по-прежнему не используется; клиент получает данные и auth state через внутренние endpoints и service layer.
 - Appwrite write-path реализован через `lib/appwrite/write.ts` и route handlers `app/api/appwrite/posts/*`, `app/api/appwrite/comments/*`, `app/api/appwrite/profile`; клиентский UI не пишет в Appwrite SDK напрямую.
 - User preferences (`preferredCategory`, `preferredViewMode`, `themePreference`) теперь читаются и пишутся в Appwrite `profiles` через внутренний API при `NEXT_PUBLIC_BACKEND_PROVIDER=appwrite`.
