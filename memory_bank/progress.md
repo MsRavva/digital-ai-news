@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `e67c5058fb73915d73adbd57bc3d514c78cf0480`
-- checked_at: `2026-04-23`
+- last_checked_commit: `9049380fbcff29fc06d3f46088204f5d1e406458`
+- checked_at: `2026-04-25`
 
 ## Current Status
 
@@ -39,6 +39,7 @@
 - По отдельному решению пользователя вручную восстановлены и оба оставшихся orphan-автора публикаций: `svasya@ro.ru` (`10` постов) и `eg20master11@gmail.com` (`1` пост) успешно перенесены в `auth.users` с перепривязкой `posts.author_id`.
 - Итоговое состояние базы: `0` orphan-профилей, `150` профилей с email выровнены по `auth.users.id`, авторство всех публикаций сохранено.
 - Общий Markdown-редактор для `/create` и `/edit/[id]` использует тулбар быстрых действий без встроенной загрузки изображений в Supabase Storage.
+- Локальный `AGENTS.md` повторно синхронизирован с актуальным источником `Ravva/projects-tracker`; `memory_bank/projectbrief.md` перепроверен, раздел `## Project Deliverables` сохранен в табличной форме, а сумма весов подтверждена как `100`.
 
 ## Known Issues
 
@@ -49,6 +50,7 @@
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
 - Legacy-проблема orphan-профилей закрыта; остаточный вопрос — `2` auth users без профиля, не влияющие на текущий OAuth-сбой с `unique_email`.
 - Код загрузки изображений постов в Supabase Storage удален из репозитория; дальнейшая работа с изображениями в публикациях возможна только через внешние URL в Markdown.
+- `last_checked_commit` из предыдущей записи оказался несинхронизирован с текущей историей после `git pull`; контроль изменений переведен на актуальный `HEAD`.
 
 ## Changelog
 
@@ -91,3 +93,4 @@
 - 2026-04-23: Удален встроенный upload изображений постов в Supabase Storage: из редактора убраны file picker и API `/api/uploads/post-image`, из репозитория удален SQL `supabase/06_create_post_images_bucket.sql`, документация синхронизирована под использование только внешних URL в Markdown.
 - 2026-04-23: Добавлен `supabase/06_drop_post_images_bucket.sql` для ручного удаления legacy bucket `post-images`, его объектов и storage policies в окружении Supabase.
 - 2026-04-23: Через Supabase MCP и Storage API удален legacy bucket `post-images`; дополнительной проверкой подтверждено, что bucket и связанные policies больше не существуют в проекте Supabase.
+- 2026-04-25: Локальный `AGENTS.md` обновлен из `Ravva/projects-tracker`, `memory_bank` синхронизирован после чистого `git pull`, а `projectbrief.md` повторно проверен на наличие корректной таблицы `Project Deliverables` с суммой весов `100`.

@@ -2,6 +2,7 @@
 
 ## Текущий фокус
 
+- Синхронизируется локальный `AGENTS.md` из актуального источника `Ravva/projects-tracker`, а `memory_bank` перепроверяется на соответствие правилам deliverables и контролю изменений.
 - Завершено удаление временного диагностического слоя вокруг OAuth; в проекте оставлен только боевой auth-flow с безопасным redirect.
 - Локальное TypeScript-окружение восстановлено через `bun install`; `bunx tsc --noEmit` снова проходит успешно.
 - Подготовлен и сохранен в `memory_bank` поэтапный план миграции БД и auth с Supabase на Appwrite.
@@ -65,6 +66,7 @@
 
 ## Ближайшие шаги
 
+- Зафиксировать и отправить в remote синхронизацию `AGENTS.md` и `memory_bank` после проверки deliverables.
 - Зафиксировать детальный `Appwrite technical blueprint` в `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и синхронизировать `memory_bank`.
 - Вынести provider-agnostic слой для auth, posts, comments и admin сценариев.
 - Следующий технический шаг: реализовать Appwrite read adapters для posts/comments/admin через `TablesDB`, не переключая auth.
