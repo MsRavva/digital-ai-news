@@ -19,7 +19,7 @@
 
 ## Технические детали auth flow
 
-- Middleware использует cookie-based guard для Appwrite-ветки по умолчанию и сохраняет Supabase-ветку как rollback-режим.
+- `proxy.ts` использует cookie-based guard для Appwrite-ветки по умолчанию и сохраняет Supabase-ветку как rollback-режим.
 - Безопасность redirect построена на проверке относительных путей.
 - Клиентские страницы auth больше не зависят от `sessionStorage` для возврата после логина.
 - Server-side guard `lib/auth-server.ts` использует тот же redirect helper, что и middleware.
@@ -38,6 +38,7 @@
 - Создание и повторная синхронизация схемы Appwrite выполняются через `scripts/setup-appwrite-schema.ts`; скрипт idempotent и берет credentials только из локального `.env`.
 - Провайдер по умолчанию теперь Appwrite; rollback на Supabase возможен только через явное `NEXT_PUBLIC_BACKEND_PROVIDER=supabase`.
 - Supabase зависимости и fallback helpers намеренно не удалены из `package.json` и `lib/supabase-*`, чтобы rollback оставался быстрым и не требовал срочного восстановления кода.
+- `baseline-browser-mapping` обновлен до `2.10.22`, но Next build все еще показывает предупреждение из-за вложенной старой транзитивной версии в дереве зависимостей; это не блокирует сборку.
 - Для текущего этапа `read-path` Appwrite читается сервером через `node-appwrite` и `APPWRITE_API_KEY`; клиент получает данные через Next route handlers `app/api/appwrite/*`.
 - Appwrite auth runtime использует SSR-подход из `appwrite-typescript` skill: email/password и OAuth создают cookie `a_session_<projectId>` через серверные endpoints, а текущий пользователь читается через per-request session client.
 - Password recovery в Appwrite проходит через `createRecovery`/`updateRecovery`, а OAuth через `createOAuth2Token` + `/auth/callback` + `createSession`.

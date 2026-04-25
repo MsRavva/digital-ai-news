@@ -4,7 +4,7 @@
 
 - Frontend и route handlers реализованы через Next.js App Router.
 - Auth state на клиенте держится в `context/auth-context.tsx`.
-- Middleware выполняет серверную авторизационную проверку до рендера защищенных маршрутов.
+- `proxy.ts` выполняет серверную авторизационную проверку до рендера защищенных маршрутов.
 - Доступ к данным и auth API инкапсулирован во внутренних сервисах `lib/services/*` и Appwrite adapters `lib/appwrite/*`.
 - На phase 1 миграции вводится provider-agnostic слой `lib/services/*`, который становится единственной точкой входа для UI, pages и route handlers.
 

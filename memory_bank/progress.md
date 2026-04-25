@@ -45,11 +45,13 @@
 - Реализован Appwrite write-path: добавлены `lib/appwrite/write.ts`, route handlers для write-сценариев posts/comments/profile, а `lib/services/posts.ts`, `lib/services/comments.ts`, `lib/services/auth.ts` и preference helpers переведены на Appwrite endpoints при `NEXT_PUBLIC_BACKEND_PROVIDER=appwrite`.
 - Appwrite schema и runtime финализированы для cutover: добавлена поддержка `comment_likes`, default provider переключен на Appwrite, `docs/README.md` и `memory_bank` синхронизированы под финальное состояние.
 - Rollback window остается открытым: Supabase fallback helpers и SQL-артефакты сознательно сохранены в репозитории, хотя основной runtime уже переведен на Appwrite.
+- Устранен build warning про deprecated `middleware` convention: guard перенесен в `proxy.ts`; production build проходит без этого предупреждения.
 
 ## Known Issues
 
 - `bun run check` падает на уже существующих форматных расхождениях в репозитории, включая файлы вне текущей задачи.
 - `bun run check` по-прежнему падает на существующих форматных расхождениях вне текущего набора файлов, поэтому окончательный smoke/barrier для merge опирается на `bunx tsc --noEmit` и точечный `biome --write`.
+- Next build продолжает выводить warning про устаревший `baseline-browser-mapping`, потому что в dependency tree остается вложенная старая версия; warning не блокирует сборку и не связан с runtime логикой приложения.
 - В рабочем дереве присутствует удаление `CLAUDE.md`; это изменение не было откатано.
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
@@ -106,3 +108,4 @@
 - 2026-04-25: Выполнен `DA-12`: добавлены `lib/appwrite/write.ts` и write-endpoints `app/api/appwrite/posts/*`, `app/api/appwrite/comments/*`, `app/api/appwrite/profile`; создание/редактирование/архивация/удаление постов, просмотры и лайки постов, создание/удаление комментариев, обновление профиля и пользовательских preferences переведены на Appwrite; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
 - 2026-04-25: Выполнен `DA-13`: Appwrite schema расширена таблицей `comment_likes`, comment-like flow переведен на Appwrite, provider по умолчанию переключен на Appwrite через `lib/backend-provider.ts`, а `docs/README.md` и `memory_bank` синхронизированы под финальное состояние cutover; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
 - 2026-04-25: Выполнен rollback-friendly cleanup: устаревшие указания про Supabase как основной runtime удалены из `docs/README.md`, `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и `memory_bank`, при этом Supabase fallback-код и зависимости сохранены для быстрого отката.
+- 2026-04-25: Для совместимости с актуальным Next runtime guard перенесен из `middleware.ts` в `proxy.ts`, CSP в `next.config.mjs` расширен под Appwrite endpoint, а dev dependency `baseline-browser-mapping` обновлена до `2.10.22`; `bunx tsc --noEmit` и `bun run build` проходят успешно.

@@ -5,6 +5,7 @@
 - `DA-10..DA-13` закрыты: read-path, auth/session/role checks, write-path, comment likes и документация переведены на Appwrite runtime.
 - Runtime по умолчанию переключен на Appwrite; Supabase сохранен только как rollback-ветка через `NEXT_PUBLIC_BACKEND_PROVIDER=supabase`.
 - Выполняется rollback-friendly cleanup: из документации и memory убираются устаревшие указания про Supabase как основной runtime, но сам fallback-код и legacy-артефакты сохраняются.
+- Устранено Next warning по deprecated middleware convention: runtime guard перенесен из `middleware.ts` в `proxy.ts` без изменения поведения маршрутизации.
 - `DA-13` закрыт: runtime по умолчанию переключен на Appwrite, comment likes добавлены в Appwrite schema, документация и memory bank синхронизированы под финальное состояние cutover.
 - Синхронизируется локальный `AGENTS.md` из актуального источника `Ravva/projects-tracker`, а `memory_bank` перепроверяется на соответствие правилам deliverables и контролю изменений.
 - Завершено удаление временного диагностического слоя вокруг OAuth; в проекте оставлен только боевой auth-flow с безопасным redirect.
