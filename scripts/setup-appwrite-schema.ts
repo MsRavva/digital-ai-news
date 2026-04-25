@@ -7,7 +7,15 @@ import {
   TablesDBIndexType,
 } from "node-appwrite";
 
-type TableId = "profiles" | "posts" | "tags" | "post_tags" | "comments" | "likes" | "views";
+type TableId =
+  | "profiles"
+  | "posts"
+  | "tags"
+  | "post_tags"
+  | "comments"
+  | "likes"
+  | "comment_likes"
+  | "views";
 
 type ColumnSpec =
   | {
@@ -176,6 +184,24 @@ const TABLES: TableSpec[] = [
         key: "idx_likes_unique_pair",
         type: TablesDBIndexType.Unique,
         columns: ["postId", "userId"],
+      },
+    ],
+  },
+  {
+    id: "comment_likes",
+    name: "Comment Likes",
+    columns: [
+      { type: "varchar", key: "commentId", size: 128, required: true },
+      { type: "varchar", key: "userId", size: 128, required: true },
+      { type: "datetime", key: "createdAt", required: true },
+    ],
+    indexes: [
+      { key: "idx_comment_likes_commentId", type: TablesDBIndexType.Key, columns: ["commentId"] },
+      { key: "idx_comment_likes_userId", type: TablesDBIndexType.Key, columns: ["userId"] },
+      {
+        key: "idx_comment_likes_unique_pair",
+        type: TablesDBIndexType.Unique,
+        columns: ["commentId", "userId"],
       },
     ],
   },

@@ -1,10 +1,10 @@
 "use client";
 
-import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
+  type AuthUser,
   getCurrentUser,
   getUserProfile,
   resetPassword,
@@ -22,7 +22,7 @@ import type { Profile } from "@/types/database";
 const isBrowser = typeof window !== "undefined";
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   profile: Profile | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -65,7 +65,7 @@ async function loadUserProfileWithRetry(userId: string): Promise<Profile | null>
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();

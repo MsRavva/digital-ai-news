@@ -70,6 +70,25 @@ export async function saveCategoryToCookieServer(category: string): Promise<void
  */
 export async function saveCategoryToProfile(userId: string, category: string): Promise<boolean> {
   try {
+    const { getBackendProvider } = await import("./backend-provider");
+
+    if (getBackendProvider() === "appwrite") {
+      const response = await fetch("/api/appwrite/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ preferences: { preferredCategory: category } }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const result = (await response.json()) as { success: boolean };
+      return result.success;
+    }
+
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
     const { supabase } = await import("./supabase");
 
@@ -98,6 +117,23 @@ export async function saveCategoryToProfile(userId: string, category: string): P
  */
 export async function getCategoryFromProfile(userId: string): Promise<string | null> {
   try {
+    const { getBackendProvider } = await import("./backend-provider");
+
+    if (getBackendProvider() === "appwrite") {
+      const response = await fetch("/api/appwrite/profile?key=preferredCategory", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const result = (await response.json()) as { value: string | null };
+      return result.value;
+    }
+
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
     const { supabase } = await import("./supabase");
 
@@ -246,6 +282,25 @@ export async function saveViewModeToProfile(
   viewMode: "table" | "bento"
 ): Promise<boolean> {
   try {
+    const { getBackendProvider } = await import("./backend-provider");
+
+    if (getBackendProvider() === "appwrite") {
+      const response = await fetch("/api/appwrite/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ preferences: { preferredViewMode: viewMode } }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const result = (await response.json()) as { success: boolean };
+      return result.success;
+    }
+
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
     const { supabase } = await import("./supabase");
 
@@ -274,6 +329,23 @@ export async function saveViewModeToProfile(
  */
 export async function getViewModeFromProfile(userId: string): Promise<"table" | "bento" | null> {
   try {
+    const { getBackendProvider } = await import("./backend-provider");
+
+    if (getBackendProvider() === "appwrite") {
+      const response = await fetch("/api/appwrite/profile?key=preferredViewMode", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const result = (await response.json()) as { value: "table" | "bento" | null };
+      return result.value;
+    }
+
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
     const { supabase } = await import("./supabase");
 
@@ -402,6 +474,25 @@ export async function saveThemeToProfile(
   theme: "light" | "dark" | "system"
 ): Promise<boolean> {
   try {
+    const { getBackendProvider } = await import("./backend-provider");
+
+    if (getBackendProvider() === "appwrite") {
+      const response = await fetch("/api/appwrite/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ preferences: { themePreference: theme } }),
+      });
+
+      if (!response.ok) {
+        return false;
+      }
+
+      const result = (await response.json()) as { success: boolean };
+      return result.success;
+    }
+
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
     const { supabase } = await import("./supabase");
 
@@ -432,6 +523,23 @@ export async function getThemeFromProfile(
   userId: string
 ): Promise<"light" | "dark" | "system" | null> {
   try {
+    const { getBackendProvider } = await import("./backend-provider");
+
+    if (getBackendProvider() === "appwrite") {
+      const response = await fetch("/api/appwrite/profile?key=themePreference", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const result = (await response.json()) as { value: "light" | "dark" | "system" | null };
+      return result.value;
+    }
+
     // Используем динамический импорт обычного клиента для избежания проблем с SSR
     const { supabase } = await import("./supabase");
 

@@ -2,10 +2,24 @@ import { getBackendProvider } from "@/lib/backend-provider";
 import { supabase } from "@/lib/supabase";
 import type { Profile } from "@/types/database";
 
+async function getJson<T>(input: string): Promise<T> {
+  const response = await fetch(input, {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
 export async function getTeachers(): Promise<Profile[]> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite admin-teachers flow is not connected yet.");
+      return getJson<Profile[]>("/api/appwrite/admin/teachers");
     default: {
       const { data, error } = await supabase.from("profiles").select("*").eq("role", "teacher");
 

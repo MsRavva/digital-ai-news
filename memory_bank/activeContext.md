@@ -2,6 +2,10 @@
 
 ## Текущий фокус
 
+- `DA-10..DA-13` закрыты: read-path, auth/session/role checks, write-path, comment likes и документация переведены на Appwrite runtime.
+- Runtime по умолчанию переключен на Appwrite; Supabase сохранен только как rollback-ветка через `NEXT_PUBLIC_BACKEND_PROVIDER=supabase`.
+- Выполняется rollback-friendly cleanup: из документации и memory убираются устаревшие указания про Supabase как основной runtime, но сам fallback-код и legacy-артефакты сохраняются.
+- `DA-13` закрыт: runtime по умолчанию переключен на Appwrite, comment likes добавлены в Appwrite schema, документация и memory bank синхронизированы под финальное состояние cutover.
 - Синхронизируется локальный `AGENTS.md` из актуального источника `Ravva/projects-tracker`, а `memory_bank` перепроверяется на соответствие правилам deliverables и контролю изменений.
 - Завершено удаление временного диагностического слоя вокруг OAuth; в проекте оставлен только боевой auth-flow с безопасным redirect.
 - Локальное TypeScript-окружение восстановлено через `bun install`; `bunx tsc --noEmit` снова проходит успешно.
@@ -10,7 +14,7 @@
 - В работу взята phase 1 миграции: `Appwrite technical blueprint` и provider-agnostic service layer.
 - UI-слой уже переведен на внутренние фасады `lib/services/auth|posts|comments|admin`; прямые импорты `@/lib/supabase-*` из `app/`, `components/` и `context/` для основных сценариев убраны.
 - Appwrite TablesDB schema создана через `scripts/setup-appwrite-schema.ts`; локальный `.env` дополнен database/table ids без фиксации значений в docs/memory.
-- Приложение пока должно оставаться на Supabase: `NEXT_PUBLIC_BACKEND_PROVIDER` не задан и `getBackendProvider()` возвращает `supabase` по умолчанию.
+- Приложение теперь должно работать на Appwrite по умолчанию; явное значение `NEXT_PUBLIC_BACKEND_PROVIDER=supabase` рассматривается только как rollback-механизм.
 - По подтверждению пользователя удаляются legacy-хвосты локальных agent/editor/CI-настроек: `.claude`, `.cursor`, `.github`, `.kiro`, `.vscode`.
 - Markdown-редактор публикаций использует локальный тулбар форматирования без встроенной загрузки изображений в Supabase Storage.
 - Документация синхронизирована с удалением `app/api/uploads/post-image` и SQL-конфигурации bucket `post-images` из репозитория.
@@ -31,6 +35,8 @@
 - Для изображений в публикациях использовать стандартный Markdown с внешними URL, без встроенного upload в Supabase Storage.
 - Строить миграцию на Appwrite через внутренние сервисы `lib/services/*`, не переподключая UI напрямую к новому SDK.
 - Полный auth cutover выполнять только после реализации Appwrite session endpoints и server guards; текущий рабочий Supabase auth пока не переключать.
+- Для Appwrite auth cutover использовать forced relink: при первом Appwrite login/register/OAuth профиль в `profiles` восстанавливается или перепривязывается по email, с переносом `legacySupabaseUserId`, `username` и `role`.
+- Для быстрого rollback не удалять `lib/supabase-*`, `supabase/*.sql` и Supabase env contract, пока не закончится окно стабилизации после cutover.
 
 ## Затронутые файлы
 
@@ -66,6 +72,11 @@
 
 ## Ближайшие шаги
 
+- Реализовать Appwrite read adapters для posts/comments/admin через `TablesDB` и сохранить совместимость текущего UI-контракта `types/database.ts`.
+- Следующий этап: перенести auth/session/role checks на Appwrite и убрать временную зависимость Appwrite read proxy от Supabase session.
+- Следующий этап: перенести write-path и admin mutations на Appwrite, используя уже переключенные Appwrite auth/session/role guards.
+- Следующий этап: финальный cutover, добор тестового покрытия и удаление Supabase legacy после решения по `comment_likes` и проверок smoke-flow на реальных пользователях.
+- Следующий отдельный этап, если понадобится: сузить rollback window и начать физический cleanup `lib/supabase-*`, `supabase/*.sql` и Supabase env после периода стабилизации.
 - Зафиксировать и отправить в remote синхронизацию `AGENTS.md` и `memory_bank` после проверки deliverables.
 - Зафиксировать детальный `Appwrite technical blueprint` в `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и синхронизировать `memory_bank`.
 - Вынести provider-agnostic слой для auth, posts, comments и admin сценариев.

@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { getAppwritePublicConfig, getAppwriteSessionCookieName } from "@/lib/appwrite/env";
+import { getBackendProvider } from "@/lib/backend-provider";
 import {
   buildPostAuthRedirect,
   getPostAuthRedirectFromRequest,
@@ -24,6 +26,7 @@ const rateLimitedRoutes = ["/login", "/register", "/forgot-password", "/reset-pa
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isAppwrite = getBackendProvider() === "appwrite";
 
   // Пропускаем API routes, статические файлы и публичные маршруты
   if (
@@ -58,6 +61,53 @@ export async function middleware(request: NextRequest) {
       headers: request.headers,
     },
   });
+
+  if (isAppwrite) {
+    const appwriteConfig = getAppwritePublicConfig();
+    const sessionCookieName = appwriteConfig
+      ? getAppwriteSessionCookieName(appwriteConfig.projectId)
+      : null;
+    const isAuthenticated = sessionCookieName
+      ? Boolean(request.cookies.get(sessionCookieName)?.value)
+      : false;
+
+    const isRootRoute = pathname === "/" || pathname === "";
+    const isOtherProtectedRoute = protectedRoutes
+      .filter((route) => route !== "/")
+      .some((route) => pathname.startsWith(route));
+    const isProtectedRoute = isRootRoute || isOtherProtectedRoute;
+    const isGuestRoute = guestRoutes.some((route) => pathname.startsWith(route));
+
+    if (isProtectedRoute && !isAuthenticated) {
+      const loginUrl = new URL("/login", request.url);
+      const redirectTarget = buildPostAuthRedirect(pathname, request.nextUrl.search);
+
+      if (redirectTarget) {
+        loginUrl.searchParams.set("redirect", redirectTarget);
+      }
+
+      const redirectResponse = NextResponse.redirect(loginUrl);
+
+      if (redirectTarget) {
+        setPostAuthRedirectCookie(redirectResponse, redirectTarget);
+      }
+
+      return redirectResponse;
+    }
+
+    if (isGuestRoute && isAuthenticated && pathname !== "/reset-password") {
+      const redirectTo = getPostAuthRedirectFromRequest(request);
+      const postLoginUrl = new URL("/auth/post-login", request.url);
+
+      if (redirectTo) {
+        postLoginUrl.searchParams.set("redirect", redirectTo);
+      }
+
+      return NextResponse.redirect(postLoginUrl);
+    }
+
+    return response;
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",

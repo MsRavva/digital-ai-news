@@ -1,6 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import {
+  createAppwriteOAuthSession,
+  getAppwriteOAuthRedirectUrl,
+  getAppwriteSessionCookieConfig,
+} from "@/lib/appwrite/auth";
+import { getAppwritePublicConfig } from "@/lib/appwrite/env";
+import { getBackendProvider } from "@/lib/backend-provider";
 import { ensureOAuthProfile } from "@/lib/oauth-profile";
 import { getSafePostAuthRedirect } from "@/lib/oauth-redirect";
 import {
@@ -9,6 +16,61 @@ import {
 } from "@/lib/post-auth-redirect";
 
 export async function GET(request: NextRequest) {
+  if (getBackendProvider() === "appwrite") {
+    const requestUrl = new URL(request.url);
+    const providerInit = requestUrl.searchParams.get("provider") === "appwrite-init";
+
+    if (providerInit) {
+      const oauthProvider = requestUrl.searchParams.get("oauth_provider");
+      if (oauthProvider !== "github" && oauthProvider !== "google") {
+        return NextResponse.json(
+          { url: null, callbackUrl: "", error: { message: "Unsupported OAuth provider" } },
+          { status: 400 }
+        );
+      }
+
+      const next = requestUrl.searchParams.get("next") || undefined;
+      const result = await getAppwriteOAuthRedirectUrl(oauthProvider, next);
+      return NextResponse.json(result);
+    }
+
+    const userId = requestUrl.searchParams.get("userId");
+    const secret = requestUrl.searchParams.get("secret");
+
+    if (!userId || !secret) {
+      return NextResponse.redirect(new URL("/login?error=auth_failed", requestUrl.origin));
+    }
+
+    const { session, error } = await createAppwriteOAuthSession(userId, secret);
+    if (error || !session) {
+      return NextResponse.redirect(new URL("/login?error=auth_failed", requestUrl.origin));
+    }
+
+    const config = getAppwritePublicConfig();
+    if (!config) {
+      return NextResponse.redirect(new URL("/login?error=auth_failed", requestUrl.origin));
+    }
+
+    const nextRedirect = getSafePostAuthRedirect(requestUrl.searchParams.get("next"));
+    const fallbackRedirect = getPostAuthRedirectFromRequest(request);
+    const redirectTo = nextRedirect || fallbackRedirect;
+    const postLoginUrl = new URL("/auth/post-login", requestUrl.origin);
+
+    if (redirectTo) {
+      postLoginUrl.searchParams.set("redirect", redirectTo);
+    }
+
+    const response = NextResponse.redirect(postLoginUrl);
+    response.cookies.set(
+      `a_session_${config.projectId}`,
+      session.secret,
+      getAppwriteSessionCookieConfig(session.expire)
+    );
+    clearPostAuthRedirectCookie(response);
+
+    return response;
+  }
+
   const formatAuthErrorMessage = (message: string) => {
     if (message.toLowerCase().includes("database error saving new user")) {
       return "Supabase не смог сохранить нового пользователя в базе. Вероятен конфликт профиля или ошибка trigger handle_new_user().";

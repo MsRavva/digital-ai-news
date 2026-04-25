@@ -9,10 +9,42 @@ import {
 } from "@/lib/supabase-comments";
 import type { Comment } from "@/types/database";
 
+async function getJson<T>(input: string): Promise<T> {
+  const response = await fetch(input, {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+async function sendJson<T>(input: string, init: RequestInit): Promise<T> {
+  const response = await fetch(input, {
+    credentials: "include",
+    cache: "no-store",
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  return (await response.json()) as T;
+}
+
 export async function getCommentsByPostId(postId: string): Promise<Comment[]> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite comments read flow is not connected yet.");
+      return getJson<Comment[]>(`/api/appwrite/posts/${postId}/comments`);
     default:
       return getSupabaseCommentsByPostId(postId);
   }
@@ -26,7 +58,10 @@ export async function addComment(data: {
 }): Promise<string | null> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite comment create flow is not connected yet.");
+      return sendJson<{ commentId: string | null }>("/api/appwrite/comments", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }).then((result) => result.commentId);
     default:
       return addSupabaseComment(data);
   }
@@ -35,7 +70,9 @@ export async function addComment(data: {
 export async function deleteComment(commentId: string): Promise<boolean> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite comment delete flow is not connected yet.");
+      return sendJson<{ success: boolean }>(`/api/appwrite/comments/${commentId}`, {
+        method: "DELETE",
+      }).then((result) => result.success);
     default:
       return deleteSupabaseComment(commentId);
   }
@@ -44,7 +81,10 @@ export async function deleteComment(commentId: string): Promise<boolean> {
 export async function likeComment(commentId: string, userId: string): Promise<boolean> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite comment-like flow is not connected yet.");
+      return sendJson<{ success: boolean }>(`/api/appwrite/comments/${commentId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action: "like", userId }),
+      }).then((result) => result.success);
     default:
       return likeSupabaseComment(commentId, userId);
   }
@@ -53,7 +93,10 @@ export async function likeComment(commentId: string, userId: string): Promise<bo
 export async function unlikeComment(commentId: string, userId: string): Promise<boolean> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite comment-unlike flow is not connected yet.");
+      return sendJson<{ success: boolean }>(`/api/appwrite/comments/${commentId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action: "unlike", userId }),
+      }).then((result) => result.success);
     default:
       return unlikeSupabaseComment(commentId, userId);
   }
@@ -62,7 +105,10 @@ export async function unlikeComment(commentId: string, userId: string): Promise<
 export async function hasUserLikedComment(commentId: string, userId: string): Promise<boolean> {
   switch (getBackendProvider()) {
     case "appwrite":
-      throw new Error("Appwrite comment-like-check flow is not connected yet.");
+      return sendJson<{ success: boolean }>(`/api/appwrite/comments/${commentId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ action: "hasLiked", userId }),
+      }).then((result) => result.success);
     default:
       return hasUserLikedSupabaseComment(commentId, userId);
   }

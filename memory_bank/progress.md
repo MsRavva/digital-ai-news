@@ -13,7 +13,7 @@
 - Подготовлен отдельный `Appwrite technical blueprint`; Appwrite endpoint/project id вынесены в локальный `.env`, чтобы не хранить их в коммитящихся docs/memory.
 - Добавлен provider-agnostic service layer (`lib/services/*`) и каркас `lib/appwrite/*`; основные UI-страницы и компоненты переведены на внутренние сервисы вместо прямых импортов Supabase helper-файлов.
 - Appwrite TablesDB schema создана idempotent-скриптом `scripts/setup-appwrite-schema.ts`; локальный `.env` обновлен database/table ids.
-- Runtime приложения пока остается на Supabase: `NEXT_PUBLIC_BACKEND_PROVIDER` не установлен в `appwrite`, а provider-agnostic слой делегирует в Supabase по умолчанию.
+- Runtime приложения переключен на Appwrite по умолчанию; Supabase оставлен только как rollback-ветка и источник forced relink по email на миграционный период.
 - По подтверждению пользователя удаляются legacy-хвосты локальных agent/editor/CI-настроек: `.claude`, `.cursor`, `.github`, `.kiro`, `.vscode`.
 - Локальное TypeScript-окружение восстановлено: зависимости установлены через `bun`, удалены остаточные debug-компоненты, `bunx tsc --noEmit` снова проходит.
 - Redirect flow упрощен до server-driven схемы с `post_auth_redirect` cookie и `/auth/post-login`.
@@ -40,17 +40,23 @@
 - Итоговое состояние базы: `0` orphan-профилей, `150` профилей с email выровнены по `auth.users.id`, авторство всех публикаций сохранено.
 - Общий Markdown-редактор для `/create` и `/edit/[id]` использует тулбар быстрых действий без встроенной загрузки изображений в Supabase Storage.
 - Локальный `AGENTS.md` повторно синхронизирован с актуальным источником `Ravva/projects-tracker`; `memory_bank/projectbrief.md` перепроверен, раздел `## Project Deliverables` сохранен в табличной форме, а сумма весов подтверждена как `100`.
+- Реализован Appwrite `read-path` через server-side proxy: добавлены route handlers `app/api/appwrite/*`, server adapters `lib/appwrite/read.ts`, а `lib/services/posts|comments|admin` переведены на эти endpoints при `NEXT_PUBLIC_BACKEND_PROVIDER=appwrite`.
+- Реализован Appwrite auth cutover с forced relink: добавлены `/api/auth/appwrite/*`, Appwrite session cookie flow, OAuth/recovery endpoints, middleware/guards для `a_session_<projectId>` и upsert legacy-профиля по email при первом входе.
+- Реализован Appwrite write-path: добавлены `lib/appwrite/write.ts`, route handlers для write-сценариев posts/comments/profile, а `lib/services/posts.ts`, `lib/services/comments.ts`, `lib/services/auth.ts` и preference helpers переведены на Appwrite endpoints при `NEXT_PUBLIC_BACKEND_PROVIDER=appwrite`.
+- Appwrite schema и runtime финализированы для cutover: добавлена поддержка `comment_likes`, default provider переключен на Appwrite, `docs/README.md` и `memory_bank` синхронизированы под финальное состояние.
+- Rollback window остается открытым: Supabase fallback helpers и SQL-артефакты сознательно сохранены в репозитории, хотя основной runtime уже переведен на Appwrite.
 
 ## Known Issues
 
 - `bun run check` падает на уже существующих форматных расхождениях в репозитории, включая файлы вне текущей задачи.
-- Для полного серверного Appwrite cutover еще не реализованы session endpoints, middleware integration и profile relink logic.
+- `bun run check` по-прежнему падает на существующих форматных расхождениях вне текущего набора файлов, поэтому окончательный smoke/barrier для merge опирается на `bunx tsc --noEmit` и точечный `biome --write`.
 - В рабочем дереве присутствует удаление `CLAUDE.md`; это изменение не было откатано.
 - Локальный unit-тест `lib/post-auth-redirect.test.ts` через голый `node --test` не запускается как ESM без дополнительной настройки резолвинга; ориентиром остаются проектные команды через `bun`.
 - В рабочем дереве уже были сторонние изменения `package.json` и новый `package-lock.json`; они не относятся к текущей задаче и не изменялись автоматически.
 - Legacy-проблема orphan-профилей закрыта; остаточный вопрос — `2` auth users без профиля, не влияющие на текущий OAuth-сбой с `unique_email`.
 - Код загрузки изображений постов в Supabase Storage удален из репозитория; дальнейшая работа с изображениями в публикациях возможна только через внешние URL в Markdown.
 - `last_checked_commit` из предыдущей записи оказался несинхронизирован с текущей историей после `git pull`; контроль изменений переведен на актуальный `HEAD`.
+- Forced relink опирается на доступность Supabase `profiles` по email через server-side admin client; это сознательно сохранено как миграционный safety-net в rollback window.
 
 ## Changelog
 
@@ -94,3 +100,9 @@
 - 2026-04-23: Добавлен `supabase/06_drop_post_images_bucket.sql` для ручного удаления legacy bucket `post-images`, его объектов и storage policies в окружении Supabase.
 - 2026-04-23: Через Supabase MCP и Storage API удален legacy bucket `post-images`; дополнительной проверкой подтверждено, что bucket и связанные policies больше не существуют в проекте Supabase.
 - 2026-04-25: Локальный `AGENTS.md` обновлен из `Ravva/projects-tracker`, `memory_bank` синхронизирован после чистого `git pull`, а `projectbrief.md` повторно проверен на наличие корректной таблицы `Project Deliverables` с суммой весов `100`.
+- 2026-04-25: Настроен и повторно аутентифицирован `Supabase MCP` в `opencode`; подтверждено подключение remote MCP server для проекта `jgttwzvrsqnhdysutacc`.
+- 2026-04-25: Выполнен перенос `read-path` на Appwrite без auth cutover: добавлены `lib/appwrite/read.ts`, `lib/appwrite/tables.ts`, `lib/appwrite/route-guards.ts`, route handlers `app/api/appwrite/*`, а чтение в `lib/services/posts.ts`, `lib/services/comments.ts`, `lib/services/admin.ts` переключено на server proxy при `NEXT_PUBLIC_BACKEND_PROVIDER=appwrite`; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
+- 2026-04-25: Выполнен `DA-11` через forced relink strategy: добавлены `lib/appwrite/auth.ts`, endpoints `/api/auth/appwrite/login|register|me|logout|recovery`, Appwrite OAuth init/callback через `app/auth/callback/route.ts`, Appwrite session guards в `middleware.ts` и `lib/auth-server.ts`, а `lib/services/auth.ts` и `context/auth-context.tsx` переключены на внутренний Appwrite auth bridge; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
+- 2026-04-25: Выполнен `DA-12`: добавлены `lib/appwrite/write.ts` и write-endpoints `app/api/appwrite/posts/*`, `app/api/appwrite/comments/*`, `app/api/appwrite/profile`; создание/редактирование/архивация/удаление постов, просмотры и лайки постов, создание/удаление комментариев, обновление профиля и пользовательских preferences переведены на Appwrite; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
+- 2026-04-25: Выполнен `DA-13`: Appwrite schema расширена таблицей `comment_likes`, comment-like flow переведен на Appwrite, provider по умолчанию переключен на Appwrite через `lib/backend-provider.ts`, а `docs/README.md` и `memory_bank` синхронизированы под финальное состояние cutover; `bunx biome check --write` и `bunx tsc --noEmit` прошли успешно.
+- 2026-04-25: Выполнен rollback-friendly cleanup: устаревшие указания про Supabase как основной runtime удалены из `docs/README.md`, `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и `memory_bank`, при этом Supabase fallback-код и зависимости сохранены для быстрого отката.

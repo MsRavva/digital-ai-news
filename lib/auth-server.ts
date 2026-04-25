@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { getAppwriteCurrentUser, getAppwriteProfile } from "./appwrite/auth";
+import { getBackendProvider } from "./backend-provider";
 import { buildPostAuthRedirect } from "./post-auth-redirect";
 import { createServerSupabaseClient } from "./supabase-server";
 
@@ -8,6 +10,11 @@ import { createServerSupabaseClient } from "./supabase-server";
  */
 export async function checkAuth(): Promise<boolean> {
   try {
+    if (getBackendProvider() === "appwrite") {
+      const user = await getAppwriteCurrentUser();
+      return !!user;
+    }
+
     const supabase = await createServerSupabaseClient();
     const {
       data: { user },
@@ -35,6 +42,15 @@ export async function requireAuth(currentPath?: string, search = ""): Promise<vo
     }
 
     redirect(`${loginUrl.pathname}${loginUrl.search}`);
+  }
+
+  if (getBackendProvider() === "appwrite" && currentPath?.startsWith("/admin")) {
+    const user = await getAppwriteCurrentUser();
+    const profile = user ? await getAppwriteProfile(user.id) : null;
+
+    if (profile?.role !== "admin" && profile?.role !== "teacher") {
+      redirect("/");
+    }
   }
 }
 

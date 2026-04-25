@@ -3,9 +3,7 @@ export type BackendProvider = "supabase" | "appwrite";
 const APPWRITE_PROVIDER = "appwrite";
 
 export function getBackendProvider(): BackendProvider {
-  return process.env.NEXT_PUBLIC_BACKEND_PROVIDER === APPWRITE_PROVIDER
-    ? APPWRITE_PROVIDER
-    : "supabase";
+  return process.env.NEXT_PUBLIC_BACKEND_PROVIDER === "supabase" ? "supabase" : APPWRITE_PROVIDER;
 }
 
 export function isAppwriteProvider(): boolean {

@@ -1,4 +1,4 @@
-﻿---
+---
 name: appwrite-typescript
 description: Appwrite TypeScript SDK skill. Use when building browser-based JavaScript/TypeScript apps, React Native mobile apps, or server-side Node.js/Deno backends with Appwrite. Covers client-side auth (email, OAuth, anonymous), database queries, file uploads, real-time subscriptions, and server-side admin via API keys for user management, database administration, storage, and functions.
 ---
@@ -72,7 +72,7 @@ account.createOAuth2Session({
     provider: OAuthProvider.Github,
     success: 'https://example.com/success',
     failure: 'https://example.com/fail',
-    scopes: ['repo', 'user'] // optional вЂ” provider-specific scopes
+    scopes: ['repo', 'user'] // optional — provider-specific scopes
 });
 
 // Get current user
@@ -235,7 +235,7 @@ await tablesDB.deleteRow({
 
 | Type | Max characters | Indexing | Storage |
 |------|---------------|----------|---------|
-| `varchar` | 16,383 | Full index (if size в‰¤ 768) | Inline in row |
+| `varchar` | 16,383 | Full index (if size ≤ 768) | Inline in row |
 | `text` | 16,383 | Prefix only | Off-page |
 | `mediumtext` | 4,194,303 | Prefix only | Off-page |
 | `longtext` | 1,073,741,823 | Prefix only | Off-page |
@@ -281,20 +281,20 @@ const results = await tablesDB.listRows({
 
 // Each document includes built-in fields alongside your data
 const doc = results.documents[0];
-doc.$id;            // string вЂ” unique row ID
-doc.$createdAt;     // string вЂ” ISO 8601 creation timestamp
-doc.$updatedAt;     // string вЂ” ISO 8601 update timestamp
-doc.$permissions;   // string[] вЂ” permission strings
+doc.$id;            // string — unique row ID
+doc.$createdAt;     // string — ISO 8601 creation timestamp
+doc.$updatedAt;     // string — ISO 8601 update timestamp
+doc.$permissions;   // string[] — permission strings
 doc.$databaseId;    // string
 doc.$collectionId;  // string
 
 // Common model types
-// Models.User<Preferences>  вЂ” user account
-// Models.Session             вЂ” auth session
-// Models.File                вЂ” storage file metadata
-// Models.Team                вЂ” team object
-// Models.Execution           вЂ” function execution result
-// Models.DocumentList<T>     вЂ” paginated list with total count
+// Models.User<Preferences>  — user account
+// Models.Session             — auth session
+// Models.File                — storage file metadata
+// Models.Team                — team object
+// Models.Execution           — function execution result
+// Models.DocumentList<T>     — paginated list with total count
 ```
 
 ### Query Methods
@@ -338,14 +338,14 @@ Query.and([Query.greaterThan('age', 18), Query.lessThan('age', 65)])  // explici
 ```typescript
 const storage = new Storage(client);
 
-// Upload file (client-side вЂ” from file input)
+// Upload file (client-side — from file input)
 const file = await storage.createFile({
     bucketId: '[BUCKET_ID]',
     fileId: ID.unique(),
     file: document.getElementById('file-input').files[0]
 });
 
-// Upload file (server-side вЂ” from path)
+// Upload file (server-side — from path)
 import { InputFile } from 'node-appwrite/file';
 
 const file2 = await storage.createFile({
@@ -492,13 +492,13 @@ When deploying your own Appwrite Function, the entry point file must export a de
 // src/main.js (or src/main.ts)
 export default async ({ req, res, log, error }) => {
     // Request properties
-    // req.body        вЂ” raw request body (string)
-    // req.bodyJson    вЂ” parsed JSON body (object, or undefined if not JSON)
-    // req.headers     вЂ” request headers (object)
-    // req.method      вЂ” HTTP method (GET, POST, PUT, DELETE, PATCH)
-    // req.path        вЂ” URL path (e.g. '/hello')
-    // req.query       вЂ” parsed query parameters (object)
-    // req.queryString вЂ” raw query string
+    // req.body        — raw request body (string)
+    // req.bodyJson    — parsed JSON body (object, or undefined if not JSON)
+    // req.headers     — request headers (object)
+    // req.method      — HTTP method (GET, POST, PUT, DELETE, PATCH)
+    // req.path        — URL path (e.g. '/hello')
+    // req.query       — parsed query parameters (object)
+    // req.queryString — raw query string
 
     log('Processing request: ' + req.method + ' ' + req.path);
 
@@ -525,8 +525,8 @@ export default async ({ req, res, log, error }) => {
 
 SSR apps (Next.js, SvelteKit, Nuxt, Remix, Astro) use the **server SDK** (`node-appwrite`) to handle auth. You need two clients:
 
-- **Admin client** вЂ” uses an API key, creates sessions, bypasses rate limits (reusable singleton)
-- **Session client** вЂ” uses a session cookie, acts on behalf of a user (create per-request, never share)
+- **Admin client** — uses an API key, creates sessions, bypasses rate limits (reusable singleton)
+- **Session client** — uses a session cookie, acts on behalf of a user (create per-request, never share)
 
 ```typescript
 import { Client, Account, OAuthProvider } from 'node-appwrite';
@@ -604,7 +604,7 @@ app.get('/oauth', async (req, res) => {
     res.redirect(redirectUrl);
 });
 
-// Step 2: Handle callback вЂ” exchange token for session
+// Step 2: Handle callback — exchange token for session
 app.get('/oauth/success', async (req, res) => {
     const account = new Account(adminClient);
     const session = await account.createSession({
@@ -650,11 +650,11 @@ try {
 
 | Code | Meaning |
 |------|---------|
-| `401` | Unauthorized вЂ” missing or invalid session/API key |
-| `403` | Forbidden вЂ” insufficient permissions for this action |
-| `404` | Not found вЂ” resource does not exist |
-| `409` | Conflict вЂ” duplicate ID or unique constraint violation |
-| `429` | Rate limited вЂ” too many requests, retry after backoff |
+| `401` | Unauthorized — missing or invalid session/API key |
+| `403` | Forbidden — insufficient permissions for this action |
+| `404` | Not found — resource does not exist |
+| `409` | Conflict — duplicate ID or unique constraint violation |
+| `429` | Rate limited — too many requests, retry after backoff |
 
 ## Permissions & Roles (Critical)
 
@@ -700,6 +700,7 @@ const file = await storage.createFile({
 > **When to set permissions:** Set document/file-level permissions when you need per-resource access control. If all documents in a collection share the same rules, configure permissions at the collection/bucket level and leave document permissions empty.
 
 > **Common mistakes:**
-> - **Forgetting permissions** вЂ” the resource becomes inaccessible to all users (including the creator)
-> - **`Role.any()` with `write`/`update`/`delete`** вЂ” allows any user, including unauthenticated guests, to modify or remove the resource
-> - **`Permission.read(Role.any())` on sensitive data** вЂ” makes the resource publicly readable
+> - **Forgetting permissions** — the resource becomes inaccessible to all users (including the creator)
+> - **`Role.any()` with `write`/`update`/`delete`** — allows any user, including unauthenticated guests, to modify or remove the resource
+> - **`Permission.read(Role.any())` on sensitive data** — makes the resource publicly readable
+
