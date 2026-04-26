@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { Account, OAuthProvider, Query } from "node-appwrite";
 import { createAdminClient as createSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -64,6 +65,15 @@ function isConflictError(error: unknown): boolean {
     message.includes("already exists") ||
     message.includes("duplicate")
   );
+}
+
+function sanitizeAppwriteUsername(value: string, fallbackUserId: string): string {
+  const username = value.trim() || `user_${fallbackUserId.slice(0, 8)}`;
+  if (username.length <= 255) {
+    return username;
+  }
+
+  return `${username.slice(0, 226)}_${createHash("sha1").update(username).digest("hex").slice(0, 28)}`;
 }
 
 export function getAppwriteSessionCookieConfig(expiresAt?: string | Date) {
@@ -240,18 +250,19 @@ async function upsertAppwriteProfileForUser(params: {
   }
 
   const legacyProfile = params.email ? await findLegacySupabaseProfileByEmail(params.email) : null;
-  const existingRows = await admin.tablesDB.listRows({
-    databaseId: getAppwriteDatabaseId(),
-    tableId: getAppwriteTableId("profiles"),
-    queries: [Query.equal("userId", [params.userId]), Query.limit(1)],
+  const existingRow = await findAppwriteProfileRowForRelink({
+    userId: params.userId,
+    legacySupabaseUserId: legacyProfile?.id,
+    email: params.email || legacyProfile?.email || undefined,
   });
-
-  const existingRow = existingRows.rows?.[0];
   const profileData = {
     userId: params.userId,
     legacySupabaseUserId: legacyProfile?.id || null,
     email: params.email || legacyProfile?.email || null,
-    username: legacyProfile?.username || params.fallbackUsername,
+    username: sanitizeAppwriteUsername(
+      legacyProfile?.username || params.fallbackUsername,
+      params.userId
+    ),
     role: legacyProfile?.role || params.role || "student",
     bio: legacyProfile?.bio || null,
     location: legacyProfile?.location || null,
@@ -270,6 +281,10 @@ async function upsertAppwriteProfileForUser(params: {
       rowId: existingRow.$id,
       data: profileData,
     });
+
+    if (legacyProfile?.id && legacyProfile.id !== params.userId) {
+      await relinkLegacyAppwriteData(legacyProfile.id, params.userId);
+    }
     return;
   }
 
@@ -303,6 +318,78 @@ async function upsertAppwriteProfileForUser(params: {
         data: profileData,
       });
     });
+
+  if (legacyProfile?.id && legacyProfile.id !== params.userId) {
+    await relinkLegacyAppwriteData(legacyProfile.id, params.userId);
+  }
+}
+
+async function findAppwriteProfileRowForRelink(params: {
+  userId: string;
+  legacySupabaseUserId?: string;
+  email?: string;
+}) {
+  const admin = createAppwriteAdminClient();
+  if (!admin) {
+    throw new Error("Appwrite admin client is not configured.");
+  }
+
+  const lookups = [
+    Query.equal("userId", [params.userId]),
+    params.legacySupabaseUserId
+      ? Query.equal("legacySupabaseUserId", [params.legacySupabaseUserId])
+      : null,
+    params.email ? Query.equal("email", [params.email]) : null,
+  ].filter((query): query is string => Boolean(query));
+
+  for (const query of lookups) {
+    const rows = await admin.tablesDB.listRows({
+      databaseId: getAppwriteDatabaseId(),
+      tableId: getAppwriteTableId("profiles"),
+      queries: [query, Query.limit(1)],
+    });
+
+    const row = rows.rows?.[0];
+    if (row) {
+      return row;
+    }
+  }
+
+  return null;
+}
+
+async function relinkLegacyAppwriteData(legacyUserId: string, appwriteUserId: string) {
+  const admin = createAppwriteAdminClient();
+  if (!admin) {
+    throw new Error("Appwrite admin client is not configured.");
+  }
+
+  const targets = [
+    { table: "posts", key: "authorId" },
+    { table: "comments", key: "authorId" },
+    { table: "likes", key: "userId" },
+    { table: "comment_likes", key: "userId" },
+    { table: "views", key: "userId" },
+  ];
+
+  for (const target of targets) {
+    const rows = await admin.tablesDB.listRows({
+      databaseId: getAppwriteDatabaseId(),
+      tableId: getAppwriteTableId(target.table),
+      queries: [Query.equal(target.key, [legacyUserId]), Query.limit(5000)],
+    });
+
+    for (const row of rows.rows || []) {
+      await admin.tablesDB.updateRow({
+        databaseId: getAppwriteDatabaseId(),
+        tableId: getAppwriteTableId(target.table),
+        rowId: row.$id,
+        data: {
+          [target.key]: appwriteUserId,
+        },
+      });
+    }
+  }
 }
 
 export async function createAppwriteUser(params: {

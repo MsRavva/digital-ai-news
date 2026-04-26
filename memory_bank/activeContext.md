@@ -1,5 +1,8 @@
 # Active Context
 
+- Физическая миграция данных из Supabase в Appwrite выполнена: перенесены profiles/posts/tags/post_tags/likes/views, создана таблица `comment_likes`, связи проверены на целостность.
+- Пользователь подтвердил успешный перенос после визуальной проверки данных в Appwrite.
+
 ## Текущий фокус
 
 - `DA-10..DA-13` закрыты: read-path, auth/session/role checks, write-path, comment likes и документация переведены на Appwrite runtime.

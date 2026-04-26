@@ -2,10 +2,14 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `189e1ecb73ac320e385f89398af7a193a8e1c7be`
+- last_checked_commit: `89cad23`
 - checked_at: `2026-04-26`
 
 ## Current Status
+
+- В scope проекта добавлен отдельный deliverable `DA-14` для физической миграции данных из Supabase в Appwrite; сумма весов `Project Deliverables` пересчитана по строкам таблицы: 8+8+8+10+6+6+2+8+8+8+9+9+5+5 = 100.
+- `DA-14` завершен: `scripts/migrate-supabase-to-appwrite.ts` перенес данные из Supabase в Appwrite и итоговая сверка подтвердила `profiles=151`, `posts=36`, `post_tags=71`, `likes=5`, `views=154`, `comments=0`, `comment_likes=0`; `tags=99` из-за канонической нормализации `106` Supabase-тегов по `normalizedName`. Проверка связей вернула `0` пропущенных авторов, постов, тегов, пользователей и комментариев.
+- Пользователь визуально проверил данные в Appwrite и подтвердил успешность переноса.
 
 - Инициализирован `memory_bank` по структуре из `AGENTS.md`.
 - Создан `docs/README.md` как верхнеуровневый источник архитектурной правды.
