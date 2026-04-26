@@ -49,6 +49,23 @@ function toAuthError(error: unknown, fallback: string): AuthErrorLike {
   return { message: fallback };
 }
 
+function isConflictError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const errorLike = error as Error & { code?: string | number; status?: number; type?: string };
+  const message = error.message.toLowerCase();
+
+  return (
+    errorLike.code === 409 ||
+    errorLike.status === 409 ||
+    errorLike.type === "row_already_exists" ||
+    message.includes("already exists") ||
+    message.includes("duplicate")
+  );
+}
+
 export function getAppwriteSessionCookieConfig(expiresAt?: string | Date) {
   const isProduction = process.env.NODE_ENV === "production";
 
@@ -256,12 +273,36 @@ async function upsertAppwriteProfileForUser(params: {
     return;
   }
 
-  await admin.tablesDB.createRow({
-    databaseId: getAppwriteDatabaseId(),
-    tableId: getAppwriteTableId("profiles"),
-    rowId: "unique()",
-    data: profileData,
-  });
+  await admin.tablesDB
+    .createRow({
+      databaseId: getAppwriteDatabaseId(),
+      tableId: getAppwriteTableId("profiles"),
+      rowId: "unique()",
+      data: profileData,
+    })
+    .catch(async (error) => {
+      if (!isConflictError(error)) {
+        throw error;
+      }
+
+      const rows = await admin.tablesDB.listRows({
+        databaseId: getAppwriteDatabaseId(),
+        tableId: getAppwriteTableId("profiles"),
+        queries: [Query.equal("userId", [params.userId]), Query.limit(1)],
+      });
+
+      const row = rows.rows?.[0];
+      if (!row) {
+        throw error;
+      }
+
+      await admin.tablesDB.updateRow({
+        databaseId: getAppwriteDatabaseId(),
+        tableId: getAppwriteTableId("profiles"),
+        rowId: row.$id,
+        data: profileData,
+      });
+    });
 }
 
 export async function createAppwriteUser(params: {

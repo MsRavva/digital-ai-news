@@ -7,6 +7,7 @@
 - Выполняется rollback-friendly cleanup: из документации и memory убираются устаревшие указания про Supabase как основной runtime, но сам fallback-код и legacy-артефакты сохраняются.
 - Устранено Next warning по deprecated middleware convention: runtime guard перенесен из `middleware.ts` в `proxy.ts` без изменения поведения маршрутизации.
 - Исправлен Appwrite OAuth init для GitHub/Google: server-side подготовка OAuth URL больше не зависит от `NEXT_PUBLIC_APPWRITE_*` и строит callback от текущего `request.origin`.
+- После успешной настройки GitHub/Google OAuth выявлена и исправлена гонка `/api/auth/appwrite/me`: параллельные запросы после OAuth больше не должны приводить к 500 при одновременном создании Appwrite `profiles`.
 - `DA-13` закрыт: runtime по умолчанию переключен на Appwrite, comment likes добавлены в Appwrite schema, документация и memory bank синхронизированы под финальное состояние cutover.
 - Синхронизируется локальный `AGENTS.md` из актуального источника `Ravva/projects-tracker`, а `memory_bank` перепроверяется на соответствие правилам deliverables и контролю изменений.
 - Завершено удаление временного диагностического слоя вокруг OAuth; в проекте оставлен только боевой auth-flow с безопасным redirect.

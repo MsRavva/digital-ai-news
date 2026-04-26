@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `9049380fbcff29fc06d3f46088204f5d1e406458`
-- checked_at: `2026-04-25`
+- last_checked_commit: `189e1ecb73ac320e385f89398af7a193a8e1c7be`
+- checked_at: `2026-04-26`
 
 ## Current Status
 
@@ -47,6 +47,7 @@
 - Rollback window остается открытым: Supabase fallback helpers и SQL-артефакты сознательно сохранены в репозитории, хотя основной runtime уже переведен на Appwrite.
 - Исправлен server-side Appwrite OAuth init: `/auth/callback?provider=appwrite-init` больше не требует public Appwrite config и корректно строит success/failure URLs от фактического origin запроса.
 - Устранен build warning про deprecated `middleware` convention: guard перенесен в `proxy.ts`; production build проходит без этого предупреждения.
+- Устранена гонка Appwrite profile recovery после OAuth: `/api/auth/appwrite/me` больше не должен отдавать 500, если параллельные запросы одновременно пытаются создать профиль для одной Appwrite session.
 
 ## Known Issues
 
@@ -60,6 +61,7 @@
 - Код загрузки изображений постов в Supabase Storage удален из репозитория; дальнейшая работа с изображениями в публикациях возможна только через внешние URL в Markdown.
 - `last_checked_commit` из предыдущей записи оказался несинхронизирован с текущей историей после `git pull`; контроль изменений переведен на актуальный `HEAD`.
 - Forced relink опирается на доступность Supabase `profiles` по email через server-side admin client; это сознательно сохранено как миграционный safety-net в rollback window.
+- В production были подтверждены рабочие GitHub/Google OAuth redirect flows; остаточная ошибка браузерной консоли `/api/auth/appwrite/me 500` связана с race-condition при первом чтении профиля после OAuth и исправлена локально.
 
 ## Changelog
 
@@ -111,3 +113,4 @@
 - 2026-04-25: Выполнен rollback-friendly cleanup: устаревшие указания про Supabase как основной runtime удалены из `docs/README.md`, `docs/APPWRITE_TECHNICAL_BLUEPRINT.md` и `memory_bank`, при этом Supabase fallback-код и зависимости сохранены для быстрого отката.
 - 2026-04-25: Для совместимости с актуальным Next runtime guard перенесен из `middleware.ts` в `proxy.ts`, CSP в `next.config.mjs` расширен под Appwrite endpoint, а dev dependency `baseline-browser-mapping` обновлена до `2.10.22`; `bunx tsc --noEmit` и `bun run build` проходят успешно.
 - 2026-04-25: Исправлена ошибка `Appwrite config is not available.` при Appwrite GitHub/Google OAuth init: `getAppwriteOAuthRedirectUrl(...)` переведен на server config и origin текущего запроса; `bunx tsc --noEmit` и `bun run build` проходят успешно.
+- 2026-04-26: Исправлена гонка `/api/auth/appwrite/me` после OAuth: создание Appwrite `profiles` стало идемпотентным при конфликте параллельных запросов, а endpoint повторно читает профиль вместо ответа 500; `bunx biome check --write app/api/auth/appwrite/me/route.ts lib/appwrite/auth.ts` и `bunx tsc --noEmit` прошли успешно.

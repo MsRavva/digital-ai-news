@@ -13,8 +13,16 @@ export async function GET() {
       return NextResponse.json({ user: null, profile: null }, { status: 200 });
     }
 
-    const profile =
-      (await getAppwriteProfile(user.id)) || (await ensureAppwriteProfileForCurrentUser());
+    let profile = await getAppwriteProfile(user.id);
+
+    if (!profile) {
+      try {
+        profile = await ensureAppwriteProfileForCurrentUser();
+      } catch (profileError) {
+        console.error("Appwrite profile ensure error:", profileError);
+        profile = await getAppwriteProfile(user.id);
+      }
+    }
 
     return NextResponse.json({ user, profile });
   } catch (error) {
