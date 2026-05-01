@@ -149,8 +149,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const handleSignIn = async (email: string, password: string) => {
-    const { error } = await signIn(email, password);
-    return { error };
+    const { user: signedInUser, error } = await signIn(email, password);
+
+    if (error || !signedInUser) {
+      return { error };
+    }
+
+    setUser(signedInUser);
+
+    try {
+      const userProfile = await loadUserProfileWithRetry(signedInUser.id);
+      setProfile(userProfile);
+
+      if (!userProfile) {
+        console.warn(
+          `[AuthProvider] Profile was not found after email sign in. user.id=${signedInUser.id}`
+        );
+      }
+    } catch (profileError) {
+      console.error("Error loading profile after sign in:", profileError);
+      setProfile(null);
+    } finally {
+      setIsLoading(false);
+    }
+
+    return { error: null };
   };
 
   const handleSignUp = async (

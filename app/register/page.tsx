@@ -117,7 +117,7 @@ export default function Register() {
       if (error || !url) {
         console.error("Google sign in error:", error);
         const errorMessage = getAuthErrorMessage(
-          error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
+          error || ({ message: "Auth backend не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
 
@@ -146,7 +146,7 @@ export default function Register() {
       if (error || !url) {
         console.error("GitHub sign in error:", error);
         const errorMessage = getAuthErrorMessage(
-          error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
+          error || ({ message: "Auth backend не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
 

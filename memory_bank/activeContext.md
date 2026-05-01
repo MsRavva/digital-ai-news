@@ -11,6 +11,11 @@
 - Устранено Next warning по deprecated middleware convention: runtime guard перенесен из `middleware.ts` в `proxy.ts` без изменения поведения маршрутизации.
 - Исправлен Appwrite OAuth init для GitHub/Google: server-side подготовка OAuth URL больше не зависит от `NEXT_PUBLIC_APPWRITE_*` и строит callback от текущего `request.origin`.
 - После успешной настройки GitHub/Google OAuth выявлена и исправлена гонка `/api/auth/appwrite/me`: параллельные запросы после OAuth больше не должны приводить к 500 при одновременном создании Appwrite `profiles`.
+- Текущий Google OAuth сбой `redirect_uri_mismatch` локализован во внешней настройке Google Cloud: в Authorized redirect URIs должен быть Appwrite callback `https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/<project-id>`, а не callback домена Next.js или старый Supabase callback.
+- Документация quick start/deploy/testing синхронизируется под Appwrite OAuth, чтобы не возвращаться к устаревшим Supabase redirect URI.
+- Для legacy-профиля `svasya@ro.ru` создан недостающий Appwrite Auth user с тем же id, что и `profiles.$id`; пароль установлен через Users API. Прямой Appwrite email/password session creation с этим паролем проходит успешно.
+- Найден и исправлен клиентский Appwrite auth UX-дефект: после email-login `AuthProvider` теперь сразу обновляет `user/profile`, чтобы главная страница не зависала на состоянии `Перенаправление...`.
+- Общий auth error handler больше не пишет в консоль `Обработка ошибки Supabase` для Appwrite-ошибок.
 - `DA-13` закрыт: runtime по умолчанию переключен на Appwrite, comment likes добавлены в Appwrite schema, документация и memory bank синхронизированы под финальное состояние cutover.
 - Синхронизируется локальный `AGENTS.md` из актуального источника `Ravva/projects-tracker`, а `memory_bank` перепроверяется на соответствие правилам deliverables и контролю изменений.
 - Завершено удаление временного диагностического слоя вокруг OAuth; в проекте оставлен только боевой auth-flow с безопасным redirect.

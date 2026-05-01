@@ -87,7 +87,7 @@ function LoginForm() {
 
       if (error || !url) {
         const errorMessage = getAuthErrorMessage(
-          error || ({ message: "Supabase не вернул URL OAuth провайдера" } as never)
+          error || ({ message: "Auth backend не вернул URL OAuth провайдера" } as never)
         );
         setFormError(errorMessage);
 

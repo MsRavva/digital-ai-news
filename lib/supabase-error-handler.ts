@@ -1,21 +1,18 @@
 import type { AuthError } from "@supabase/supabase-js";
 
-// Функция для преобразования кодов ошибок Supabase в понятные сообщения на русском языке
+// Функция для преобразования кодов ошибок auth backend в понятные сообщения на русском языке
 export function getSupabaseErrorMessage(error: AuthError | any): string {
   if (!error) return "Произошла неизвестная ошибка";
-
-  console.log("Обработка ошибки Supabase:", error);
 
   // Получаем сообщение ошибки
   const errorMessage = error.message || error.error_description || "";
   const errorCode = error.code || error.status || "";
 
-  console.log("Код ошибки:", errorCode, "Сообщение:", errorMessage);
-
-  // Карта соответствия ошибок Supabase и понятных сообщений
+  // Карта соответствия ошибок auth backend и понятных сообщений
   const errorMessages: Record<string, string> = {
     // Ошибки аутентификации
     invalid_credentials: "Неверный email или пароль",
+    user_invalid_credentials: "Неверный email или пароль",
     user_not_found: "Пользователь не найден",
     invalid_grant: "Неверные учетные данные",
     email_not_confirmed: "Email не подтвержден. Проверьте вашу почту",

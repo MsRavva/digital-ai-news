@@ -1,17 +1,28 @@
-# Быстрый старт после миграции
+# Быстрый старт после миграции на Appwrite
 
 ## 1. Настройка переменных окружения
 
-Создайте файл `.env.local` (если его нет) и добавьте:
+Создайте файл `.env.local` или используйте локальный `.env` и добавьте Appwrite-переменные:
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Appwrite
+NEXT_PUBLIC_APPWRITE_ENDPOINT=https://<region>.cloud.appwrite.io/v1
+NEXT_PUBLIC_APPWRITE_PROJECT_ID=<project-id>
+APPWRITE_ENDPOINT=https://<region>.cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=<project-id>
+APPWRITE_API_KEY=<server-api-key>
+APPWRITE_DATABASE_ID=<database-id>
+APPWRITE_PROFILES_TABLE_ID=profiles
+APPWRITE_POSTS_TABLE_ID=posts
+APPWRITE_TAGS_TABLE_ID=tags
+APPWRITE_POST_TAGS_TABLE_ID=post_tags
+APPWRITE_COMMENTS_TABLE_ID=comments
+APPWRITE_LIKES_TABLE_ID=likes
+APPWRITE_COMMENT_LIKES_TABLE_ID=comment_likes
+APPWRITE_VIEWS_TABLE_ID=views
 ```
 
-Получить ключи можно в Supabase Dashboard → Settings → API
+Endpoint, Project ID, API key и OAuth-настройки берутся из Appwrite Console.
 
 ## 2. Настройка OAuth провайдеров
 
@@ -19,12 +30,12 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 1. Перейдите в [Google Cloud Console](https://console.cloud.google.com/)
 2. Создайте OAuth 2.0 Client ID
-3. Добавьте Authorized redirect URI:
+3. Добавьте Authorized redirect URI в точности в таком формате:
    ```
-   https://your-project.supabase.co/auth/v1/callback
+   https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/<project-id>
    ```
 4. Скопируйте Client ID и Client Secret
-5. В Supabase Dashboard → Authentication → Providers → Google:
+5. В Appwrite Console → Auth → Settings → OAuth2 Providers → Google:
    - Включите Google provider
    - Вставьте Client ID и Client Secret
 
@@ -32,12 +43,12 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 1. Перейдите в [GitHub Settings → Developer settings → OAuth Apps](https://github.com/settings/developers)
 2. Создайте New OAuth App
-3. Добавьте Authorization callback URL:
+3. Добавьте Authorization callback URL в точности в таком формате:
    ```
-   https://your-project.supabase.co/auth/v1/callback
+   https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/github/<project-id>
    ```
 4. Скопируйте Client ID и Client Secret
-5. В Supabase Dashboard → Authentication → Providers → GitHub:
+5. В Appwrite Console → Auth → Settings → OAuth2 Providers → GitHub:
    - Включите GitHub provider
    - Вставьте Client ID и Client Secret
 
@@ -74,17 +85,17 @@ bun run dev
 ## 6. Возможные проблемы
 
 ### OAuth не работает
-- Проверьте, что redirect URL правильно настроен в Google/GitHub
-- Проверьте, что провайдеры включены в Supabase Dashboard
-- Проверьте логи в Supabase Dashboard → Logs
+- Проверьте, что redirect URL в Google/GitHub совпадает с Appwrite callback без лишних слешей, другого региона или другого project id.
+- Для Google ошибка `redirect_uri_mismatch` означает, что в Google Cloud Console отсутствует URI вида `https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/<project-id>`.
+- Проверьте, что провайдеры включены в Appwrite Console → Auth → Settings → OAuth2 Providers.
 
 ### Ошибка "Email not confirmed"
-- Проверьте настройки Email в Supabase Dashboard → Authentication → Email Auth
+- Проверьте настройки Email/password auth в Appwrite Console → Auth → Settings
 - Отключите "Confirm email" для тестирования (не рекомендуется для продакшена)
 
 ### Ошибка при создании профиля
-- Проверьте, что trigger `handle_new_user` создан в Supabase
-- Проверьте логи в Supabase Dashboard → Database → Functions
+- Проверьте, что Appwrite TablesDB schema создана через `scripts/setup-appwrite-schema.ts`.
+- Проверьте, что `APPWRITE_API_KEY` имеет права на Auth и TablesDB.
 
 ## Полезные команды
 
@@ -98,13 +109,13 @@ bun run build
 # Запуск продакшен версии
 bun run start
 
-# Проверка кода
-bun run lint
+# Проверка кода без Markdown
+bunx biome check --write app components context lib scripts types
 
-# Форматирование кода
-bun run format
+# TypeScript
+bunx tsc --noEmit
 ```
 
 ## Дополнительная информация
 
-- Быстрый старт с Supabase Auth: `docs/QUICK_START_SUPABASE_AUTH.md`
+- Целевая схема Appwrite: `docs/APPWRITE_TECHNICAL_BLUEPRINT.md`

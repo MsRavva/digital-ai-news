@@ -7,51 +7,51 @@
 - ✅ Данные мигрированы (если применимо)
 - ✅ Приложение работает локально без ошибок
 
-## 1. Настройка Supabase для продакшена
+## 1. Настройка Appwrite для продакшена
 
 ### 1.1. Проверка настроек безопасности
 
-В Supabase Dashboard → Settings → API:
+В Appwrite Console:
 
-- [ ] Убедитесь, что `service_role` ключ не используется на клиенте
-- [ ] Проверьте, что RLS включен для всех таблиц
-- [ ] Проверьте политики доступа
+- [ ] Убедитесь, что `APPWRITE_API_KEY` хранится только на сервере и не попадает в клиентский bundle
+- [ ] Проверьте права API key на Auth и TablesDB
+- [ ] Проверьте permissions для таблиц и строк в TablesDB
 
 ### 1.2. Настройка Email
 
-В Supabase Dashboard → Authentication → Email Auth:
+В Appwrite Console → Auth → Settings:
 
-- [ ] Включите "Confirm email" для новых пользователей
+- [ ] Проверьте Email/password auth
+- [ ] Включите email confirmation для новых пользователей, если это требуется продуктом
 - [ ] Настройте email templates (опционально)
 - [ ] Добавьте свой SMTP сервер (рекомендуется)
 
 ### 1.3. Настройка OAuth
 
 #### Google OAuth
-1. В Google Cloud Console добавьте продакшен URL:
+1. В Google Cloud Console добавьте Authorized redirect URI Appwrite:
    ```
-   https://your-domain.com
-   https://your-project.supabase.co/auth/v1/callback
+   https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/<project-id>
    ```
 
-2. В Supabase Dashboard → Authentication → Providers → Google:
+2. В Appwrite Console → Auth → Settings → OAuth2 Providers → Google:
    - Проверьте Client ID и Client Secret
-   - Добавьте продакшен redirect URL
+   - Проверьте, что Google provider включен
+   - Не подменяйте Appwrite callback на домен Next.js-приложения
 
 #### GitHub OAuth
-1. В GitHub OAuth Apps добавьте продакшен URL:
+1. В GitHub OAuth Apps добавьте Authorization callback URL Appwrite:
    ```
-   https://your-domain.com
-   https://your-project.supabase.co/auth/v1/callback
+   https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/github/<project-id>
    ```
 
-2. В Supabase Dashboard → Authentication → Providers → GitHub:
+2. В Appwrite Console → Auth → Settings → OAuth2 Providers → GitHub:
    - Проверьте Client ID и Client Secret
-   - Добавьте продакшен redirect URL
+   - Проверьте, что GitHub provider включен
 
 ### 1.4. Настройка Rate Limiting
 
-В Supabase Dashboard → Settings → API:
+В Appwrite Console и на уровне хостинга приложения:
 
 - [ ] Настройте rate limiting для API
 - [ ] Настройте rate limiting для Auth
@@ -63,14 +63,26 @@
 Создайте `.env.production` или настройте переменные в вашем хостинге:
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-production-service-role-key
+# Appwrite
+NEXT_PUBLIC_APPWRITE_ENDPOINT=https://<region>.cloud.appwrite.io/v1
+NEXT_PUBLIC_APPWRITE_PROJECT_ID=<project-id>
+APPWRITE_ENDPOINT=https://<region>.cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=<project-id>
+APPWRITE_API_KEY=<server-api-key>
+APPWRITE_DATABASE_ID=<database-id>
+APPWRITE_PROFILES_TABLE_ID=profiles
+APPWRITE_POSTS_TABLE_ID=posts
+APPWRITE_TAGS_TABLE_ID=tags
+APPWRITE_POST_TAGS_TABLE_ID=post_tags
+APPWRITE_COMMENTS_TABLE_ID=comments
+APPWRITE_LIKES_TABLE_ID=likes
+APPWRITE_COMMENT_LIKES_TABLE_ID=comment_likes
+APPWRITE_VIEWS_TABLE_ID=views
 
 # Next.js
 NODE_ENV=production
 NEXT_PUBLIC_APP_URL=https://your-domain.com
+NEXT_PUBLIC_AUTH_CALLBACK_URL=https://your-domain.com
 ```
 
 ### 2.2. Оптимизация
@@ -101,9 +113,9 @@ export default nextConfig
 ### 2.3. Сборка
 
 ```bash
-# Проверка перед сборкой
-bun run lint
-bun run format
+# Проверка перед сборкой без Markdown
+bunx biome check --write app components context lib scripts types
+bunx tsc --noEmit
 
 # Сборка
 bun run build
@@ -208,9 +220,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
-      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - NEXT_PUBLIC_APPWRITE_ENDPOINT=${NEXT_PUBLIC_APPWRITE_ENDPOINT}
+      - NEXT_PUBLIC_APPWRITE_PROJECT_ID=${NEXT_PUBLIC_APPWRITE_PROJECT_ID}
+      - APPWRITE_ENDPOINT=${APPWRITE_ENDPOINT}
+      - APPWRITE_PROJECT_ID=${APPWRITE_PROJECT_ID}
+      - APPWRITE_API_KEY=${APPWRITE_API_KEY}
+      - APPWRITE_DATABASE_ID=${APPWRITE_DATABASE_ID}
     restart: unless-stopped
 ```
 
@@ -221,13 +236,13 @@ docker-compose up -d
 
 ## 4. Мониторинг
 
-### 4.1. Supabase Monitoring
+### 4.1. Appwrite Monitoring
 
-В Supabase Dashboard → Reports:
+В Appwrite Console:
 
 - [ ] Настройте алерты для ошибок
-- [ ] Мониторьте использование API
-- [ ] Проверяйте логи регулярно
+- [ ] Мониторьте использование Auth и TablesDB
+- [ ] Проверяйте логи функций, сайтов и API регулярно
 
 ### 4.2. Application Monitoring
 
@@ -260,7 +275,7 @@ Sentry.init({
 ### 5.1. Проверка безопасности
 
 - [ ] Все секретные ключи в переменных окружения
-- [ ] RLS включен для всех таблиц
+- [ ] Permissions настроены для Appwrite TablesDB
 - [ ] CORS настроен правильно
 - [ ] Rate limiting включен
 - [ ] HTTPS включен
@@ -282,7 +297,7 @@ bun outdated
 
 ### 6.1. База данных
 
-В Supabase Dashboard → Database → Backups:
+В Appwrite Console и/или внешней резервной инфраструктуре:
 
 - [ ] Включите автоматические бэкапы
 - [ ] Настройте расписание
@@ -343,7 +358,7 @@ const nextConfig = {
 - [ ] Rate limiting включен
 
 ### База данных
-- [ ] RLS включен
+- [ ] Appwrite permissions включены и проверены
 - [ ] Политики проверены
 - [ ] Индексы созданы
 - [ ] Бэкапы настроены
@@ -399,7 +414,7 @@ docker-compose up -d --build <previous-tag>
 
 ### База данных
 ```sql
--- Восстановление из бэкапа в Supabase Dashboard
+-- Восстановление из Appwrite backup/export
 -- Database → Backups → Restore
 ```
 

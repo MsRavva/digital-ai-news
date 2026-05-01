@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `89cad23`
-- checked_at: `2026-04-26`
+- last_checked_commit: `5f60e79`
+- checked_at: `2026-05-01`
 
 ## Current Status
 
@@ -52,6 +52,10 @@
 - Исправлен server-side Appwrite OAuth init: `/auth/callback?provider=appwrite-init` больше не требует public Appwrite config и корректно строит success/failure URLs от фактического origin запроса.
 - Устранен build warning про deprecated `middleware` convention: guard перенесен в `proxy.ts`; production build проходит без этого предупреждения.
 - Устранена гонка Appwrite profile recovery после OAuth: `/api/auth/appwrite/me` больше не должен отдавать 500, если параллельные запросы одновременно пытаются создать профиль для одной Appwrite session.
+- Google OAuth `redirect_uri_mismatch` подтвержден как внешнее несоответствие в Google Cloud Console: приложение корректно получает Appwrite callback, а документация обновлена на Appwrite OAuth redirect URIs вместо устаревших Supabase callback URIs.
+- Для `svasya@ro.ru` создан недостающий Appwrite Auth account на основе существующего `profiles` id; затем устранен клиентский UX-сбой email-login, где Appwrite-сессия создавалась, но `AuthProvider` не выставлял `user/profile` до перехода на главную.
+- Убран вводящий в заблуждение console log `Обработка ошибки Supabase` из общего auth error handler; Appwrite `user_invalid_credentials` теперь маппится на понятное сообщение `Неверный email или пароль`.
+- `Project Deliverables` не менялись; сумма весов остается валидной: 8+8+8+10+6+6+2+8+8+8+9+9+5+5 = 100.
 
 ## Known Issues
 
@@ -66,9 +70,12 @@
 - `last_checked_commit` из предыдущей записи оказался несинхронизирован с текущей историей после `git pull`; контроль изменений переведен на актуальный `HEAD`.
 - Forced relink опирается на доступность Supabase `profiles` по email через server-side admin client; это сознательно сохранено как миграционный safety-net в rollback window.
 - В production были подтверждены рабочие GitHub/Google OAuth redirect flows; остаточная ошибка браузерной консоли `/api/auth/appwrite/me 500` связана с race-condition при первом чтении профиля после OAuth и исправлена локально.
+- Внешние OAuth-провайдеры могут падать с `redirect_uri_mismatch`, если в Google Cloud/GitHub указан callback старого Supabase-провайдера или домен Next.js вместо Appwrite callback.
 
 ## Changelog
 
+- 2026-05-01: Создан Appwrite Auth user для `svasya@ro.ru` с id существующего профиля; исправлен клиентский email-login state sync в `context/auth-context.tsx`, а auth error handler очищен от Supabase-лейблов для Appwrite-ошибок. `bunx biome check --write context/auth-context.tsx lib/supabase-error-handler.ts app/login/page.tsx app/register/page.tsx` и `bunx tsc --noEmit` прошли успешно.
+- 2026-05-01: Google OAuth `redirect_uri_mismatch` локализован как внешняя настройка Google Cloud; `docs/QUICK_START.md`, `docs/PRODUCTION_DEPLOYMENT.md` и `docs/TESTING_CHECKLIST.md` обновлены на Appwrite OAuth callback URI.
 - 2026-04-23: Подтверждены Appwrite endpoint/project id, создан `docs/APPWRITE_TECHNICAL_BLUEPRINT.md`, обновлены `docs/README.md` и `memory_bank` под новый scope миграции с Supabase на Appwrite.
 - 2026-04-23: По замечанию пользователя Appwrite endpoint/project id удалены из коммитящихся docs/memory и перенесены в локальный `.env`; Appwrite SDK helpers переведены на `TablesDB` согласно `appwrite-typescript` skill.
 - 2026-04-23: Добавлен и выполнен `scripts/setup-appwrite-schema.ts`; в Appwrite создана TablesDB schema для `profiles`, `posts`, `tags`, `post_tags`, `comments`, `likes`, `views`, а локальный `.env` дополнен ids ресурсов.
