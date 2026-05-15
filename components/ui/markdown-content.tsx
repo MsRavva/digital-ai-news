@@ -43,10 +43,12 @@ export function MarkdownContent({
         "[&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h2]:mt-5",
         "[&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-4",
         "[&_p]:leading-7 [&_p]:mb-4",
-        "[&_ul]:list-disc [&_ul]:list-inside [&_ul]:pl-2 [&_ul]:mb-4",
-        "[&_ol]:list-decimal [&_ol]:list-inside [&_ol]:pl-2 [&_ol]:mb-4",
+        "[&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-6 [&_ul]:mb-4",
+        "[&_ol]:list-decimal [&_ol]:list-outside [&_ol]:pl-6 [&_ol]:mb-4",
         "[&_li::marker]:text-foreground",
         "[&_li]:mb-1",
+        "[&_li>p:first-child]:inline",
+        "[&_li>p:first-child]:mb-0",
         className
       )}
     >
@@ -84,21 +86,21 @@ export function MarkdownContent({
           },
           ul({ children, ...props }) {
             return (
-              <ul className="mb-4 list-inside list-disc pl-2" {...props}>
+              <ul className="mb-4 list-outside list-disc pl-6" {...props}>
                 {children}
               </ul>
             );
           },
           ol({ children, ...props }) {
             return (
-              <ol className="mb-4 list-inside list-decimal pl-2" {...props}>
+              <ol className="mb-4 list-outside list-decimal pl-6" {...props}>
                 {children}
               </ol>
             );
           },
           li({ children, ...props }) {
             return (
-              <li className="mb-1" {...props}>
+              <li className="mb-1 [&>p:first-child]:inline [&>p:first-child]:mb-0" {...props}>
                 {children}
               </li>
             );

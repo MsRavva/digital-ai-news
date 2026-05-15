@@ -31,6 +31,7 @@
 - Документация синхронизирована с удалением `app/api/uploads/post-image` и SQL-конфигурации bucket `post-images` из репозитория.
 - Legacy bucket `post-images` и связанные storage policies уже удалены из проекта Supabase через Storage API и SQL cleanup.
 - `supabase/06_drop_post_images_bucket.sql` сохранен в репозитории как явный сценарий cleanup для этой инфраструктурной операции.
+- Исправлен Markdown-предпросмотр: пункты нумерованных списков в create/edit больше не переносят текст на новую строку после номера.
 - Обновлен `AGENTS.md` из актуального источника (Ravva/projects-tracker/main).
 - Синхронизирован `memory_bank/projectbrief.md` с реальным состоянием проекта: добавлены детализированные deliverables с корректными весами (сумма = 100).
 - Исправлена критическая проблема в форме редактирования постов: несохраненные изменения больше не теряются при потере фокуса окна (Alt-Tab).
@@ -76,6 +77,7 @@
 - `supabase/01_create_trigger.sql`
 - `supabase/04_fix_handle_new_user_unique_username.sql`
 - `supabase/06_drop_post_images_bucket.sql`
+- `components/ui/markdown-content.tsx`
 - `memory_bank/ui_extension/pages/auth-pages.md`
 - `memory_bank/ui_extension/pages/post-editor.md`
 - `docs/README.md`
