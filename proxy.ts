@@ -14,6 +14,30 @@ const guestRoutes = ["/login", "/register", "/forgot-password", "/reset-password
 const adminRoutes = ["/admin"];
 const publicRoutes = ["/auth/callback", "/auth/post-login", "/api"];
 const rateLimitedRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
+const linkPreviewUserAgents = [
+  "telegrambot",
+  "vkshare",
+  "facebookexternalhit",
+  "twitterbot",
+  "discordbot",
+  "slackbot",
+  "linkedinbot",
+  "whatsapp",
+  "viber",
+];
+
+function isLinkPreviewRequest(request: NextRequest, pathname: string): boolean {
+  if (!pathname.startsWith("/posts/")) {
+    return false;
+  }
+
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    return false;
+  }
+
+  const userAgent = request.headers.get("user-agent")?.toLowerCase() || "";
+  return linkPreviewUserAgents.some((bot) => userAgent.includes(bot));
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -26,6 +50,10 @@ export async function proxy(request: NextRequest) {
     pathname === "/auth/post-login" ||
     publicRoutes.some((route) => pathname.startsWith(route))
   ) {
+    return NextResponse.next();
+  }
+
+  if (isLinkPreviewRequest(request, pathname)) {
     return NextResponse.next();
   }
 

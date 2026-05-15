@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `afbb7c48c6e810ca9d816229882389cf4a249162`
+- last_checked_commit: `cb70cbfbfe6aac2196722ad6d6b62dfa62a42413`
 - checked_at: `2026-05-15`
 
 ## Current Status
@@ -59,6 +59,7 @@
 - Markdown-предпросмотр публикаций корректно отображает loose ordered lists: текст пункта остается на одной строке с номером.
 - Markdown-сепаратор `---` в публикациях получает вертикальный отступ сверху и снизу.
 - Страницы конкретных публикаций получают динамические title/description/OpenGraph/Twitter metadata на основе данных статьи.
+- Link-preview боты получают доступ к metadata `/posts/[id]` без auth redirect на `/login`; обычные защищенные маршруты остаются под guard.
 
 ## Known Issues
 
@@ -131,3 +132,4 @@
 - 2026-05-15: Исправлен рендер нумерованных Markdown-списков в `components/ui/markdown-content.tsx`: маркеры переведены на `list-outside`, а первый абзац внутри пункта остается inline.
 - 2026-05-15: Для Markdown-сепаратора `---` добавлен вертикальный отступ через общий рендер `components/ui/markdown-content.tsx`.
 - 2026-05-15: Добавлена динамическая metadata/OpenGraph-разметка для `/posts/[id]`, чтобы link preview показывал название, описание и первое Markdown-изображение статьи.
+- 2026-05-15: Исправлен auth proxy для link preview: GET/HEAD-запросы Telegram/VK/Facebook/Twitter/Discord/Slack/LinkedIn/WhatsApp/Viber bot user agents к `/posts/[id]` больше не редиректятся на `/login`.
