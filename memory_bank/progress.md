@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `2398004`
+- last_checked_commit: `73b87a6defad3fe98ccc6b73df781006dc12d8fb`
 - checked_at: `2026-05-15`
 
 ## Current Status
@@ -57,6 +57,7 @@
 - Убран вводящий в заблуждение console log `Обработка ошибки Supabase` из общего auth error handler; Appwrite `user_invalid_credentials` теперь маппится на понятное сообщение `Неверный email или пароль`.
 - `Project Deliverables` не менялись; сумма весов остается валидной: 8+8+8+10+6+6+2+8+8+8+9+9+5+5 = 100.
 - Markdown-предпросмотр публикаций корректно отображает loose ordered lists: текст пункта остается на одной строке с номером.
+- Markdown-сепаратор `---` в публикациях получает вертикальный отступ сверху и снизу.
 
 ## Known Issues
 
@@ -127,3 +128,4 @@
 - 2026-04-25: Исправлена ошибка `Appwrite config is not available.` при Appwrite GitHub/Google OAuth init: `getAppwriteOAuthRedirectUrl(...)` переведен на server config и origin текущего запроса; `bunx tsc --noEmit` и `bun run build` проходят успешно.
 - 2026-04-26: Исправлена гонка `/api/auth/appwrite/me` после OAuth: создание Appwrite `profiles` стало идемпотентным при конфликте параллельных запросов, а endpoint повторно читает профиль вместо ответа 500; `bunx biome check --write app/api/auth/appwrite/me/route.ts lib/appwrite/auth.ts` и `bunx tsc --noEmit` прошли успешно.
 - 2026-05-15: Исправлен рендер нумерованных Markdown-списков в `components/ui/markdown-content.tsx`: маркеры переведены на `list-outside`, а первый абзац внутри пункта остается inline.
+- 2026-05-15: Для Markdown-сепаратора `---` добавлен вертикальный отступ через общий рендер `components/ui/markdown-content.tsx`.

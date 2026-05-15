@@ -32,6 +32,7 @@ export function MarkdownContent({
         "prose-img:rounded-lg prose-img:shadow-md prose-img:max-w-full prose-img:h-auto prose-img:my-4",
         "prose-blockquote:border-l-4 prose-blockquote:border-zinc-300 dark:prose-blockquote:border-zinc-700",
         "prose-blockquote:pl-4 prose-blockquote:italic",
+        "prose-hr:my-8 prose-hr:border-zinc-200 dark:prose-hr:border-zinc-800",
         "prose-ul:list-disc prose-ul:ml-6",
         "prose-ol:list-decimal prose-ol:ml-6",
         "prose-li:mb-1",
@@ -43,6 +44,7 @@ export function MarkdownContent({
         "[&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mb-3 [&_h2]:mt-5",
         "[&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mb-2 [&_h3]:mt-4",
         "[&_p]:leading-7 [&_p]:mb-4",
+        "[&_hr]:my-8 [&_hr]:border-zinc-200 dark:[&_hr]:border-zinc-800",
         "[&_ul]:list-disc [&_ul]:list-outside [&_ul]:pl-6 [&_ul]:mb-4",
         "[&_ol]:list-decimal [&_ol]:list-outside [&_ol]:pl-6 [&_ol]:mb-4",
         "[&_li::marker]:text-foreground",
@@ -104,6 +106,9 @@ export function MarkdownContent({
                 {children}
               </li>
             );
+          },
+          hr({ ...props }) {
+            return <hr className="my-8 border-zinc-200 dark:border-zinc-800" {...props} />;
           },
           code({ className, children, node, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
