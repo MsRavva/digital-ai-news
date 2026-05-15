@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `73b87a6defad3fe98ccc6b73df781006dc12d8fb`
+- last_checked_commit: `afbb7c48c6e810ca9d816229882389cf4a249162`
 - checked_at: `2026-05-15`
 
 ## Current Status
@@ -58,6 +58,7 @@
 - `Project Deliverables` не менялись; сумма весов остается валидной: 8+8+8+10+6+6+2+8+8+8+9+9+5+5 = 100.
 - Markdown-предпросмотр публикаций корректно отображает loose ordered lists: текст пункта остается на одной строке с номером.
 - Markdown-сепаратор `---` в публикациях получает вертикальный отступ сверху и снизу.
+- Страницы конкретных публикаций получают динамические title/description/OpenGraph/Twitter metadata на основе данных статьи.
 
 ## Known Issues
 
@@ -129,3 +130,4 @@
 - 2026-04-26: Исправлена гонка `/api/auth/appwrite/me` после OAuth: создание Appwrite `profiles` стало идемпотентным при конфликте параллельных запросов, а endpoint повторно читает профиль вместо ответа 500; `bunx biome check --write app/api/auth/appwrite/me/route.ts lib/appwrite/auth.ts` и `bunx tsc --noEmit` прошли успешно.
 - 2026-05-15: Исправлен рендер нумерованных Markdown-списков в `components/ui/markdown-content.tsx`: маркеры переведены на `list-outside`, а первый абзац внутри пункта остается inline.
 - 2026-05-15: Для Markdown-сепаратора `---` добавлен вертикальный отступ через общий рендер `components/ui/markdown-content.tsx`.
+- 2026-05-15: Добавлена динамическая metadata/OpenGraph-разметка для `/posts/[id]`, чтобы link preview показывал название, описание и первое Markdown-изображение статьи.

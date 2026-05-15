@@ -33,6 +33,7 @@
 - `supabase/06_drop_post_images_bucket.sql` сохранен в репозитории как явный сценарий cleanup для этой инфраструктурной операции.
 - Исправлен Markdown-предпросмотр: пункты нумерованных списков в create/edit больше не переносят текст на новую строку после номера.
 - Для Markdown-сепаратора `---` добавлен вертикальный отступ в общем предпросмотре публикаций.
+- Для `/posts/[id]` добавляется динамическая metadata/OpenGraph-разметка, чтобы при отправке ссылки отображались название и описание конкретной статьи.
 - Обновлен `AGENTS.md` из актуального источника (Ravva/projects-tracker/main).
 - Синхронизирован `memory_bank/projectbrief.md` с реальным состоянием проекта: добавлены детализированные deliverables с корректными весами (сумма = 100).
 - Исправлена критическая проблема в форме редактирования постов: несохраненные изменения больше не теряются при потере фокуса окна (Alt-Tab).
@@ -79,6 +80,8 @@
 - `supabase/04_fix_handle_new_user_unique_username.sql`
 - `supabase/06_drop_post_images_bucket.sql`
 - `components/ui/markdown-content.tsx`
+- `app/posts/[id]/layout.tsx`
+- `lib/post-metadata.ts`
 - `memory_bank/ui_extension/pages/auth-pages.md`
 - `memory_bank/ui_extension/pages/post-editor.md`
 - `docs/README.md`
