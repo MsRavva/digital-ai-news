@@ -35,6 +35,7 @@
 - Для Markdown-сепаратора `---` добавлен вертикальный отступ в общем предпросмотре публикаций.
 - Для `/posts/[id]` добавляется динамическая metadata/OpenGraph-разметка, чтобы при отправке ссылки отображались название и описание конкретной статьи.
 - `proxy.ts` пропускает GET/HEAD-запросы известных link-preview ботов к `/posts/[id]`, чтобы metadata не заменялась редиректом на `/login`.
+- На главной странице обновлен hero-copy: заголовок `Токены на ветер`, подзаголовок `Вайбкодь правильно с AI News!`.
 - Обновлен `AGENTS.md` из актуального источника (Ravva/projects-tracker/main).
 - Синхронизирован `memory_bank/projectbrief.md` с реальным состоянием проекта: добавлены детализированные deliverables с корректными весами (сумма = 100).
 - Исправлена критическая проблема в форме редактирования постов: несохраненные изменения больше не теряются при потере фокуса окна (Alt-Tab).
@@ -84,6 +85,7 @@
 - `app/posts/[id]/layout.tsx`
 - `lib/post-metadata.ts`
 - `proxy.ts`
+- `components/hero-section.tsx`
 - `memory_bank/ui_extension/pages/auth-pages.md`
 - `memory_bank/ui_extension/pages/post-editor.md`
 - `docs/README.md`

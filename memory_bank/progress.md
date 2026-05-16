@@ -2,8 +2,8 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `cb70cbfbfe6aac2196722ad6d6b62dfa62a42413`
-- checked_at: `2026-05-15`
+- last_checked_commit: `04c0f40e3a0acd0c193255219c6c5bb2d9e56cf4`
+- checked_at: `2026-05-16`
 
 ## Current Status
 
@@ -60,6 +60,7 @@
 - Markdown-сепаратор `---` в публикациях получает вертикальный отступ сверху и снизу.
 - Страницы конкретных публикаций получают динамические title/description/OpenGraph/Twitter metadata на основе данных статьи.
 - Link-preview боты получают доступ к metadata `/posts/[id]` без auth redirect на `/login`; обычные защищенные маршруты остаются под guard.
+- Текст hero-блока главной страницы обновлен: заголовок заменен на `Токены на ветер`, подзаголовок — на `Вайбкодь правильно с AI News!`.
 
 ## Known Issues
 
@@ -78,6 +79,7 @@
 
 ## Changelog
 
+- 2026-05-16: На главной странице обновлены hero title/subtitle в `components/hero-section.tsx`; `bunx biome check --write components/hero-section.tsx` прошел успешно.
 - 2026-05-01: Создан Appwrite Auth user для `svasya@ro.ru` с id существующего профиля; исправлен клиентский email-login state sync в `context/auth-context.tsx`, а auth error handler очищен от Supabase-лейблов для Appwrite-ошибок. `bunx biome check --write context/auth-context.tsx lib/supabase-error-handler.ts app/login/page.tsx app/register/page.tsx` и `bunx tsc --noEmit` прошли успешно.
 - 2026-05-01: Google OAuth `redirect_uri_mismatch` локализован как внешняя настройка Google Cloud; `docs/QUICK_START.md`, `docs/PRODUCTION_DEPLOYMENT.md` и `docs/TESTING_CHECKLIST.md` обновлены на Appwrite OAuth callback URI.
 - 2026-04-23: Подтверждены Appwrite endpoint/project id, создан `docs/APPWRITE_TECHNICAL_BLUEPRINT.md`, обновлены `docs/README.md` и `memory_bank` под новый scope миграции с Supabase на Appwrite.

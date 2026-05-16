@@ -225,7 +225,7 @@ export default function HeroSection() {
                     as="h1"
                     className="flex-1 text-balance text-5xl font-medium md:text-6xl"
                   >
-                    Вайб-кодинг с AI News
+                    Токены на ветер
                   </TextEffect>
                   <div className="flex-shrink-0">
                     <Button asChild size="lg" className="rounded-xl px-5 text-base">
@@ -243,7 +243,7 @@ export default function HeroSection() {
                   as="p"
                   className="mt-8 max-w-2xl text-pretty text-lg"
                 >
-                  Актуальные новости, инструкции и идеи для ваших проектов.
+                  Вайбкодь правильно с AI News!
                 </TextEffect>
               </div>
             </div>
