@@ -1,7 +1,7 @@
 # Progress
 
 ## Контроль изменений
-last_checked_commit: e3f847d0b932c5f6f20babaf69352e9bf6391da5
+last_checked_commit: 95a6b9ede50203af750c857c83021e0a40c17b0a
 
 ## Changelog
 - 2026-06-11: Заменен локальный AGENTS.md, очищены лишние папки и файлы из memory_bank.
