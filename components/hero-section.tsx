@@ -225,7 +225,7 @@ export default function HeroSection() {
                     as="h1"
                     className="flex-1 text-balance text-5xl font-medium md:text-6xl"
                   >
-                    Токены на ветер
+                    Токены на ветер!
                   </TextEffect>
                   <div className="flex-shrink-0">
                     <Button asChild size="lg" className="rounded-xl px-5 text-base">

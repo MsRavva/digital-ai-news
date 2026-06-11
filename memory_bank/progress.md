@@ -2,7 +2,7 @@
 
 ## Контроль изменений
 
-- last_checked_commit: `04c0f40e3a0acd0c193255219c6c5bb2d9e56cf4`
+- last_checked_commit: `fc7f46f007b8b4260a927c3e5361099684c3db35`
 - checked_at: `2026-06-11`
 
 ## Current Status
@@ -79,6 +79,7 @@
 
 ## Changelog
 
+- 2026-06-11: Выполнена миграция БД и Auth-пользователей Appwrite с облачного решения на собственный инстанс (selfhosted). Добавлен скрипт `scripts/migrate-appwrite-to-appwrite.ts`. База данных и пользователи успешно развернуты на сервере `https://aw.note-canopus.ts.net/v1`. На Vercel изменены переменные окружения и осуществлен передеплой. Исправлен заголовок в `components/hero-section.tsx` на «Токены на ветер!».
 - 2026-06-11: Изменен экспорт функции в `proxy.ts` на `export default` и удален `middleware.ts`, что устранило конфликт сборки и позволило Next.js 16 использовать `proxy.ts` в качестве полноценного middleware (исправлен бесконечный редирект на Vercel). Добавлен Vercel CLI в dev-зависимости.
 - 2026-05-16: На главной странице обновлены hero title/subtitle в `components/hero-section.tsx`; `bunx biome check --write components/hero-section.tsx` прошел успешно.
 - 2026-05-01: Создан Appwrite Auth user для `svasya@ro.ru` с id существующего профиля; исправлен клиентский email-login state sync в `context/auth-context.tsx`, а auth error handler очищен от Supabase-лейблов для Appwrite-ошибок. `bunx biome check --write context/auth-context.tsx lib/supabase-error-handler.ts app/login/page.tsx app/register/page.tsx` и `bunx tsc --noEmit` прошли успешно.
