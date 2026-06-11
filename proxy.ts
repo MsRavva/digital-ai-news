@@ -43,6 +43,8 @@ export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAppwrite = getBackendProvider() === "appwrite";
 
+  console.log(`[proxy] Path: ${pathname}, isAppwrite: ${isAppwrite}`);
+
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
@@ -95,6 +97,10 @@ export default async function proxy(request: NextRequest) {
       ? Boolean(request.cookies.get(sessionCookieName)?.value)
       : false;
 
+    console.log(
+      `[proxy] Appwrite config exists: ${!!appwriteConfig}, sessionCookieName: ${sessionCookieName}, isAuthenticated: ${isAuthenticated}, isProtectedRoute: ${isProtectedRoute}`
+    );
+
     if (isProtectedRoute && !isAuthenticated) {
       const loginUrl = new URL("/login", request.url);
       const redirectTarget = buildPostAuthRedirect(pathname, request.nextUrl.search);
@@ -146,6 +152,10 @@ export default async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  console.log(
+    `[proxy] Supabase user exists: ${!!user}, id: ${user?.id}, isProtectedRoute: ${isProtectedRoute}`
+  );
 
   if (isProtectedRoute && !user) {
     const loginUrl = new URL("/login", request.url);
