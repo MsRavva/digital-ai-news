@@ -8,7 +8,7 @@
 - `DA-10..DA-13` закрыты: read-path, auth/session/role checks, write-path, comment likes и документация переведены на Appwrite runtime.
 - Runtime по умолчанию переключен на Appwrite; Supabase сохранен только как rollback-ветка через `NEXT_PUBLIC_BACKEND_PROVIDER=supabase`.
 - Выполняется rollback-friendly cleanup: из документации и memory убираются устаревшие указания про Supabase как основной runtime, но сам fallback-код и legacy-артефакты сохраняются.
-- Воссоздан `middleware.ts` в корне проекта для корректного проксирования запросов в `proxy.ts`, что устранило проблему зависания главной страницы на Vercel (Next.js требует наличия именно `middleware.ts` для Edge Middleware).
+- Добавлен `export default` для функции `proxy` в `proxy.ts`, а созданный ранее `middleware.ts` удален. В Next.js 16 конвенция middleware заменена на `proxy.ts` по умолчанию, и наличие обоих файлов вызывало конфликт сборки, в то время как отсутствие `export default` мешало Next.js использовать `proxy.ts` как middleware.
 - Исправлен Appwrite OAuth init для GitHub/Google: server-side подготовка OAuth URL больше не зависит от `NEXT_PUBLIC_APPWRITE_*` и строит callback от текущего `request.origin`.
 - После успешной настройки GitHub/Google OAuth выявлена и исправлена гонка `/api/auth/appwrite/me`: параллельные запросы после OAuth больше не должны приводить к 500 при одновременном создании Appwrite `profiles`.
 - Текущий Google OAuth сбой `redirect_uri_mismatch` локализован во внешней настройке Google Cloud: в Authorized redirect URIs должен быть Appwrite callback `https://<region>.cloud.appwrite.io/v1/account/sessions/oauth2/callback/google/<project-id>`, а не callback домена Next.js или старый Supabase callback.

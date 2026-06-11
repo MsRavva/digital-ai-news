@@ -79,7 +79,7 @@
 
 ## Changelog
 
-- 2026-06-11: Воссоздан файл `middleware.ts` в корне проекта, который перенаправляет вызовы в `proxy.ts`. Это исправило проблему бесконечного перенаправления/зависания на "Перенаправление..." на главной странице Vercel, так как Next.js требует наличия `middleware.ts` для запуска Edge Middleware.
+- 2026-06-11: Изменен экспорт функции в `proxy.ts` на `export default` и удален `middleware.ts`, что устранило конфликт сборки и позволило Next.js 16 использовать `proxy.ts` в качестве полноценного middleware (исправлен бесконечный редирект на Vercel). Добавлен Vercel CLI в dev-зависимости.
 - 2026-05-16: На главной странице обновлены hero title/subtitle в `components/hero-section.tsx`; `bunx biome check --write components/hero-section.tsx` прошел успешно.
 - 2026-05-01: Создан Appwrite Auth user для `svasya@ro.ru` с id существующего профиля; исправлен клиентский email-login state sync в `context/auth-context.tsx`, а auth error handler очищен от Supabase-лейблов для Appwrite-ошибок. `bunx biome check --write context/auth-context.tsx lib/supabase-error-handler.ts app/login/page.tsx app/register/page.tsx` и `bunx tsc --noEmit` прошли успешно.
 - 2026-05-01: Google OAuth `redirect_uri_mismatch` локализован как внешняя настройка Google Cloud; `docs/QUICK_START.md`, `docs/PRODUCTION_DEPLOYMENT.md` и `docs/TESTING_CHECKLIST.md` обновлены на Appwrite OAuth callback URI.

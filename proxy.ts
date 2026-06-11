@@ -39,7 +39,7 @@ function isLinkPreviewRequest(request: NextRequest, pathname: string): boolean {
   return linkPreviewUserAgents.some((bot) => userAgent.includes(bot));
 }
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAppwrite = getBackendProvider() === "appwrite";
 
