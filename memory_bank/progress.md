@@ -1,6 +1,6 @@
 # Progress
 ## Контроль изменений
-- last_checked_commit: `67d3cb482bf967350dba12687036cacf92e25528`
+- last_checked_commit: `8aa3d5c35e1061dda3f8b04fdaaf230b06d885e0`
 - checked_at: `2026-06-11`
 
 ## Текущий статус
