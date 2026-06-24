@@ -82,7 +82,7 @@ export function getAppwriteSessionCookieConfig(expiresAt?: string | Date) {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "strict" as const,
+    sameSite: "lax" as const,
     path: "/",
     ...(expiresAt ? { expires: new Date(expiresAt) } : {}),
   };
@@ -482,7 +482,7 @@ export async function getAppwriteOAuthRedirectUrl(
   }
 
   const callbackBaseUrl =
-    process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || origin || "http://localhost:3000";
+    origin || process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || "http://localhost:3000";
   const successUrl = new URL("/auth/callback", callbackBaseUrl);
   successUrl.searchParams.set("provider", "appwrite");
   if (next) {
