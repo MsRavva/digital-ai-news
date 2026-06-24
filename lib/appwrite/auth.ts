@@ -481,8 +481,10 @@ export async function getAppwriteOAuthRedirectUrl(
     };
   }
 
-  const callbackBaseUrl =
-    origin || process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || "http://localhost:3000";
+  const isLocalhost = origin?.includes("localhost") || origin?.includes("127.0.0.1");
+  const callbackBaseUrl = isLocalhost
+    ? origin || "http://localhost:3000"
+    : process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL || origin || "http://localhost:3000";
   const successUrl = new URL("/auth/callback", callbackBaseUrl);
   successUrl.searchParams.set("provider", "appwrite");
   if (next) {

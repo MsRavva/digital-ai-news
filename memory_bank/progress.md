@@ -1,9 +1,10 @@
 # Progress
 
 ## Контроль изменений
-last_checked_commit: d2dfa15323db896c7e218280727532cdeacbe415
+last_checked_commit: cdd2edd09fa6095a3567e6887763a57c0448d60a
 
 ## Changelog
+- 2026-06-24: Ограничено использование динамического origin при генерации callback URL только для localhost (исправлена ошибка 'Invalid redirect' на Vercel).
 - 2026-06-24: Исправлена кука сессии Appwrite (SameSite изменен с Strict на Lax для надежной передачи при OAuth редиректах).
 - 2026-06-24: Приоритет origin повышен над NEXT_PUBLIC_AUTH_CALLBACK_URL для корректного OAuth-логина на localhost.
 - 2026-06-11: Заменен локальный AGENTS.md, очищены лишние папки и файлы из memory_bank.
