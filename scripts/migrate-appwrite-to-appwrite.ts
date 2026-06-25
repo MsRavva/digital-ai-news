@@ -47,10 +47,7 @@ function createSourceClients() {
   const projectId = requireEnv("SOURCE_APPWRITE_PROJECT_ID");
   const apiKey = requireEnv("SOURCE_APPWRITE_API_KEY");
 
-  const client = new Client()
-    .setEndpoint(endpoint)
-    .setProject(projectId)
-    .setKey(apiKey);
+  const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey);
 
   return {
     tablesDB: new TablesDB(client),
@@ -64,10 +61,7 @@ function createTargetClients() {
   const projectId = requireEnv("APPWRITE_PROJECT_ID");
   const apiKey = requireEnv("APPWRITE_API_KEY");
 
-  const client = new Client()
-    .setEndpoint(endpoint)
-    .setProject(projectId)
-    .setKey(apiKey);
+  const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey);
 
   return {
     tablesDB: new TablesDB(client),

@@ -1,9 +1,11 @@
 # Progress
 
 ## Контроль изменений
-last_checked_commit: cdd2edd09fa6095a3567e6887763a57c0448d60a
+last_checked_commit: 22f8f5f39e891708c0cde5f729ec5985eb361a89
 
 ## Changelog
+- 2026-06-25: Добавлен хост Appwrite `https://aw.note-canopus.ts.net` в CSP `connect-src` в `next.config.mjs` для работы в Vercel-проде.
+- 2026-06-25: Исправлены вызовы OAuth-функций Google/Github на клиенте, восстановлено перенаправление браузера (`window.location.assign`).
 - 2026-06-24: Ограничено использование динамического origin при генерации callback URL только для localhost (исправлена ошибка 'Invalid redirect' на Vercel).
 - 2026-06-24: Исправлена кука сессии Appwrite (SameSite изменен с Strict на Lax для надежной передачи при OAuth редиректах).
 - 2026-06-24: Приоритет origin повышен над NEXT_PUBLIC_AUTH_CALLBACK_URL для корректного OAuth-логина на localhost.

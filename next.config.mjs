@@ -16,7 +16,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co https://*.cloud.appwrite.io https://fra.cloud.appwrite.io",
+              "connect-src 'self' https://*.supabase.co https://*.cloud.appwrite.io https://fra.cloud.appwrite.io https://aw.note-canopus.ts.net",
               "frame-src 'self' https://accounts.google.com https://github.com",
               "object-src 'none'",
               "base-uri 'self'",

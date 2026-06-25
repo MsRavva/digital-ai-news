@@ -119,7 +119,16 @@ export async function signIn(
 export async function signInWithGoogle(next?: string): Promise<{ error: AuthError | null }> {
   switch (getBackendProvider()) {
     case "appwrite":
-      return getOAuthRedirectUrl("google", next).then(({ error }) => ({ error }));
+      try {
+        const { url, error } = await getOAuthRedirectUrl("google", next);
+        if (error) return { error };
+        if (url && typeof window !== "undefined") {
+          window.location.assign(url);
+        }
+        return { error: null };
+      } catch (err) {
+        return { error: err as AuthError };
+      }
     default:
       return signInWithSupabaseGoogle(next);
   }
@@ -128,7 +137,16 @@ export async function signInWithGoogle(next?: string): Promise<{ error: AuthErro
 export async function signInWithGithub(next?: string): Promise<{ error: AuthError | null }> {
   switch (getBackendProvider()) {
     case "appwrite":
-      return getOAuthRedirectUrl("github", next).then(({ error }) => ({ error }));
+      try {
+        const { url, error } = await getOAuthRedirectUrl("github", next);
+        if (error) return { error };
+        if (url && typeof window !== "undefined") {
+          window.location.assign(url);
+        }
+        return { error: null };
+      } catch (err) {
+        return { error: err as AuthError };
+      }
     default:
       return signInWithSupabaseGithub(next);
   }

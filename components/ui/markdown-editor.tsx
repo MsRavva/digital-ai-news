@@ -199,7 +199,9 @@ export function MarkdownEditor({
               Разделить
             </button>
           </div>
-          <p className="text-xs text-muted-foreground">Для изображений используйте обычный Markdown-синтаксис со ссылкой на внешний URL.</p>
+          <p className="text-xs text-muted-foreground">
+            Для изображений используйте обычный Markdown-синтаксис со ссылкой на внешний URL.
+          </p>
         </div>
       </div>
 
