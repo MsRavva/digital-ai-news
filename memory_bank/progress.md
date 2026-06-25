@@ -1,7 +1,7 @@
 # Progress
 
 ## Контроль изменений
-last_checked_commit: 22f8f5f39e891708c0cde5f729ec5985eb361a89
+last_checked_commit: f96b594052f470dbcf3137290256abb61ba931ae
 
 ## Changelog
 - 2026-06-25: Добавлен хост Appwrite `https://aw.note-canopus.ts.net` в CSP `connect-src` в `next.config.mjs` для работы в Vercel-проде.
