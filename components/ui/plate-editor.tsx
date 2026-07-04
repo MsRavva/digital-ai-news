@@ -218,8 +218,9 @@ export function PlateEditor({
           {showEditor && (
             <EditorContainer className="rounded-b-lg border border-t-0 border-border/70 bg-background">
               <Editor
+                variant="none"
                 placeholder={placeholder}
-                className="min-h-[420px]"
+                className="min-h-[420px] px-3 py-2 text-left"
                 style={{ minHeight: `${Math.max(320, height - 40)}px` }}
               />
             </EditorContainer>
