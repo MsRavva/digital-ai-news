@@ -4,6 +4,7 @@ import "./globals.css";
 import { GlobalBackground } from "@/components/global-background";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/auth-context";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -29,11 +30,13 @@ export default function RootLayout({
     <html lang="ru" className={jetbrainsMono.variable} suppressHydrationWarning>
       <body suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            <GlobalBackground />
-            {children}
-            <Toaster />
-          </AuthProvider>
+          <TooltipProvider>
+            <AuthProvider>
+              <GlobalBackground />
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
