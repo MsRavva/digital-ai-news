@@ -655,3 +655,58 @@ code:not(pre code) {
 .dark .bento-card-content {
   scrollbar-color: oklch(0.627 0.265 303.9 / 0.25) transparent;
 }
+
+/* ============================================
+   Plate.js editor overrides
+   ============================================ */
+
+/* Toolbar buttons - inherit project theme */
+[role="toolbar"] button,
+[role="toolbar"] [data-slot="button"] {
+  background-color: transparent;
+  color: hsl(var(--foreground));
+}
+
+[role="toolbar"] button:hover,
+[role="toolbar"] [data-slot="button"]:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Editor area - clean background */
+[data-slate-editor] {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Placeholder text */
+[data-slate-placeholder] {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.7 !important;
+}
+
+/* Selection highlight */
+[data-slate-editor] ::selection {
+  background-color: hsl(var(--primary) / 0.15);
+}
+
+/* Dark mode overrides */
+.dark [role="toolbar"] button,
+.dark [role="toolbar"] [data-slot="button"] {
+  color: hsl(var(--foreground));
+}
+
+.dark [role="toolbar"] button:hover,
+.dark [role="toolbar"] [data-slot="button"]:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.dark [data-slate-editor] {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark [data-slate-editor] ::selection {
+  background-color: hsl(var(--primary) / 0.25);
+}

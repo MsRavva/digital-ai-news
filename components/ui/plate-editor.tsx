@@ -21,7 +21,9 @@ import {
   Bold,
   Code2,
   Eye,
+  Heading1,
   Heading2,
+  Heading3,
   Italic,
   LayoutPanelTop,
   Link2,
@@ -30,6 +32,7 @@ import {
   PenSquare,
   Quote,
   Strikethrough,
+  Underline,
 } from "lucide-react";
 import { TrailingBlockPlugin, type Value } from "platejs";
 import { ParagraphPlugin, Plate, usePlateEditor } from "platejs/react";
@@ -45,6 +48,7 @@ import { LinkElement } from "@/components/ui/link-node";
 import { MarkToolbarButton } from "@/components/ui/mark-toolbar-button";
 import { MarkdownContent } from "@/components/ui/markdown-content";
 import { ParagraphElement } from "@/components/ui/paragraph-node";
+import { Separator } from "@/components/ui/separator";
 import { ToolbarButton } from "@/components/ui/toolbar";
 import { cn } from "@/lib/utils";
 
@@ -148,70 +152,108 @@ export function PlateEditor({
         <Plate editor={editor} onChange={handleEditorChange}>
           {showEditor && (
             <FixedToolbar className="flex flex-wrap items-center gap-1 rounded-t-lg border-b border-b-border bg-background/95 p-1 backdrop-blur-sm">
-              <MarkToolbarButton nodeType="bold" tooltip="Жирный" aria-label="Жирный">
-                <Bold className="h-4 w-4" />
-              </MarkToolbarButton>
-              <MarkToolbarButton nodeType="italic" tooltip="Курсив" aria-label="Курсив">
-                <Italic className="h-4 w-4" />
-              </MarkToolbarButton>
-              <MarkToolbarButton
-                nodeType="strikethrough"
-                tooltip="Зачёркнутый"
-                aria-label="Зачёркнутый"
-              >
-                <Strikethrough className="h-4 w-4" />
-              </MarkToolbarButton>
-              <ToolbarButton
-                tooltip="Заголовок"
-                aria-label="Заголовок"
-                onClick={() => editor.tf.h2.toggle()}
-              >
-                <Heading2 className="h-4 w-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                tooltip="Цитата"
-                aria-label="Цитата"
-                onClick={() => editor.tf.blockquote.toggle()}
-              >
-                <Quote className="h-4 w-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                tooltip="Маркированный список"
-                aria-label="Маркированный список"
-                onClick={() => toggleList(editor, { listStyleType: ListStyleType.Disc })}
-              >
-                <List className="h-4 w-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                tooltip="Нумерованный список"
-                aria-label="Нумерованный список"
-                onClick={() => toggleList(editor, { listStyleType: ListStyleType.Decimal })}
-              >
-                <ListOrdered className="h-4 w-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                tooltip="Блок кода"
-                aria-label="Блок кода"
-                onClick={() => insertCodeBlock(editor, { select: true })}
-              >
-                <Code2 className="h-4 w-4" />
-              </ToolbarButton>
-              <ToolbarButton
-                tooltip="Ссылка"
-                aria-label="Ссылка"
-                onClick={() => {
-                  const url = prompt("Введите URL ссылки:");
-                  if (url) {
-                    editor.tf.insertNodes({
-                      type: "a",
-                      url,
-                      children: [{ text: url }],
-                    } as any);
-                  }
-                }}
-              >
-                <Link2 className="h-4 w-4" />
-              </ToolbarButton>
+              <div className="flex items-center gap-0.5">
+                <MarkToolbarButton nodeType="bold" tooltip="Жирный" aria-label="Жирный">
+                  <Bold className="h-4 w-4" />
+                </MarkToolbarButton>
+                <MarkToolbarButton nodeType="italic" tooltip="Курсив" aria-label="Курсив">
+                  <Italic className="h-4 w-4" />
+                </MarkToolbarButton>
+                <MarkToolbarButton
+                  nodeType="underline"
+                  tooltip="Подчёркнутый"
+                  aria-label="Подчёркнутый"
+                >
+                  <Underline className="h-4 w-4" />
+                </MarkToolbarButton>
+                <MarkToolbarButton
+                  nodeType="strikethrough"
+                  tooltip="Зачёркнутый"
+                  aria-label="Зачёркнутый"
+                >
+                  <Strikethrough className="h-4 w-4" />
+                </MarkToolbarButton>
+              </div>
+
+              <Separator orientation="vertical" className="mx-1 h-5" />
+
+              <div className="flex items-center gap-0.5">
+                <ToolbarButton
+                  tooltip="Заголовок 1"
+                  aria-label="Заголовок 1"
+                  onClick={() => editor.tf.h1.toggle()}
+                >
+                  <Heading1 className="h-4 w-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  tooltip="Заголовок 2"
+                  aria-label="Заголовок 2"
+                  onClick={() => editor.tf.h2.toggle()}
+                >
+                  <Heading2 className="h-4 w-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  tooltip="Заголовок 3"
+                  aria-label="Заголовок 3"
+                  onClick={() => editor.tf.h3.toggle()}
+                >
+                  <Heading3 className="h-4 w-4" />
+                </ToolbarButton>
+              </div>
+
+              <Separator orientation="vertical" className="mx-1 h-5" />
+
+              <div className="flex items-center gap-0.5">
+                <ToolbarButton
+                  tooltip="Цитата"
+                  aria-label="Цитата"
+                  onClick={() => editor.tf.blockquote.toggle()}
+                >
+                  <Quote className="h-4 w-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  tooltip="Маркированный список"
+                  aria-label="Маркированный список"
+                  onClick={() => toggleList(editor, { listStyleType: ListStyleType.Disc })}
+                >
+                  <List className="h-4 w-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  tooltip="Нумерованный список"
+                  aria-label="Нумерованный список"
+                  onClick={() => toggleList(editor, { listStyleType: ListStyleType.Decimal })}
+                >
+                  <ListOrdered className="h-4 w-4" />
+                </ToolbarButton>
+              </div>
+
+              <Separator orientation="vertical" className="mx-1 h-5" />
+
+              <div className="flex items-center gap-0.5">
+                <ToolbarButton
+                  tooltip="Блок кода"
+                  aria-label="Блок кода"
+                  onClick={() => insertCodeBlock(editor, { select: true })}
+                >
+                  <Code2 className="h-4 w-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  tooltip="Ссылка"
+                  aria-label="Ссылка"
+                  onClick={() => {
+                    const url = prompt("Введите URL ссылки:");
+                    if (url) {
+                      editor.tf.insertNodes({
+                        type: "a",
+                        url,
+                        children: [{ text: url }],
+                      } as any);
+                    }
+                  }}
+                >
+                  <Link2 className="h-4 w-4" />
+                </ToolbarButton>
+              </div>
             </FixedToolbar>
           )}
 
@@ -220,7 +262,7 @@ export function PlateEditor({
               <Editor
                 variant="none"
                 placeholder={placeholder}
-                className="min-h-[420px] px-3 py-2 text-left"
+                className="min-h-[420px] px-4 py-3 text-left text-sm"
                 style={{ minHeight: `${Math.max(320, height - 40)}px` }}
               />
             </EditorContainer>
