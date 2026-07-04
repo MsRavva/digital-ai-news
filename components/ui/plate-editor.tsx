@@ -258,13 +258,13 @@ export function PlateEditor({
           )}
 
           {showEditor && (
-            <EditorContainer className="rounded-b-lg border border-t-0 border-border/70 bg-background">
-              <Editor
-                variant="none"
-                placeholder={placeholder}
-                className="min-h-[420px] px-4 py-3 text-left text-sm"
+            <EditorContainer className="rounded-b-lg border border-t-0 border-border bg-background">
+              <div
+                className="min-h-[420px] overflow-auto px-4 py-3"
                 style={{ minHeight: `${Math.max(320, height - 40)}px` }}
-              />
+              >
+                <Editor variant="none" placeholder={placeholder} className="text-left text-sm" />
+              </div>
             </EditorContainer>
           )}
         </Plate>
