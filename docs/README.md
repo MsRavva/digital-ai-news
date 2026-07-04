@@ -34,7 +34,7 @@ Digital AI News - внутренняя новостная платформа н�
 
 - CSP задается в `next.config.mjs`.
 - Для совместимости с `react-markdown-editor-lite` разрешен `font-src 'self' data:` из-за встроенного base64-шрифта редактора.
-- Собственный `MarkdownEditor` поддерживает inline-toolbar и обычный Markdown для изображений по внешним URL.
+- Plate.js rich text editor (WYSIWYG) заменил textarea-редактор; поддерживает split-режим (редактор + предпросмотр), markdown-сериализацию и стилизацию через CSS-overrides под дизайн-систему проекта.
 
 ## Ключевые маршруты
 

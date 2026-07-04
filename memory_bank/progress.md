@@ -1,9 +1,13 @@
 # Progress
 
 ## Контроль изменений
-last_checked_commit: f96b594052f470dbcf3137290256abb61ba931ae
+last_checked_commit: da3ffdf
 
 ## Changelog
+- 2026-07-04: Замена textarea-редактора на Plate.js rich text editor (WYSIWYG, split-режим, toolbar с группировкой кнопок и разделителями).
+- 2026-07-04: Стилизация Plate.js редактора под дизайн-систему проекта (CSS-overrides для тем light/dark, отступы `px-4 py-3`, рамка `border-border` как в блоке Предпросмотр).
+- 2026-07-04: Добавлен `TooltipProvider` в корневой `layout.tsx` для работы тултипов Plate.js.
+- 2026-07-04: Установлены зависимости Plate.js: `@platejs/editor-ai`, `@platejs/markdown`, `remark-gfm`.
 - 2026-06-25: Добавлен хост Appwrite `https://aw.note-canopus.ts.net` в CSP `connect-src` в `next.config.mjs` для работы в Vercel-проде.
 - 2026-06-25: Исправлены вызовы OAuth-функций Google/Github на клиенте, восстановлено перенаправление браузера (`window.location.assign`).
 - 2026-06-24: Ограничено использование динамического origin при генерации callback URL только для localhost (исправлена ошибка 'Invalid redirect' на Vercel).
